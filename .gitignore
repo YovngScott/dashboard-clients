@@ -21,5 +21,3 @@ dist-ssr
 *.sln
 *.sw?
 .env
-tmp/
-public/assets/stage-orchestration.png

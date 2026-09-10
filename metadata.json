@@ -1,0 +1,6 @@
+{
+  "name": "Flujo — Automatiza tu comunidad",
+  "description": "Plataforma de automatización de conversaciones y comunidad para creadores y marcas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
