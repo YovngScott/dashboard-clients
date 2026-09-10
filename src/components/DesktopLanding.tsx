@@ -284,7 +284,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#fbfaf8]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Brand Logo */}
-          <div className="flex items-center gap-2.5">
+          <a href="https://stage-labs.ai.studio/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <span className="h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm ring-2 ring-[#0d5c58]/20" />
             <div className="flex items-center gap-1.5">
               <span className="font-display text-xl font-black tracking-tight text-[#0f2331]">
@@ -294,7 +294,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                 LLC
               </span>
             </div>
-          </div>
+          </a>
 
           {/* Navigation links matching requested URLs */}
           <nav className="flex items-center gap-8 text-sm font-semibold text-[#3b4c58]">
