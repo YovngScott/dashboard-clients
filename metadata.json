@@ -1,6 +1,6 @@
 {
-  "name": "Flujo — Automatiza tu comunidad",
-  "description": "Plataforma de automatización de conversaciones y comunidad para creadores y marcas.",
+  "name": "Stage AI Labs — CEO Copilot y Automatización",
+  "description": "Un CEO Copilot que convierte conversaciones en trabajo resuelto. Conecta tus canales, consulta tus datos y actúa con las reglas de tu negocio.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

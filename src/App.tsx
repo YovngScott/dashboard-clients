@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
-  ArrowLeft, ArrowRight, BarChart3, Bell, Bot, Check, ChevronRight, CircleHelp,
-  Clock3, Command, Facebook, Home, Inbox, Instagram, LayoutGrid,
-  Link2, LogOut, MessageCircle, Monitor, Moon, Play, Plus, Search,
-  Settings, Sparkles, Store, Sun, Target, Users, X, Zap,
+  ArrowLeft, ArrowRight, BarChart3, Bot, Check, ChevronRight, CircleHelp,
+  Clock3, Facebook, Instagram, LayoutGrid,
+  Link2, MessageCircle, Play, Search,
+  Sparkles, Store, Target, Users, X, Zap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { DashboardTopBar } from './components/DashboardTopBar';
+import { SettingsScreen } from './components/SettingsScreen';
+import { UpgradeModal } from './components/UpgradeModal';
+import { ChannelsModal } from './components/ChannelsModal';
+import { HomeHeroBanner } from './components/HomeHeroBanner';
+import { TemplateCards } from './components/TemplateCards';
+import { BottomNavBar } from './components/BottomNavBar';
+import { AnimatedEmptyState } from './components/AnimatedEmptyState';
+import { MobileAuthView } from './components/MobileAuthView';
+import { DesktopLanding } from './components/DesktopLanding';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
-type AuthMode = 'signup' | 'signin';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
 type ThemePref = 'light' | 'dark' | 'system';
 type Profile = {
@@ -57,12 +66,6 @@ const sourceOptions: Option[] = [
   { label: 'Un amigo', value: 'amigo', icon: <Users size={22} /> },
 ];
 
-const themeOptions: { label: string; value: ThemePref; icon: ReactNode }[] = [
-  { label: 'Claro', value: 'light', icon: <Sun size={18} /> },
-  { label: 'Oscuro', value: 'dark', icon: <Moon size={18} /> },
-  { label: 'Sistema', value: 'system', icon: <Monitor size={18} /> },
-];
-
 /* ── Theme hook ────────────────────────────────────────────── */
 
 function useTheme(profile: Profile | null) {
@@ -98,162 +101,29 @@ function useTheme(profile: Profile | null) {
 
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 text-sm font-extrabold text-white shadow-lg shadow-teal-600/20">F</div>
-      {!compact && <span className="font-display text-xl font-extrabold tracking-tight text-ink">flujo<span className="text-teal-500">.</span></span>}
+    <div className="flex items-center gap-2.5">
+      <span className="h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm dark:bg-teal-400" />
+      <div className="flex items-center gap-1.5">
+        <span className="font-display text-xl font-extrabold tracking-tight text-ink">
+          Stage AI Labs
+        </span>
+        {!compact && (
+          <span className="rounded-md border border-zinc-300/80 bg-zinc-100/80 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+            LLC
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
 function Button({ children, onClick, variant = 'primary', disabled = false, type = 'button', className = '' }: { children: ReactNode; onClick?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; type?: 'button' | 'submit'; className?: string }) {
   const styles = variant === 'primary'
-    ? 'bg-brand text-brand-ink hover:opacity-90'
+    ? 'bg-[#0d5c58] text-white hover:bg-[#094542] dark:bg-teal-600 dark:hover:bg-teal-500 shadow-md shadow-[#0d5c58]/20'
     : variant === 'secondary'
     ? 'border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10'
     : 'text-ink/60 hover:bg-ink/5 hover:text-ink';
   return <button type={type} disabled={disabled} onClick={onClick} className={`flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}>{children}</button>;
-}
-
-/* ── Landing ────────────────────────────────────────────────── */
-
-function Landing({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void }) {
-  return (
-    <div className="min-h-screen overflow-hidden bg-canvas">
-      <header className="relative z-10 flex items-center justify-between px-6 py-6 sm:px-10 lg:px-16">
-        <Logo />
-        <div className="hidden items-center gap-8 text-sm text-ink/60 md:flex"><span>Producto</span><span>Recursos</span><span>Precios</span></div>
-        <Button variant="secondary" onClick={onSignIn} className="px-4 py-2 text-sm">Iniciar sesión</Button>
-      </header>
-      <main className="relative mx-auto flex min-h-[calc(100vh-88px)] max-w-7xl items-center px-6 pb-16 pt-8 sm:px-10 lg:px-16">
-        <div className="pointer-events-none absolute -right-32 top-8 h-[520px] w-[520px] rounded-full bg-teal-500/15 blur-[130px]" />
-        <div className="pointer-events-none absolute -left-40 bottom-0 h-[360px] w-[360px] rounded-full bg-teal-600/10 blur-[110px]" />
-        <div className="relative grid w-full items-center gap-16 lg:grid-cols-[1.02fr_.98fr]">
-          <div className="animate-rise">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300"><Sparkles size={14} /> Tu comunidad, en piloto automático</div>
-            <h1 className="font-display max-w-3xl text-5xl font-extrabold leading-[1.02] tracking-[-.045em] text-ink sm:text-7xl">Haz que cada conversación <span className="bg-gradient-to-r from-teal-500 to-teal-700 bg-clip-text text-transparent dark:from-teal-300 dark:to-teal-500">cuente.</span></h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-ink/55">Flujo te ayuda a convertir comentarios, mensajes y seguidores en relaciones que crecen contigo.</p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={onStart} className="px-6 py-3.5">Crear mi espacio <ArrowRight size={18} /></Button>
-              <Button variant="ghost" onClick={onSignIn}>Ya tengo una cuenta <ChevronRight size={16} /></Button>
-            </div>
-            <div className="mt-10 flex items-center gap-4 text-xs text-ink/40">
-              <div className="flex -space-x-2">
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-canvas bg-teal-400 text-xs font-bold text-white">M</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-canvas bg-teal-600 text-xs font-bold text-white">A</span>
-                <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-canvas bg-teal-800 text-xs font-bold text-white">L</span>
-              </div>
-              <span>Más de 12.000 creadores ya están creciendo</span>
-            </div>
-          </div>
-          <div className="relative animate-rise [animation-delay:120ms]">
-            <div className="absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-teal-500/20 to-teal-700/10 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-ink/10 bg-panel p-3 shadow-2xl shadow-black/10">
-              <div className="grid-lines relative overflow-hidden rounded-[1.4rem] bg-panel-2 p-5 sm:p-7">
-                <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-teal-500/20 blur-3xl" />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink/60">Vista previa de tu espacio</span>
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Activo</span>
-                </div>
-                <div className="mt-14 max-w-sm">
-                  <p className="text-sm text-teal-700 dark:text-teal-300">Hola, comunidad</p>
-                  <h2 className="mt-2 font-display text-4xl font-extrabold leading-tight text-ink">Responde menos.<br /><span className="text-teal-600 dark:text-teal-400">Conecta más.</span></h2>
-                  <p className="mt-4 text-sm leading-6 text-ink/50">Automatizaciones que suenan a ti, no a un robot.</p>
-                </div>
-                <div className="mt-16 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-ink/10 bg-canvas/50 p-4">
-                    <div className="mb-5 flex items-center justify-between"><span className="text-xs text-ink/50">Conversaciones</span><MessageCircle size={16} className="text-teal-600 dark:text-teal-400" /></div>
-                    <p className="font-display text-3xl font-bold text-ink">2,486</p>
-                    <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">+18.4% esta semana</p>
-                  </div>
-                  <div className="rounded-2xl border border-ink/10 bg-canvas/50 p-4">
-                    <div className="mb-5 flex items-center justify-between"><span className="text-xs text-ink/50">Automatizaciones</span><Bot size={16} className="text-teal-700 dark:text-teal-300" /></div>
-                    <p className="font-display text-3xl font-bold text-ink">14</p>
-                    <p className="mt-1 text-xs text-ink/40">Funcionando ahora</p>
-                  </div>
-                </div>
-                <div className="absolute bottom-6 right-6 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-teal-400 to-teal-700 shadow-xl shadow-teal-600/30"><Zap size={27} className="text-white" /></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-
-/* ── Auth ───────────────────────────────────────────────────── */
-
-function Auth({ mode, setMode, onSuccess, onBack }: { mode: AuthMode; setMode: (mode: AuthMode) => void; onSuccess: (profile: Profile | null) => void; onBack: () => void }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState('');
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError('');
-    setNotice('');
-    setLoading(true);
-    const result = mode === 'signup'
-      ? await supabase.auth.signUp({ email, password, options: { data: { display_name: name } } })
-      : await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (result.error) {
-      setError(result.error.message.includes('Invalid') ? 'El correo o la contraseña no son correctos.' : result.error.message);
-      return;
-    }
-    if (mode === 'signup' && !result.data.session) {
-      setNotice('Revisa tu correo para confirmar la cuenta y continuar.');
-      return;
-    }
-    if (result.data.user) {
-      const { data } = await supabase.from('onboarding_profiles').select('*').eq('id', result.data.user.id).maybeSingle();
-      onSuccess(data as Profile | null);
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-canvas px-6 py-6 sm:px-10">
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
-        <button onClick={onBack} aria-label="Volver"><ArrowLeft size={22} className="text-ink/60 transition hover:text-ink" /></button>
-        <Logo />
-        <span className="w-7" />
-      </div>
-      <div className="mx-auto flex max-w-md flex-col justify-center py-16 sm:py-24">
-        <div className="mb-8">
-          <div className="mb-7 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal-400 to-teal-700 text-white"><Command size={28} /></div>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink">{mode === 'signup' ? 'Crea tu espacio.' : 'Qué bueno verte.'}</h1>
-          <p className="mt-3 text-ink/50">{mode === 'signup' ? 'Unos minutos para poner tu comunidad a trabajar.' : 'Entra para continuar donde lo dejaste.'}</p>
-        </div>
-        <div className="mb-7 flex rounded-xl border border-ink/10 bg-ink/5 p-1">
-          <button onClick={() => setMode('signup')} className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${mode === 'signup' ? 'bg-brand text-brand-ink' : 'text-ink/50'}`}>Crear cuenta</button>
-          <button onClick={() => setMode('signin')} className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition ${mode === 'signin' ? 'bg-brand text-brand-ink' : 'text-ink/50'}`}>Iniciar sesión</button>
-        </div>
-        <form onSubmit={submit} className="space-y-4">
-          {mode === 'signup' && (
-            <label className="block">
-              <span className="mb-2 block text-sm text-ink/60">Tu nombre o marca</span>
-              <input value={name} onChange={e => setName(e.target.value)} required className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder="Ej. Estudio Norte" />
-            </label>
-          )}
-          <label className="block">
-            <span className="mb-2 block text-sm text-ink/60">Correo electrónico</span>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder="tu@correo.com" />
-          </label>
-          <label className="block">
-            <span className="mb-2 block text-sm text-ink/60">Contraseña</span>
-            <input type="password" minLength={6} value={password} onChange={e => setPassword(e.target.value)} required className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder="Mínimo 6 caracteres" />
-          </label>
-          {error && <p className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-600 dark:text-red-300">{error}</p>}
-          {notice && <p className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">{notice}</p>}
-          <Button type="submit" disabled={loading} className="mt-2 w-full py-3.5">{loading ? 'Preparando...' : mode === 'signup' ? 'Comenzar ahora' : 'Entrar a mi espacio'} <ArrowRight size={17} /></Button>
-        </form>
-        <p className="mt-7 text-center text-xs leading-5 text-ink/35">Al continuar aceptas nuestros términos y política de privacidad.</p>
-      </div>
-    </div>
-  );
 }
 
 /* ── Onboarding ─────────────────────────────────────────────── */
@@ -373,130 +243,63 @@ function Questions({ profile, setProfile, onFinish, onBack }: { profile: Profile
 
 function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => void }) {
   const [tab, setTab] = useState<DashboardTab>('Inicio');
-  const [showMenu, setShowMenu] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showChannels, setShowChannels] = useState(false);
   const { themePref, updateTheme } = useTheme(profile);
-  const firstName = (profile.display_name ?? 'Creador').split(' ')[0];
-  const nav: { label: DashboardTab; icon: ReactNode }[] = [
-    { label: 'Inicio', icon: <Home size={18} /> },
-    { label: 'Bandeja', icon: <Inbox size={18} /> },
-    { label: 'Contactos', icon: <Users size={18} /> },
-    { label: 'Automatizaciones', icon: <Bot size={18} /> },
-  ];
+
+  if (showSettings) {
+    return (
+      <div className="min-h-screen bg-canvas text-ink">
+        <SettingsScreen
+          profile={profile}
+          themePref={themePref}
+          updateTheme={updateTheme}
+          onLogout={onLogout}
+          onBack={() => setShowSettings(false)}
+          onOpenUpgrade={() => setShowUpgrade(true)}
+        />
+        <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/10 bg-panel p-5 lg:flex">
-        <Logo />
-        <div className="mt-12 space-y-1">
-          {nav.map(item => (
-            <button key={item.label} onClick={() => setTab(item.label)} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${tab === item.label ? 'bg-brand text-brand-ink' : 'text-ink/50 hover:bg-ink/5 hover:text-ink'}`}>{item.icon}{item.label}</button>
-          ))}
-        </div>
-        <div className="mt-auto space-y-1">
-          <button onClick={() => setTab('Configuración')} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${tab === 'Configuración' ? 'bg-brand text-brand-ink' : 'text-ink/50 hover:bg-ink/5 hover:text-ink'}`}><Settings size={18} /> Configuración</button>
-          <button onClick={onLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-ink/50 hover:bg-ink/5 hover:text-ink"><LogOut size={18} /> Cerrar sesión</button>
-        </div>
-      </aside>
+    <div className="min-h-screen bg-canvas text-ink pb-24 lg:pb-12">
+      {/* Header: user name and icon on the top-left, 3 lines menu on the top-right */}
+      <DashboardTopBar
+        profile={profile}
+        onOpenSettings={() => setShowSettings(true)}
+      />
 
-      <div className="lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-ink/10 bg-canvas/85 px-6 backdrop-blur-xl sm:px-10">
-          <div className="lg:hidden"><Logo compact /></div>
-          <div className="hidden items-center gap-3 text-sm text-ink/50 lg:flex"><span>Espacio</span><ChevronRight size={15} /><span className="text-ink">{profile.display_name ?? 'Mi marca'}</span></div>
-          <div className="flex items-center gap-3">
-            <button className="hidden h-10 w-10 place-items-center rounded-xl border border-ink/10 text-ink/50 hover:text-ink sm:grid"><Bell size={18} /></button>
-            <button onClick={() => setShowMenu(!showMenu)} className="flex items-center gap-2 rounded-xl border border-ink/10 bg-ink/5 px-2 py-1.5">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-teal-400 to-teal-700 text-xs font-bold text-white">{firstName[0]?.toUpperCase()}</span>
-              <span className="hidden text-sm font-semibold text-ink sm:block">{firstName}</span>
-              <ChevronRight size={14} className="rotate-90 text-ink/40" />
-            </button>
-            {showMenu && (
-              <div className="absolute right-6 top-16 w-48 rounded-xl border border-ink/10 bg-panel p-2 shadow-2xl">
-                <button onClick={() => { setTab('Configuración'); setShowMenu(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-ink/70 hover:bg-ink/5"><Settings size={15} /> Configuración</button>
-                <button onClick={onLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-ink/70 hover:bg-ink/5"><LogOut size={15} /> Cerrar sesión</button>
-              </div>
-            )}
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+        {tab === 'Inicio' && (
+          <div className="space-y-8 animate-rise">
+            <HomeHeroBanner onOpenUpgrade={() => setShowUpgrade(true)} />
+            <TemplateCards />
           </div>
-        </header>
+        )}
+        {tab === 'Bandeja' && (
+          <AnimatedEmptyState
+            type="inbox"
+            onAction={() => setShowChannels(true)}
+          />
+        )}
+        {tab === 'Contactos' && (
+          <AnimatedEmptyState
+            type="contacts"
+            onAction={() => setShowUpgrade(true)}
+          />
+        )}
+        {tab === 'Automatizaciones' && <AutomationView />}
+      </main>
 
-        <main className="mx-auto max-w-6xl px-6 py-8 sm:px-10 lg:px-12">
-          {tab === 'Inicio' && <HomeView profile={profile} firstName={firstName} setTab={setTab} />}
-          {tab === 'Bandeja' && <EmptyView title="Bandeja" description="Todas tus conversaciones en un solo lugar." icon={<Inbox size={30} />} action="Crear respuesta automática" />}
-          {tab === 'Contactos' && <EmptyView title="Contactos" description="Tu comunidad aparecerá aquí cuando conectes tu canal." icon={<Users size={30} />} action="Conectar otro canal" />}
-          {tab === 'Automatizaciones' && <AutomationView />}
-          {tab === 'Configuración' && <SettingsView profile={profile} themePref={themePref} updateTheme={updateTheme} onLogout={onLogout} />}
-        </main>
+      {/* Bottom navigation bar: Home, Inbox, Contacts, Automation */}
+      <BottomNavBar currentTab={tab} onSelectTab={setTab} />
 
-        {/* Mobile bottom nav — includes Configuración */}
-        <nav className="fixed bottom-5 left-1/2 z-20 flex w-[calc(100%-32px)] max-w-md -translate-x-1/2 items-center justify-around rounded-2xl border border-ink/15 bg-panel/90 p-1.5 shadow-2xl backdrop-blur-xl lg:hidden">
-          {nav.map(item => (
-            <button key={item.label} onClick={() => setTab(item.label)} className={`flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold transition ${tab === item.label ? 'bg-brand text-brand-ink' : 'text-ink/45'}`}>{item.icon}{item.label}</button>
-          ))}
-          <button onClick={() => setTab('Configuración')} className={`flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[10px] font-semibold transition ${tab === 'Configuración' ? 'bg-brand text-brand-ink' : 'text-ink/45'}`}><Settings size={18} />Ajustes</button>
-        </nav>
-      </div>
-    </div>
-  );
-}
-
-function HomeView({ profile, firstName, setTab }: { profile: Profile; firstName: string; setTab: (tab: DashboardTab) => void }) {
-  const channel = profile.channel ?? 'Instagram';
-  return (
-    <div className="animate-rise">
-      <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="mb-2 text-sm font-semibold text-teal-600 dark:text-teal-400">Buenos días, {firstName}</p>
-          <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Tu comunidad está lista.</h1>
-          <p className="mt-3 text-ink/45">Un vistazo a lo que está pasando en tu espacio.</p>
-        </div>
-        <Button variant="secondary" onClick={() => setTab('Automatizaciones')}><Plus size={17} /> Nueva automatización</Button>
-      </div>
-      <div className="grid-lines relative overflow-hidden rounded-3xl border border-teal-500/20 bg-panel p-6 sm:p-8">
-        <div className="absolute -right-10 -top-16 h-64 w-64 rounded-full bg-teal-500/15 blur-3xl" />
-        <div className="relative max-w-xl">
-          <div className="mb-7 flex items-center gap-2 text-xs font-semibold text-teal-700 dark:text-teal-300"><span className="h-2 w-2 rounded-full bg-emerald-500" /> {channel} conectado</div>
-          <h2 className="font-display text-3xl font-extrabold leading-tight text-ink sm:text-4xl">No dejes que el crecimiento<br />te quite tu voz.</h2>
-          <p className="mt-4 max-w-md text-ink/55">Empieza con una automatización y deja que Flujo haga el trabajo pesado por ti.</p>
-          <button onClick={() => setTab('Automatizaciones')} className="mt-7 rounded-xl bg-brand px-5 py-3 font-semibold text-brand-ink transition hover:opacity-90">Explorar ideas <ArrowRight className="ml-2 inline" size={17} /></button>
-        </div>
-      </div>
-      <div className="mt-9 grid gap-4 sm:grid-cols-3">
-        {[['Conversaciones', '2,486', '+18.4%', <MessageCircle size={18} key="a" />], ['Contactos nuevos', '348', '+12.8%', <Users size={18} key="b" />], ['Automatizaciones', '14', '3 activas', <Bot size={18} key="c" />]].map(([label, value, change, icon]) => (
-          <div key={String(label)} className="rounded-2xl border border-ink/10 bg-ink/[.035] p-5">
-            <div className="flex items-center justify-between text-ink/45"><span className="text-sm">{label as string}</span>{icon}</div>
-            <p className="mt-5 font-display text-3xl font-bold text-ink">{value as string}</p>
-            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">{change as string}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-10">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold text-ink">Ideas para empezar</h2>
-          <button onClick={() => setTab('Automatizaciones')} className="text-sm font-semibold text-teal-600 dark:text-teal-400">Ver todas <ChevronRight className="inline" size={15} /></button>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {[['Responder comentarios', 'Envía un DM a quien comenta en tus posts', <MessageCircle size={20} key="d" />, 'teal'], ['Nuevos seguidores', 'Da la bienvenida a tu comunidad desde el primer día', <Users size={20} key="e" />, 'teal'], ['Respuesta a historias', 'Automatiza tus respuestas más frecuentes', <Zap size={20} key="f" />, 'teal']].map(([title, description, icon]) => (
-            <button key={String(title)} onClick={() => setTab('Automatizaciones')} className="group rounded-2xl border border-ink/10 bg-ink/[.035] p-5 text-left transition hover:-translate-y-1 hover:border-ink/25">
-              <span className="mb-8 grid h-10 w-10 place-items-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400">{icon}</span>
-              <h3 className="font-semibold text-ink">{title as string}</h3>
-              <p className="mt-2 text-sm leading-5 text-ink/45">{description as string}</p>
-              <ChevronRight className="mt-5 text-ink/30 transition group-hover:translate-x-1 group-hover:text-ink" size={18} />
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmptyView({ title, description, icon, action }: { title: string; description: string; icon: ReactNode; action: string }) {
-  return (
-    <div className="flex min-h-[calc(100vh-180px)] flex-col items-center justify-center text-center">
-      <div className="grid h-20 w-20 place-items-center rounded-3xl bg-teal-500/10 text-teal-600 dark:text-teal-400">{icon}</div>
-      <h1 className="mt-7 font-display text-4xl font-extrabold text-ink">{title}</h1>
-      <p className="mt-3 max-w-sm text-ink/45">{description}</p>
-      <Button className="mt-7">{action} <ArrowRight size={17} /></Button>
+      {/* Global Modals */}
+      <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <ChannelsModal isOpen={showChannels} onClose={() => setShowChannels(false)} />
     </div>
   );
 }
@@ -564,77 +367,10 @@ function AutomationView() {
   );
 }
 
-/* ── Settings ──────────────────────────────────────────────── */
-
-function SettingsView({ profile, themePref, updateTheme, onLogout }: { profile: Profile; themePref: ThemePref; updateTheme: (pref: ThemePref) => void; onLogout: () => void }) {
-  return (
-    <div className="animate-rise max-w-2xl">
-      <div className="mb-10">
-        <p className="mb-2 text-sm font-semibold text-teal-600 dark:text-teal-400">Configuración</p>
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Ajustes</h1>
-        <p className="mt-3 text-ink/45">Personaliza tu experiencia en Flujo.</p>
-      </div>
-
-      {/* Appearance */}
-      <section className="mb-8 rounded-2xl border border-ink/10 bg-panel p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400"><Monitor size={20} /></span>
-          <div>
-            <h2 className="font-display text-lg font-bold text-ink">Apariencia</h2>
-            <p className="text-sm text-ink/45">Elige cómo se ve Flujo para ti.</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {themeOptions.map(opt => (
-            <button key={opt.value} onClick={() => updateTheme(opt.value)} className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${themePref === opt.value ? 'border-teal-500 bg-teal-500/10' : 'border-ink/10 bg-ink/[.03] hover:border-ink/25'}`}>
-              <span className={`grid h-10 w-10 place-items-center rounded-xl transition ${themePref === opt.value ? 'bg-teal-500 text-white' : 'bg-ink/5 text-ink/60'}`}>{opt.icon}</span>
-              <span className={`text-sm font-semibold ${themePref === opt.value ? 'text-ink' : 'text-ink/60'}`}>{opt.label}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Account */}
-      <section className="mb-8 rounded-2xl border border-ink/10 bg-panel p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400"><Users size={20} /></span>
-          <div>
-            <h2 className="font-display text-lg font-bold text-ink">Cuenta</h2>
-            <p className="text-sm text-ink/45">Tu información de usuario.</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl bg-ink/[.03] px-4 py-3">
-            <span className="text-sm text-ink/50">Nombre</span>
-            <span className="text-sm font-semibold text-ink">{profile.display_name ?? 'Sin definir'}</span>
-          </div>
-          <div className="flex items-center justify-between rounded-xl bg-ink/[.03] px-4 py-3">
-            <span className="text-sm text-ink/50">Canal conectado</span>
-            <span className="text-sm font-semibold text-ink">{profile.channel ?? 'Ninguno'}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Session */}
-      <section className="rounded-2xl border border-ink/10 bg-panel p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/10 text-red-600 dark:text-red-400"><LogOut size={20} /></span>
-          <div>
-            <h2 className="font-display text-lg font-bold text-ink">Sesión</h2>
-            <p className="text-sm text-ink/45">Cierra sesión en este dispositivo.</p>
-          </div>
-        </div>
-        <button onClick={onLogout} className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 dark:text-red-400"><LogOut size={16} /> Cerrar sesión</button>
-      </section>
-    </div>
-  );
-}
-
 /* ── App ────────────────────────────────────────────────────── */
 
 function App() {
   const [screen, setScreen] = useState<Screen>('landing');
-  const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [channel, setChannel] = useState('');
   const [loading, setLoading] = useState(true);
@@ -662,23 +398,66 @@ function App() {
     return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, []);
 
-  if (loading) return <div className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
-
-  if (screen === 'landing') return <Landing onStart={() => { setAuthMode('signup'); setScreen('auth'); }} onSignIn={() => { setAuthMode('signin'); setScreen('auth'); }} />;
-
-  if (screen === 'auth') return <Auth mode={authMode} setMode={setAuthMode} onBack={() => setScreen('landing')} onSuccess={async nextProfile => {
-    if (nextProfile?.onboarding_complete) { setProfile(nextProfile); setScreen('dashboard'); }
-    else if (nextProfile) { setProfile(nextProfile); setScreen('channel'); }
-    else {
+  async function handleAuthSuccess(nextProfile: Profile | null) {
+    if (nextProfile?.onboarding_complete) {
+      setProfile(nextProfile);
+      setScreen('dashboard');
+    } else if (nextProfile) {
+      setProfile(nextProfile);
+      setScreen('channel');
+    } else {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const newProfile: Profile = { id: user.id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' };
+        const newProfile: Profile = {
+          id: user.id,
+          display_name: null,
+          channel: null,
+          account_type: null,
+          goals: [],
+          discovery_source: null,
+          onboarding_complete: false,
+          theme_preference: 'system',
+        };
         await supabase.from('onboarding_profiles').upsert({ id: user.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
         setProfile(newProfile);
         setScreen('channel');
       }
     }
-  }} />;
+  }
+
+  if (loading) return <div className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
+
+  if (screen === 'landing') {
+    return (
+      <>
+        {/* Mobile View (Phone View matching Image 3, 1 & 4) */}
+        <div className="lg:hidden">
+          <MobileAuthView onSuccess={handleAuthSuccess} />
+        </div>
+
+        {/* Desktop View (matching Image 2 Stage AI Labs website & auth) */}
+        <div className="hidden lg:block">
+          <DesktopLanding onSuccess={handleAuthSuccess} />
+        </div>
+      </>
+    );
+  }
+
+  if (screen === 'auth') {
+    return (
+      <>
+        {/* Mobile View */}
+        <div className="lg:hidden">
+          <MobileAuthView onSuccess={handleAuthSuccess} />
+        </div>
+
+        {/* Desktop View */}
+        <div className="hidden lg:block">
+          <DesktopLanding onSuccess={handleAuthSuccess} />
+        </div>
+      </>
+    );
+  }
 
   if (screen === 'channel' && profile) return <Channel selected={channel} setSelected={setChannel} onBack={() => setScreen('landing')} onNext={async () => {
     const updated = { ...profile, channel };

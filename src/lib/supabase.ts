@@ -75,6 +75,38 @@ function createMockClient() {
             // ignore
           }
         }
+        if (localStorage.getItem('flujo_logged_out') !== 'true') {
+          const defaultUser: MockUser = {
+            id: 'silverio_demo',
+            email: 'joseph.silverio@manychat.com',
+            user_metadata: { display_name: 'Silverio' },
+          };
+          const defaultSession: MockSession = {
+            user: defaultUser,
+            access_token: 'mock-token-silverio',
+            expires_at: Date.now() + 86400000,
+          };
+          const profiles = getProfiles();
+          if (!profiles['silverio_demo']) {
+            profiles['silverio_demo'] = {
+              id: 'silverio_demo',
+              display_name: 'Silverio',
+              channel: 'Instagram',
+              account_type: 'personal',
+              goals: ['digital', 'marcas'],
+              discovery_source: 'social',
+              onboarding_complete: true,
+              theme_preference: 'system',
+            };
+            saveProfiles(profiles);
+          }
+          try {
+            localStorage.setItem('flujo_mock_session', JSON.stringify(defaultSession));
+          } catch {
+            // ignore
+          }
+          return { data: { session: defaultSession }, error: null };
+        }
         return { data: { session: null }, error: null };
       },
       async getUser() {
@@ -176,6 +208,7 @@ function createMockClient() {
       async signOut() {
         try {
           localStorage.removeItem('flujo_mock_session');
+          localStorage.setItem('flujo_logged_out', 'true');
         } catch {
           // ignore
         }
