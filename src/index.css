@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --c-canvas: 247 246 241;
+  --c-panel: 232 241 238;
+  --c-panel-2: 255 255 255;
+  --c-ink: 23 44 67;
+  --c-brand: 18 103 105;
+  --c-brand-ink: 232 241 238;
+  --c-grid: 18 103 105;
+  --c-grid-opacity: 0.05;
+}
+
+.dark {
+  --c-canvas: 23 44 67;
+  --c-panel: 29 53 86;
+  --c-panel-2: 36 66 104;
+  --c-ink: 232 241 238;
+  --c-brand: 18 103 105;
+  --c-brand-ink: 232 241 238;
+  --c-grid: 18 103 105;
+  --c-grid-opacity: 0.12;
+}
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: rgb(var(--c-ink));
+  background: rgb(var(--c-canvas));
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: rgb(var(--c-canvas)); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes drift { 0%,100% { transform: translate(0, 0); } 50% { transform: translate(12px, -10px); } }
+.animate-rise { animation: rise .55s ease-out both; }
+.animate-drift { animation: drift 8s ease-in-out infinite; }
+
+.grid-lines {
+  background-image: linear-gradient(rgb(var(--c-grid) / var(--c-grid-opacity)) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--c-grid) / var(--c-grid-opacity)) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
