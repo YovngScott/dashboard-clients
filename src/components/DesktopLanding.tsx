@@ -588,27 +588,66 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                   {t.footer.text3}
                 </p>
               </div>
+
             </div>
 
-            {/* Footnote quote from Image 2 */}
-            <p className="mt-auto pt-8 text-xs text-[#6b7b88]">
-              {t.bottomTagline1}
-            </p>
+            {/* Social Proof Badges replacing the footnote quote */}
+            <div className="mt-auto pt-8 flex flex-wrap gap-3">
+              <div className="rounded-md bg-[#0d5c58] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
+                CEO Copilot / Stage AI Labs
+              </div>
+              <div className="rounded-md bg-[#0d5c58] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
+                {t.bottomTagline2}
+              </div>
+            </div>
           </div>
 
           {/* Right Column: Hero Visual with Real Person & Floating AI Cards matching Image 2 */}
-          <div className="relative flex flex-col lg:col-span-6 animate-rise [animation-delay:120ms]">
-            <div className="relative flex-1 overflow-hidden rounded-[2.2rem] border border-zinc-200/90 bg-white p-3 shadow-2xl shadow-zinc-900/10">
-              {/* Instagram Bot Animation Interface */}
-              <div className="relative h-full min-h-[580px] w-full overflow-hidden rounded-[1.6rem] bg-zinc-100">
-                <AnimatedChat />
-              </div>
-            </div>
+          <div className="relative flex flex-col lg:col-span-6 animate-rise [animation-delay:120ms] h-full">
+            <div className="relative flex-1 flex items-center justify-center min-h-[600px]">
+              
+              {/* Aura Glow Behind Phone */}
+              <div className="absolute top-1/2 left-1/2 h-[450px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-400/30 blur-[90px] mix-blend-multiply" />
+              <div className="absolute top-1/2 left-1/2 h-[300px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0d5c58]/40 blur-[70px] mix-blend-multiply" />
+              
+              {/* Floating Business Stickers */}
+              <motion.div 
+                animate={{ y: [0, -12, 0] }} 
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                className="absolute top-[18%] right-[8%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md rotate-3"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                  <Bot size={16} />
+                </div>
+                24/7 Autopilot
+              </motion.div>
 
-            {/* Bottom Tagline matching Image 2 */}
-            <div className="mt-4 flex items-center justify-between px-3 text-xs font-medium text-zinc-500">
-              <span>CEO Copilot / Stage AI Labs</span>
-              <span>{t.bottomTagline2}</span>
+              <motion.div 
+                animate={{ y: [0, 12, 0] }} 
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-[22%] left-[4%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md -rotate-6"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <Sparkles size={16} />
+                </div>
+                Instant Replies
+              </motion.div>
+
+              <motion.div 
+                animate={{ y: [0, -10, 0] }} 
+                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 2 }}
+                className="absolute top-[65%] right-[6%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md rotate-6"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                  <ArrowRight size={16} className="-rotate-45" />
+                </div>
+                +40% Sales
+              </motion.div>
+
+              {/* Instagram Bot Animation Interface (Static Phone Frame) */}
+              <div className="relative z-20 h-[520px] w-[260px] shrink-0 overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-[0_0_80px_-15px_rgba(13,92,88,0.4)] ring-1 ring-black/10">
+                <AnimatedChat lang={lang} />
+              </div>
             </div>
           </div>
         </div>

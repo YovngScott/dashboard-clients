@@ -247,16 +247,20 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         <img
           src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=85"
           alt="Creator holding lemons"
-          className="h-full w-full object-cover object-center brightness-[0.88]"
+          className="h-full w-full object-cover object-center brightness-[0.7]"
           referrerPolicy="no-referrer"
         />
         {/* Soft atmospheric gradient layers */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0f2331]/60 via-transparent to-[#0f2331]/90" />
-        <div className="absolute inset-x-0 bottom-0 h-[480px] bg-gradient-to-t from-[#0f2331] via-[#0f2331]/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f2331]/80 via-[#0f2331]/40 to-[#0f2331]/95" />
+        
+        {/* Animated Glowing Orbs for Liquid Glass effect */}
+        <div className="absolute left-[-20%] top-[10%] h-[300px] w-[300px] rounded-full bg-[#168a84]/40 mix-blend-screen blur-[80px] animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute right-[-10%] top-[40%] h-[250px] w-[250px] rounded-full bg-emerald-500/30 mix-blend-screen blur-[60px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-10%] left-[20%] h-[400px] w-[400px] rounded-full bg-teal-600/30 mix-blend-screen blur-[100px] animate-pulse" style={{ animationDuration: '10s' }} />
       </div>
 
       {/* 2. Top Navigation Bar */}
-      <header className="relative z-10 flex items-center justify-between px-6 pt-6 sm:px-8">
+      <header className="relative z-50 flex items-center justify-between px-6 pt-6 sm:px-8">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm shadow-[#0d5c58]/80 ring-2 ring-white/30 animate-pulse" />
           <div className="flex items-center gap-1.5">
