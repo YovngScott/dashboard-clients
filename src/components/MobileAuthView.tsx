@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Mail, X, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
-import { supabase } from '@/lib/supabase';
+import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { Profile } from '../types';
 
 interface MobileAuthViewProps {
@@ -124,7 +124,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: getAuthRedirectUrl(),
         },
       });
 
@@ -150,7 +150,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
           ? await supabase.auth.signUp({
               email,
               password,
-              options: { data: { display_name: name || 'Creador Stage' } },
+              options: {
+                data: { display_name: name || 'Creador Stage' },
+                emailRedirectTo: getAuthRedirectUrl(),
+              },
             })
           : await supabase.auth.signInWithPassword({
               email,

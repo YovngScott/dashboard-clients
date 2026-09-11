@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { AnimatedChat } from './AnimatedChat';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
-import { supabase } from '@/lib/supabase';
+import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { Profile } from '../types';
 
 interface DesktopLandingProps {
@@ -169,7 +169,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
     try {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo: getAuthRedirectUrl() },
       });
       if (authError) {
         setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
@@ -192,7 +192,10 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
           ? await supabase.auth.signUp({
               email,
               password,
-              options: { data: { display_name: name || 'Creador' } },
+              options: {
+                data: { display_name: name || 'Creador' },
+                emailRedirectTo: getAuthRedirectUrl(),
+              },
             })
           : await supabase.auth.signInWithPassword({ email, password });
 
