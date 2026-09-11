@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Bot, Check, ChevronRight, CircleHelp,
-  Clock3, Facebook, Instagram, LayoutGrid,
-  Link2, MessageCircle, Play, Search,
+  Clock3, Instagram, LayoutGrid, Link2, MessageCircle, Play, Search,
   Sparkles, Store, Target, Users, X, Zap,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +16,7 @@ import { BottomNavBar } from './components/BottomNavBar';
 import { AnimatedEmptyState } from './components/AnimatedEmptyState';
 import { MobileAuthView } from './components/MobileAuthView';
 import { DesktopLanding } from './components/DesktopLanding';
+import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
@@ -35,9 +35,12 @@ type Profile = {
 type Option = { label: string; value: string; icon: ReactNode };
 
 const channels = [
-  { name: 'Instagram', detail: 'Automatiza comentarios, DMs y respuestas a historias', icon: <Instagram size={22} />, tone: 'from-pink-500 to-orange-400' },
-  { name: 'Facebook', detail: 'Construye conversaciones que convierten en Messenger', icon: <Facebook size={22} />, tone: 'from-blue-500 to-cyan-400' },
-  { name: 'TikTok', detail: 'Convierte tus visualizaciones en una comunidad activa', icon: <span className="text-lg font-bold">♪</span>, tone: 'from-slate-500 to-slate-900' },
+  { name: 'Instagram', detail: 'Automatiza comentarios, DMs y respuestas a historias', icon: <InstagramIcon />, tone: 'from-pink-500 to-orange-400' },
+  { name: 'WhatsApp', detail: 'Conecta con tus clientes en su app favorita', icon: <WhatsAppIcon />, tone: 'from-green-500 to-emerald-400' },
+  { name: 'Facebook', detail: 'Construye conversaciones que convierten en Messenger', icon: <FacebookIcon />, tone: 'from-blue-500 to-cyan-400' },
+  { name: 'Telegram', detail: 'Respuestas automáticas para tu comunidad y grupos', icon: <TelegramIcon />, tone: 'from-sky-400 to-blue-500' },
+  { name: 'Email', detail: 'Responde correos y consultas automáticamente', icon: <GmailIcon />, tone: 'from-red-500 to-rose-400' },
+  { name: 'TikTok', detail: 'Convierte tus visualizaciones en una comunidad activa', icon: <TikTokIcon />, tone: 'from-slate-700 to-slate-900 text-white' },
 ];
 
 const accountOptions: Option[] = [
@@ -89,7 +92,7 @@ function useTheme(profile: Profile | null) {
   async function updateTheme(pref: ThemePref) {
     setThemePref(pref);
     localStorage.setItem('theme', pref);
-    if (profile) {
+    if (profile && !profile.id.startsWith('user-') && !profile.id.startsWith('demo-')) {
       await supabase.from('onboarding_profiles').upsert({ id: profile.id, theme_preference: pref });
     }
   }
@@ -142,14 +145,42 @@ function ChoiceCard({ option, selected, onClick, multi = false }: { option: Opti
   );
 }
 
-function SetupShell({ children, onBack, eyebrow }: { children: ReactNode; onBack: () => void; eyebrow: string }) {
+import { Globe } from 'lucide-react';
+
+function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: ReactNode; onBack: () => void; eyebrow: string; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
+  const [showLangMenu, setShowLangMenu] = useState(false);
   return (
     <div className="min-h-screen bg-canvas px-6 py-6 sm:px-10">
       <div className="mx-auto max-w-3xl">
         <div className="mb-12 flex items-center justify-between">
           <button onClick={onBack} aria-label="Volver" className="grid h-10 w-10 place-items-center rounded-xl border border-ink/10 text-ink/60 transition hover:border-ink/25 hover:text-ink"><ArrowLeft size={19} /></button>
           <Logo />
-          <span className="text-xs font-semibold uppercase tracking-[.16em] text-ink/35">{eyebrow}</span>
+          
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline-block text-xs font-semibold uppercase tracking-[.16em] text-ink/35">{eyebrow}</span>
+            <div className="relative">
+              <button 
+                onClick={() => setShowLangMenu(!showLangMenu)}
+                className="flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-bold text-ink hover:bg-ink/5"
+              >
+                <Globe size={14} className="text-teal-600" />
+                {lang}
+              </button>
+              {showLangMenu && (
+                <div className="absolute right-0 top-full mt-2 w-32 rounded-xl border border-ink/10 bg-white p-1.5 shadow-xl">
+                  {['ES', 'EN', 'PT'].map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => { setLang(l as any); setShowLangMenu(false); }}
+                      className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors ${lang === l ? 'bg-teal-500/10 text-teal-600' : 'text-ink/70 hover:bg-ink/5'}`}
+                    >
+                      {l === 'ES' ? 'Español' : l === 'EN' ? 'English' : 'Português'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         {children}
       </div>
@@ -157,13 +188,83 @@ function SetupShell({ children, onBack, eyebrow }: { children: ReactNode; onBack
   );
 }
 
-function Channel({ onNext, onBack, selected, setSelected }: { onNext: () => void; onBack: () => void; selected: string; setSelected: (channel: string) => void }) {
+const setupTranslations = {
+  ES: {
+    channelTitle: 'Conecta tu primer canal.',
+    channelDesc: 'Puedes sumar los demás cuando quieras. Empecemos por donde vive tu comunidad.',
+    connect: 'Conectar',
+    connected: 'Conectado',
+    continue: 'Continuar',
+    qTitle1: '¿Para quién es este espacio?',
+    qDesc1: 'Así podremos recomendarte automatizaciones más útiles.',
+    qTitle2: '¿Cómo generas ingresos normalmente?',
+    qDesc2: 'Te mostraremos ideas que encajen con tu forma de crecer.',
+    qTitle3: '¿Cómo nos encontraste?',
+    qDesc3: 'Nos ayuda a aparecer en los lugares correctos.',
+    qName: '¿Cómo te llamamos?',
+    qNamePlaceholder: 'Tu nombre o marca',
+    step: 'Paso',
+    of: 'de',
+    save: 'Guardando...',
+    next: 'Siguiente',
+    dashboard: 'Entrar a mi dashboard',
+    error: 'No pudimos guardar tus respuestas. Inténtalo de nuevo.',
+    title: 'Hagamos que sea tuyo.'
+  },
+  EN: {
+    channelTitle: 'Connect your first channel.',
+    channelDesc: 'You can add the others later. Let’s start where your community lives.',
+    connect: 'Connect',
+    connected: 'Connected',
+    continue: 'Continue',
+    qTitle1: 'Who is this space for?',
+    qDesc1: 'So we can recommend the most useful automations.',
+    qTitle2: 'How do you usually generate income?',
+    qDesc2: 'We will show you ideas that fit your growth model.',
+    qTitle3: 'How did you find us?',
+    qDesc3: 'It helps us appear in the right places.',
+    qName: 'What should we call you?',
+    qNamePlaceholder: 'Your name or brand',
+    step: 'Step',
+    of: 'of',
+    save: 'Saving...',
+    next: 'Next',
+    dashboard: 'Enter my dashboard',
+    error: 'We couldn’t save your answers. Please try again.',
+    title: 'Let’s make it yours.'
+  },
+  PT: {
+    channelTitle: 'Conecte seu primeiro canal.',
+    channelDesc: 'Você pode adicionar os outros depois. Vamos começar por onde sua comunidade vive.',
+    connect: 'Conectar',
+    connected: 'Conectado',
+    continue: 'Continuar',
+    qTitle1: 'Para quem é este espaço?',
+    qDesc1: 'Assim podemos recomendar as automações mais úteis.',
+    qTitle2: 'Como você geralmente gera renda?',
+    qDesc2: 'Mostraremos ideias que se encaixam no seu modelo de crescimento.',
+    qTitle3: 'Como você nos encontrou?',
+    qDesc3: 'Isso nos ajuda a aparecer nos lugares certos.',
+    qName: 'Como devemos chamar você?',
+    qNamePlaceholder: 'Seu nome ou marca',
+    step: 'Passo',
+    of: 'de',
+    save: 'Salvando...',
+    next: 'Próximo',
+    dashboard: 'Entrar no meu dashboard',
+    error: 'Não conseguimos salvar suas respostas. Tente novamente.',
+    title: 'Vamos deixar com a sua cara.'
+  }
+};
+
+function Channel({ onNext, onBack, selected, setSelected, lang, setLang }: { onNext: () => void; onBack: () => void; selected: string; setSelected: (channel: string) => void; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
+  const t = setupTranslations[lang];
   return (
-    <SetupShell onBack={onBack} eyebrow="Paso 1 de 3">
+    <SetupShell onBack={onBack} eyebrow={`${t.step} 1 ${t.of} 3`} lang={lang} setLang={setLang}>
       <Progress step={1} />
       <div className="mb-10 max-w-xl">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Conecta tu primer canal.</h1>
-        <p className="mt-4 text-lg leading-7 text-ink/50">Puedes sumar los demás cuando quieras. Empecemos por donde vive tu comunidad.</p>
+        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">{t.channelTitle}</h1>
+        <p className="mt-4 text-lg leading-7 text-ink/50">{t.channelDesc}</p>
       </div>
       <div className="space-y-3">
         {channels.map(channel => (
@@ -173,16 +274,16 @@ function Channel({ onNext, onBack, selected, setSelected }: { onNext: () => void
               <span className="block font-display text-lg font-bold text-ink">{channel.name}</span>
               <span className="mt-1 block text-sm text-ink/45">{channel.detail}</span>
             </span>
-            <span className={`text-sm font-semibold ${selected === channel.name ? 'text-teal-600 dark:text-teal-400' : 'text-ink/50'}`}>{selected === channel.name ? 'Conectado' : 'Conectar'}</span>
+            <span className={`text-sm font-semibold ${selected === channel.name ? 'text-teal-600 dark:text-teal-400' : 'text-ink/50'}`}>{selected === channel.name ? t.connected : t.connect}</span>
           </button>
         ))}
       </div>
-      <div className="mt-8 flex justify-end"><Button disabled={!selected} onClick={onNext}>Continuar <ArrowRight size={17} /></Button></div>
+      <div className="mt-8 flex justify-end"><Button disabled={!selected} onClick={onNext}>{t.continue} <ArrowRight size={17} /></Button></div>
     </SetupShell>
   );
 }
 
-function Questions({ profile, setProfile, onFinish, onBack }: { profile: Profile; setProfile: (profile: Profile) => void; onFinish: () => void; onBack: () => void }) {
+function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { profile: Profile; setProfile: (profile: Profile) => void; onFinish: () => void; onBack: () => void; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -190,9 +291,11 @@ function Questions({ profile, setProfile, onFinish, onBack }: { profile: Profile
   const [account, setAccount] = useState(profile.account_type ?? '');
   const [goals, setGoals] = useState<string[]>(profile.goals ?? []);
   const [source, setSource] = useState(profile.discovery_source ?? '');
+  
+  const t = setupTranslations[lang];
   const options = step === 1 ? accountOptions : step === 2 ? goalOptions : sourceOptions;
-  const title = step === 1 ? '¿Para quién es este espacio?' : step === 2 ? '¿Cómo generas ingresos normalmente?' : '¿Cómo nos encontraste?';
-  const subtitle = step === 1 ? 'Así podremos recomendarte automatizaciones más útiles.' : step === 2 ? 'Te mostraremos ideas que encajen con tu forma de crecer.' : 'Nos ayuda a aparecer en los lugares correctos.';
+  const title = step === 1 ? t.qTitle1 : step === 2 ? t.qTitle2 : t.qTitle3;
+  const subtitle = step === 1 ? t.qDesc1 : step === 2 ? t.qDesc2 : t.qDesc3;
   const selected = step === 1 ? account : step === 2 ? goals : source;
 
   function toggle(value: string) {
@@ -207,24 +310,29 @@ function Questions({ profile, setProfile, onFinish, onBack }: { profile: Profile
     setSaving(true);
     setError('');
     const payload = { id: profile.id, display_name: name || 'Creador', account_type: account, goals, discovery_source: source, channel: profile.channel, onboarding_complete: true, updated_at: new Date().toISOString() };
-    const { error: saveError } = await supabase.from('onboarding_profiles').upsert(payload);
-    setSaving(false);
-    if (saveError) { setError('No pudimos guardar tus respuestas. Inténtalo de nuevo.'); return; }
+    
     setProfile({ ...profile, ...payload });
     onFinish();
+    
+    // Background update so UI doesn't block (skip for dummy profiles)
+    if (!profile.id.startsWith('user-') && !profile.id.startsWith('demo-')) {
+      const { error: saveError } = await supabase.from('onboarding_profiles').upsert(payload);
+      if (saveError) { console.error('Failed to save profile:', saveError); }
+    }
+    setSaving(false);
   }
 
   return (
-    <SetupShell onBack={step === 1 ? onBack : () => setStep(step - 1)} eyebrow={`Paso ${step + 1} de 3`}>
+    <SetupShell onBack={step === 1 ? onBack : () => setStep(step - 1)} eyebrow={`${t.step} ${step + 1} ${t.of} 3`} lang={lang} setLang={setLang}>
       <Progress step={step + 1} />
       <div className="mb-8">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Hagamos que sea tuyo.</h1>
+        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">{t.title}</h1>
         <p className="mt-4 max-w-lg text-lg leading-7 text-ink/50">{subtitle}</p>
       </div>
       {step === 1 && (
         <label className="mb-7 block">
-          <span className="mb-2 block text-sm text-ink/60">¿Cómo te llamamos?</span>
-          <input value={name} onChange={e => setName(e.target.value)} className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder="Tu nombre o marca" />
+          <span className="mb-2 block text-sm text-ink/60">{t.qName}</span>
+          <input value={name} onChange={e => setName(e.target.value)} className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder={t.qNamePlaceholder} />
         </label>
       )}
       <h2 className="mb-4 font-display text-xl font-bold text-ink">{title}</h2>
@@ -233,7 +341,7 @@ function Questions({ profile, setProfile, onFinish, onBack }: { profile: Profile
       </div>
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-300">{error}</p>}
       <div className="mt-8 flex justify-end">
-        <Button disabled={!selected || (step === 2 && goals.length === 0) || saving} onClick={next}>{saving ? 'Guardando...' : step === 3 ? 'Entrar a mi dashboard' : 'Siguiente'} <ArrowRight size={17} /></Button>
+        <Button disabled={!selected || (step === 2 && goals.length === 0) || saving} onClick={next}>{saving ? t.save : step === 3 ? t.dashboard : t.next} <ArrowRight size={17} /></Button>
       </div>
     </SetupShell>
   );
@@ -370,6 +478,7 @@ function AutomationView() {
 /* ── App ────────────────────────────────────────────────────── */
 
 function App() {
+  const [lang, setLang] = useState<"ES" | "EN" | "PT">("ES");
   const [screen, setScreen] = useState<Screen>('landing');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [channel, setChannel] = useState('');
@@ -459,13 +568,18 @@ function App() {
     );
   }
 
-  if (screen === 'channel' && profile) return <Channel selected={channel} setSelected={setChannel} onBack={() => setScreen('landing')} onNext={async () => {
+  if (screen === 'channel' && profile) return <Channel selected={channel} setSelected={setChannel} lang={lang} setLang={setLang} onBack={() => setScreen('landing')} onNext={async () => {
     const updated = { ...profile, channel };
-    const { error } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, channel });
-    if (!error) { setProfile(updated); setScreen('questions'); }
+    setProfile(updated); 
+    setScreen('questions');
+    // Background update if not a dummy profile
+    if (!profile.id.startsWith('user-') && !profile.id.startsWith('demo-')) {
+      const { error } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, channel });
+      if (error) console.error(error);
+    }
   }} />;
 
-  if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
+  if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} lang={lang} setLang={setLang} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
 
   if (profile) return <Dashboard profile={profile} onLogout={async () => { await supabase.auth.signOut(); setScreen('landing'); }} />;
 
