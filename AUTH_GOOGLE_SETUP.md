@@ -9,8 +9,8 @@ dashboard URL and must match the Supabase redirect allow list.
 In **Supabase Dashboard > Authentication > URL Configuration** for the Stage
 project:
 
-- Set **Site URL** to `https://app-stage-labs.ai.studio`.
-- Add `https://app-stage-labs.ai.studio` to **Redirect URLs**.
+- Set **Site URL** to `https://stage-dash.ai.studio`.
+- Add `https://stage-dash.ai.studio` to **Redirect URLs**.
 - Add `http://127.0.0.1:3000` only for local development.
 - Remove `https://brujula-app-rd.vercel.app` unless Brújula intentionally uses
   this same Supabase project. Separate products should use separate Auth
@@ -19,7 +19,7 @@ project:
 Deploy the dashboard with:
 
 ```env
-VITE_APP_URL=https://app-stage-labs.ai.studio
+VITE_APP_URL=https://stage-dash.ai.studio
 ```
 
 ## 2. Google branding: show “Stage AI Labs”
@@ -30,7 +30,7 @@ in a Google Cloud project owned by Stage AI Labs, then configure its branding:
 
 - App name: `Stage AI Labs`
 - User support email: a Stage AI Labs address
-- Authorized JavaScript origin: `https://app-stage-labs.ai.studio`
+- Authorized JavaScript origin: `https://stage-dash.ai.studio`
 - Authorized redirect URI:
   `https://auvbmpfiplwawxqibmmq.supabase.co/auth/v1/callback`
 - Scopes: `openid`, email, and profile only
@@ -49,7 +49,7 @@ additional step that replaces the `*.supabase.co` host shown during the flow.
 Open a private browser window, select Google sign-in, and confirm:
 
 1. The chooser names **Stage AI Labs** after Google branding is active.
-2. The final address is `https://app-stage-labs.ai.studio`.
+2. The final address is `https://stage-dash.ai.studio`.
 3. A new email-registration confirmation also returns to the Stage dashboard.
 
 If the user is still sent to Brújula, check the exact deployed value of
