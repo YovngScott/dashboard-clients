@@ -78,7 +78,7 @@ create index knowledge_documents_agent_idx
 create index knowledge_documents_organization_idx
   on public.knowledge_documents(organization_id);
 
-create table public.channel_connections (
+create table public.agent_channel_connections (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   agent_id uuid not null references public.agents(id) on delete cascade,
@@ -93,8 +93,8 @@ create table public.channel_connections (
   unique (agent_id, channel)
 );
 
-create index channel_connections_org_status_idx
-  on public.channel_connections(organization_id, status);
+create index agent_channel_connections_org_status_idx
+  on public.agent_channel_connections(organization_id, status);
 
 create table public.organization_entitlements (
   organization_id uuid primary key references public.organizations(id) on delete cascade,
@@ -287,7 +287,7 @@ create trigger agents_set_updated_at before update on public.agents
 for each row execute function private.set_updated_at();
 create trigger knowledge_documents_set_updated_at before update on public.knowledge_documents
 for each row execute function private.set_updated_at();
-create trigger channel_connections_set_updated_at before update on public.channel_connections
+create trigger agent_channel_connections_set_updated_at before update on public.agent_channel_connections
 for each row execute function private.set_updated_at();
 create trigger organization_entitlements_set_updated_at before update on public.organization_entitlements
 for each row execute function private.set_updated_at();
@@ -298,7 +298,7 @@ alter table public.organizations enable row level security;
 alter table public.organization_members enable row level security;
 alter table public.agents enable row level security;
 alter table public.knowledge_documents enable row level security;
-alter table public.channel_connections enable row level security;
+alter table public.agent_channel_connections enable row level security;
 alter table public.organization_entitlements enable row level security;
 alter table public.quality_runs enable row level security;
 alter table public.deployment_jobs enable row level security;
@@ -352,7 +352,7 @@ with check (
   )
 );
 
-create policy channel_connections_select_member on public.channel_connections
+create policy agent_channel_connections_select_member on public.agent_channel_connections
 for select to authenticated
 using ((select private.is_org_member(organization_id)));
 
@@ -383,7 +383,7 @@ grant update (name, business_name, business_description, catalog_summary, import
 grant select on public.knowledge_documents to authenticated;
 grant insert (id, organization_id, agent_id, uploaded_by, file_name, storage_path, mime_type, size_bytes)
   on public.knowledge_documents to authenticated;
-grant select on public.channel_connections to authenticated;
+grant select on public.agent_channel_connections to authenticated;
 grant select on public.organization_entitlements to authenticated;
 grant select on public.quality_runs to authenticated;
 grant select on public.deployment_jobs to authenticated;
