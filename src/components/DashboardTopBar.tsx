@@ -7,7 +7,8 @@ interface DashboardTopBarProps {
 }
 
 export function DashboardTopBar({ profile, onOpenSettings }: DashboardTopBarProps) {
-  const displayName = profile.display_name?.trim() || 'Silverio';
+  const displayName = profile.display_name?.trim() || 'Mi espacio';
+  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
   return (
     <header
@@ -16,20 +17,12 @@ export function DashboardTopBar({ profile, onOpenSettings }: DashboardTopBarProp
     >
       {/* Top Left: User Avatar & Name */}
       <div id="topbar-user-profile" className="flex items-center gap-3">
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/20 bg-zinc-800 shadow-sm">
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-            alt={displayName}
-            className="h-full w-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+        <div aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand text-sm font-extrabold text-brand-ink shadow-sm">
+          {initials}
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="font-['Playfair_Display',serif] text-xl font-bold italic tracking-wide text-ink">
+          <span className="max-w-[13rem] truncate font-display text-base font-extrabold tracking-[-.02em] text-ink sm:text-lg">
             {displayName}
-          </span>
-          <span className="text-lg select-none" role="img" aria-label="eye">
-            👁️
           </span>
         </div>
       </div>

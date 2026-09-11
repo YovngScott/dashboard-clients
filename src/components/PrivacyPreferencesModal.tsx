@@ -38,7 +38,7 @@ export function PrivacyPreferencesModal({ isOpen, onClose, onSave }: PrivacyPref
     'Firebase Performance Monitoring',
     'Google Firebase Analytics',
     'Intercom',
-    'Manychat Analytics',
+    'Stage AI Labs Analytics',
     'Microsoft Clarity',
     'Sentry',
   ];
@@ -72,7 +72,7 @@ export function PrivacyPreferencesModal({ isOpen, onClose, onSave }: PrivacyPref
         {/* Description */}
         <div className="px-5 pt-1 pb-3">
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Manage how Manychat and our partners process your data. You can change these any time in Settings.
+            Decide cómo Stage AI Labs procesa los datos de uso. Puedes cambiar estas preferencias en cualquier momento.
           </p>
         </div>
 

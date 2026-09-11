@@ -52,8 +52,8 @@ export function SettingsScreen({
   const [showInboxModal, setShowInboxModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
-  const displayName = profile.display_name?.trim() || 'Silverio';
-  const username = displayName.toLowerCase().replace(/\s+/g, '.') || 'joseph.silverio';
+  const displayName = profile.display_name?.trim() || 'Mi espacio';
+  const username = displayName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') || 'mi.espacio';
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -211,7 +211,7 @@ export function SettingsScreen({
               <ChevronRight size={17} className="text-ink/30" />
             </div>
 
-            {/* Privacy policy -> https://stage-labs.ai.studio/security */}
+            {/* Security center */}
             <a
               id="settings-privacy-policy-link"
               href="https://stage-labs.ai.studio/security"
@@ -221,12 +221,12 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <ShieldCheck size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Privacy policy</span>
+                <span className="text-sm font-medium text-ink">Centro de seguridad</span>
               </div>
               <ExternalLink size={16} className="text-ink/30" />
             </a>
 
-            {/* Terms of service -> https://stage-labs.ai.studio/privacidad */}
+            {/* Privacy policy */}
             <a
               id="settings-terms-of-service-link"
               href="https://stage-labs.ai.studio/privacidad"
@@ -236,7 +236,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <FileText size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Terms of service</span>
+                <span className="text-sm font-medium text-ink">Política de privacidad</span>
               </div>
               <ExternalLink size={16} className="text-ink/30" />
             </a>

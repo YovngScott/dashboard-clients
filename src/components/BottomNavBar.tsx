@@ -8,10 +8,10 @@ interface BottomNavBarProps {
 
 export function BottomNavBar({ currentTab, onSelectTab }: BottomNavBarProps) {
   const items: { label: DashboardTab; display: string; icon: React.ReactNode }[] = [
-    { label: 'Inicio', display: 'Home', icon: <Home size={19} /> },
-    { label: 'Bandeja', display: 'Inbox', icon: <MessageSquare size={19} /> },
-    { label: 'Contactos', display: 'Contacts', icon: <Users size={19} /> },
-    { label: 'Automatizaciones', display: 'Automation', icon: <Sparkles size={19} /> },
+    { label: 'Inicio', display: 'Inicio', icon: <Home size={19} /> },
+    { label: 'Bandeja', display: 'Bandeja', icon: <MessageSquare size={19} /> },
+    { label: 'Contactos', display: 'Contactos', icon: <Users size={19} /> },
+    { label: 'Automatizaciones', display: 'Automatizar', icon: <Sparkles size={19} /> },
   ];
 
   return (
@@ -27,6 +27,7 @@ export function BottomNavBar({ currentTab, onSelectTab }: BottomNavBarProps) {
               key={item.label}
               id={`nav-tab-${item.display.toLowerCase()}`}
               onClick={() => onSelectTab(item.label)}
+              aria-current={isActive ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 transition ${
                 isActive ? 'text-ink font-bold' : 'text-ink/40 hover:text-ink/70'
               }`}

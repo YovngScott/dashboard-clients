@@ -5,7 +5,7 @@ import {
   Clock3, Instagram, LayoutGrid, Link2, MessageCircle, Play, Search,
   Sparkles, Store, Target, Users, X, Zap,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import { DashboardTopBar } from './components/DashboardTopBar';
 import { SettingsScreen } from './components/SettingsScreen';
 import { UpgradeModal } from './components/UpgradeModal';
@@ -73,10 +73,6 @@ const sourceOptions: Option[] = [
 
 function useTheme(profile: Profile | null) {
   const [themePref, setThemePref] = useState<ThemePref>(profile?.theme_preference ?? 'system');
-
-  useEffect(() => {
-    if (profile?.theme_preference) setThemePref(profile.theme_preference);
-  }, [profile?.theme_preference]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -168,10 +164,10 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
               </button>
               {showLangMenu && (
                 <div className="absolute right-0 top-full mt-2 w-32 rounded-xl border border-ink/10 bg-white p-1.5 shadow-xl">
-                  {['ES', 'EN', 'PT'].map((l) => (
+                  {(['ES', 'EN', 'PT'] as const).map((l) => (
                     <button
                       key={l}
-                      onClick={() => { setLang(l as any); setShowLangMenu(false); }}
+                      onClick={() => { setLang(l); setShowLangMenu(false); }}
                       className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors ${lang === l ? 'bg-teal-500/10 text-teal-600' : 'text-ink/70 hover:bg-ink/5'}`}
                     >
                       {l === 'ES' ? 'Español' : l === 'EN' ? 'English' : 'Português'}
@@ -311,15 +307,14 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
     setError('');
     const payload = { id: profile.id, display_name: name || 'Creador', account_type: account, goals, discovery_source: source, channel: profile.channel, onboarding_complete: true, updated_at: new Date().toISOString() };
     
+    const { error: saveError } = await supabase.from('onboarding_profiles').upsert(payload);
+    setSaving(false);
+    if (saveError) {
+      setError('No pudimos guardar tu configuración. Revisa tu conexión e inténtalo otra vez.');
+      return;
+    }
     setProfile({ ...profile, ...payload });
     onFinish();
-    
-    // Background update so UI doesn't block (skip for dummy profiles)
-    if (!profile.id.startsWith('user-') && !profile.id.startsWith('demo-')) {
-      const { error: saveError } = await supabase.from('onboarding_profiles').upsert(payload);
-      if (saveError) { console.error('Failed to save profile:', saveError); }
-    }
-    setSaving(false);
   }
 
   return (
@@ -433,7 +428,7 @@ function AutomationView() {
       <div className="grid gap-5 md:grid-cols-2">
         {cards.map(card => (
           <button key={card.title} onClick={() => setActive(card.title)} className="group overflow-hidden rounded-3xl border border-ink/10 bg-ink/[.035] text-left transition hover:-translate-y-1 hover:border-ink/25">
-            <div className="grid-lines h-44 p-5 bg-panel">
+            <div className="h-44 bg-panel p-5">
               <div className="flex items-start justify-between">
                 <span className="rounded-lg bg-ink/10 px-2.5 py-1 text-xs font-semibold text-ink/70">IDEA</span>
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-ink/10 text-ink/70"><Play size={15} fill="currentColor" /></span>
@@ -482,12 +477,17 @@ function App() {
   const [screen, setScreen] = useState<Screen>('landing');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [channel, setChannel] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabase.auth.getSession().then(async ({ data, error: sessionError }) => {
       if (!mounted) return;
+      if (sessionError) {
+        setLoading(false);
+        return;
+      }
       if (data.session?.user) {
         const { data: current } = await supabase.from('onboarding_profiles').select('*').eq('id', data.session.user.id).maybeSingle();
         if (!current) {
@@ -534,7 +534,18 @@ function App() {
     }
   }
 
-  if (loading) return <div className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
+  if (!isSupabaseConfigured) return (
+    <main className="grid min-h-screen place-items-center bg-[#07131f] px-5 text-white">
+      <section className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[.04] p-7 shadow-2xl">
+        <div className="flex items-center gap-3"><Logo /><span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200">Configuración requerida</span></div>
+        <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">El acceso está temporalmente fuera de servicio.</h1>
+        <p className="mt-3 leading-7 text-slate-300">Faltan las variables públicas de Supabase en este despliegue. No se creó ninguna sesión ni dato de demostración.</p>
+        <a href="https://stage-labs.ai.studio/contact" className="mt-7 flex min-h-12 items-center justify-center rounded-xl bg-teal-300 px-5 font-bold text-[#07131f]">Contactar a Stage AI Labs</a>
+      </section>
+    </main>
+  );
+
+  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
 
   if (screen === 'landing') {
     return (
@@ -570,12 +581,10 @@ function App() {
 
   if (screen === 'channel' && profile) return <Channel selected={channel} setSelected={setChannel} lang={lang} setLang={setLang} onBack={() => setScreen('landing')} onNext={async () => {
     const updated = { ...profile, channel };
-    setProfile(updated); 
-    setScreen('questions');
-    // Background update if not a dummy profile
-    if (!profile.id.startsWith('user-') && !profile.id.startsWith('demo-')) {
-      const { error } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, channel });
-      if (error) console.error(error);
+    const { error } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, channel });
+    if (!error) {
+      setProfile(updated);
+      setScreen('questions');
     }
   }} />;
 

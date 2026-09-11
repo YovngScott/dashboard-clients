@@ -3,8 +3,6 @@ import type { FormEvent } from 'react';
 import {
   ArrowRight,
   Sparkles,
-  Instagram,
-  CheckCircle2,
   Bot,
   ChevronDown,
   Globe,
@@ -44,14 +42,14 @@ const translations = {
       noticeEmail: 'Revisa tu correo para confirmar la cuenta y continuar.'
     },
     footer: {
-      text1: 'Al continuar aceptas los ',
-      terms: 'Términos',
-      text2: ' y la ',
-      privacy: 'Política de Privacidad',
+      text1: 'Consulta la ',
+      terms: 'Política de Privacidad',
+      text2: ' y el centro de ',
+      privacy: 'Seguridad',
       text3: '.'
     },
     bottomTagline1: 'Tú marcas el rumbo. Stage se ocupa del siguiente paso.',
-    bottomTagline2: '12.000+ empresas y creadores',
+    bottomTagline2: 'Infraestructura autónoma con control humano',
     chat: {
       title: 'De una pregunta a una oportunidad.',
       customer: '"¿Tienen disponible la colección nueva?"',
@@ -79,14 +77,14 @@ const translations = {
       noticeEmail: 'Check your email to confirm your account and continue.'
     },
     footer: {
-      text1: 'By continuing you agree to the ',
-      terms: 'Terms',
+      text1: 'See the Stage AI Labs ',
+      terms: 'Privacy Policy',
       text2: ' and ',
-      privacy: 'Privacy Policy',
+      privacy: 'Security Center',
       text3: '.'
     },
     bottomTagline1: 'You set the course. Stage takes the next step.',
-    bottomTagline2: '12,000+ businesses and creators',
+    bottomTagline2: 'Autonomous infrastructure with human control',
     chat: {
       title: 'From a question to an opportunity.',
       customer: '"Is the new collection available?"',
@@ -114,14 +112,14 @@ const translations = {
       noticeEmail: 'Verifique seu e-mail para confirmar a conta e continuar.'
     },
     footer: {
-      text1: 'Ao continuar você aceita os ',
-      terms: 'Termos',
-      text2: ' e a ',
-      privacy: 'Política de Privacidade',
+      text1: 'Consulte a ',
+      terms: 'Política de Privacidade',
+      text2: ' e o centro de ',
+      privacy: 'Segurança',
       text3: '.'
     },
     bottomTagline1: 'Você define o rumo. Stage cuida do próximo passo.',
-    bottomTagline2: '12.000+ empresas e criadores',
+    bottomTagline2: 'Infraestrutura autônoma com controle humano',
     chat: {
       title: 'De uma pergunta a uma oportunidade.',
       customer: '"A nova coleção está disponível?"',
@@ -148,7 +146,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const t = translations[lang];
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (chatStep === 0) {
       timeout = setTimeout(() => setChatStep(1), 1000); // Show customer msg after 1s
     } else if (chatStep === 1) {
@@ -174,30 +172,10 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
         options: { redirectTo: window.location.origin },
       });
       if (authError) {
-        const demoProfile: Profile = {
-          id: `demo-${provider}-${Date.now()}`,
-          display_name: provider === 'google' ? 'Google User' : 'Facebook User',
-          channel: 'Instagram',
-          account_type: 'personal',
-          goals: ['digital'],
-          discovery_source: 'social',
-          onboarding_complete: true,
-          theme_preference: 'dark',
-        };
-        onSuccess(demoProfile);
+        setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
       }
     } catch {
-      const demoProfile: Profile = {
-        id: `demo-${provider}-${Date.now()}`,
-        display_name: 'Stage Creator',
-        channel: 'Instagram',
-        account_type: 'personal',
-        goals: ['digital'],
-        discovery_source: 'social',
-        onboarding_complete: true,
-        theme_preference: 'dark',
-      };
-      onSuccess(demoProfile);
+      setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -223,34 +201,13 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
         if (result.error.message.includes('Invalid')) {
           setError('El correo o la contraseña no son correctos.');
         } else {
-          const fallbackProfile: Profile = {
-            id: `user-${Date.now()}`,
-            display_name: name || email.split('@')[0] || 'Creador',
-            channel: 'Instagram',
-            account_type: 'personal',
-            goals: ['digital'],
-            discovery_source: 'social',
-            onboarding_complete: false,
-            theme_preference: 'dark',
-          };
-          onSuccess(fallbackProfile);
+          setError('No pudimos completar el acceso. Inténtalo de nuevo.');
         }
         return;
       }
 
       if (tab === 'signup' && !result.data.session) {
         setNotice('Revisa tu correo para confirmar la cuenta y continuar.');
-        const fallbackProfile: Profile = {
-          id: result.data.user?.id || `user-${Date.now()}`,
-          display_name: name || email.split('@')[0] || 'Creador',
-          channel: 'Instagram',
-          account_type: 'personal',
-          goals: ['digital'],
-          discovery_source: 'social',
-          onboarding_complete: false,
-          theme_preference: 'dark',
-        };
-        setTimeout(() => onSuccess(fallbackProfile), 1000);
         return;
       }
 
@@ -264,17 +221,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       }
     } catch {
       setLoading(false);
-      const fallbackProfile: Profile = {
-        id: `user-${Date.now()}`,
-        display_name: name || email.split('@')[0] || 'Creador',
-        channel: 'Instagram',
-        account_type: 'personal',
-        goals: ['digital'],
-        discovery_source: 'social',
-        onboarding_complete: false,
-        theme_preference: 'dark',
-      };
-      onSuccess(fallbackProfile);
+      setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
     }
   }
 

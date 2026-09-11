@@ -18,10 +18,10 @@ const translations = {
     subtitlePart2: 'Tu tiempo vuelve.',
     tabs: { signup: 'Crear cuenta', signin: 'Iniciar sesión' },
     continueEmail: 'Continuar con correo',
-    separator: 'Al continuar aceptas los ',
-    terms: 'Términos',
-    and: ' y la ',
-    privacy: 'Política de Privacidad',
+    separator: 'Consulta la ',
+    terms: 'Política de Privacidad',
+    and: ' y el centro de ',
+    privacy: 'Seguridad',
     of: ' de Stage AI Labs.',
     form: {
       titleSignup: 'Crear tu espacio',
@@ -45,11 +45,11 @@ const translations = {
     subtitlePart2: 'Your time returns.',
     tabs: { signup: 'Create account', signin: 'Sign in' },
     continueEmail: 'Continue with email',
-    separator: 'By continuing you agree to the ',
-    terms: 'Terms',
+    separator: 'See the Stage AI Labs ',
+    terms: 'Privacy Policy',
     and: ' and ',
-    privacy: 'Privacy Policy',
-    of: ' of Stage AI Labs.',
+    privacy: 'Security Center',
+    of: '.',
     form: {
       titleSignup: 'Create your space',
       titleSignin: 'Sign in',
@@ -72,10 +72,10 @@ const translations = {
     subtitlePart2: 'Seu tempo volta.',
     tabs: { signup: 'Criar conta', signin: 'Entrar' },
     continueEmail: 'Continuar com e-mail',
-    separator: 'Ao continuar você aceita os ',
-    terms: 'Termos',
-    and: ' e a ',
-    privacy: 'Política de Privacidade',
+    separator: 'Consulte a ',
+    terms: 'Política de Privacidade',
+    and: ' e o centro de ',
+    privacy: 'Segurança',
     of: ' da Stage AI Labs.',
     form: {
       titleSignup: 'Criar seu espaço',
@@ -129,31 +129,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       });
 
       if (authError) {
-        console.warn('OAuth redirect fallback:', authError.message);
-        const demoProfile: Profile = {
-          id: `demo-${provider}-${Date.now()}`,
-          display_name: provider === 'google' ? 'Google Creator' : 'Facebook Creator',
-          channel: 'Instagram',
-          account_type: 'personal',
-          goals: ['digital', 'marcas'],
-          discovery_source: 'social',
-          onboarding_complete: true,
-          theme_preference: 'dark',
-        };
-        onSuccess(demoProfile);
+        setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
       }
     } catch {
-      const demoProfile: Profile = {
-        id: `demo-${provider}-${Date.now()}`,
-        display_name: 'Stage Creator',
-        channel: 'Instagram',
-        account_type: 'personal',
-        goals: ['digital'],
-        discovery_source: 'social',
-        onboarding_complete: true,
-        theme_preference: 'dark',
-      };
-      onSuccess(demoProfile);
+      setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -170,12 +149,12 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         tab === 'signup'
           ? await supabase.auth.signUp({
               email,
-              password: password || '12345678',
+              password,
               options: { data: { display_name: name || 'Creador Stage' } },
             })
           : await supabase.auth.signInWithPassword({
               email,
-              password: password || '12345678',
+              password,
             });
 
       setLoading(false);
@@ -184,35 +163,13 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         if (result.error.message.includes('Invalid')) {
           setError('El correo o la contraseña no son correctos.');
         } else {
-          const fallbackProfile: Profile = {
-            id: `user-${Date.now()}`,
-            display_name: name || email.split('@')[0] || 'Creador',
-            channel: 'Instagram',
-            account_type: 'personal',
-            goals: ['digital'],
-            discovery_source: 'social',
-            onboarding_complete: false,
-            theme_preference: 'dark',
-          };
-          onSuccess(fallbackProfile);
-          return;
+          setError('No pudimos completar el acceso. Inténtalo de nuevo.');
         }
         return;
       }
 
       if (tab === 'signup' && !result.data.session) {
-        setNotice('¡Cuenta creada! Revisa tu correo o entra directamente.');
-        const fallbackProfile: Profile = {
-          id: result.data.user?.id || `user-${Date.now()}`,
-          display_name: name || email.split('@')[0] || 'Creador',
-          channel: 'Instagram',
-          account_type: 'personal',
-          goals: ['digital'],
-          discovery_source: 'social',
-          onboarding_complete: false,
-          theme_preference: 'dark',
-        };
-        setTimeout(() => onSuccess(fallbackProfile), 1200);
+        setNotice('Cuenta creada. Revisa tu correo para confirmarla y continuar.');
         return;
       }
 
@@ -226,17 +183,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       }
     } catch {
       setLoading(false);
-      const fallbackProfile: Profile = {
-        id: `user-${Date.now()}`,
-        display_name: name || email.split('@')[0] || 'Creador',
-        channel: 'Instagram',
-        account_type: 'personal',
-        goals: ['digital'],
-        discovery_source: 'social',
-        onboarding_complete: false,
-        theme_preference: 'dark',
-      };
-      onSuccess(fallbackProfile);
+      setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
     }
   }
 

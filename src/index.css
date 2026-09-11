@@ -40,19 +40,7 @@ button, input { font: inherit; }
 button { cursor: pointer; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes drift { 0%,100% { transform: translate(0, 0); } 50% { transform: translate(12px, -10px); } }
-@keyframes float { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-8px) scale(1.02); } }
-@keyframes pulseRing { 0% { transform: scale(0.85); opacity: 0.8; } 50% { transform: scale(1.25); opacity: 0.3; } 100% { transform: scale(1.45); opacity: 0; } }
-@keyframes orbit { from { transform: rotate(0deg) translateX(46px) rotate(0deg); } to { transform: rotate(360deg) translateX(46px) rotate(-360deg); } }
-@keyframes bounceSubtle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-
 .animate-rise { animation: rise .55s ease-out both; }
-.animate-drift { animation: drift 8s ease-in-out infinite; }
-.animate-float { animation: float 4s ease-in-out infinite; }
-.animate-pulse-ring { animation: pulseRing 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
-.animate-pulse-ring-delayed { animation: pulseRing 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite 1.5s; }
-.animate-orbit { animation: orbit 12s linear infinite; }
-.animate-bounce-subtle { animation: bounceSubtle 2.5s ease-in-out infinite; }
 
 /* Hide scrollbar for clean horizontal swipe */
 .scrollbar-none::-webkit-scrollbar {
@@ -63,7 +51,11 @@ button { cursor: pointer; }
   scrollbar-width: none;
 }
 
-.grid-lines {
-  background-image: linear-gradient(rgb(var(--c-grid) / var(--c-grid-opacity)) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--c-grid) / var(--c-grid-opacity)) 1px, transparent 1px);
-  background-size: 48px 48px;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

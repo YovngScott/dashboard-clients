@@ -24,14 +24,14 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
         {/* Main Animated Visual Hub */}
         <div className="relative mb-6 flex items-center justify-center">
           {/* Sonar Radar Wave 1 */}
-          <div className="pointer-events-none absolute h-36 w-36 rounded-[2.5rem] bg-teal-400/20 animate-pulse-ring" />
+          <div className="pointer-events-none absolute h-36 w-36 rounded-[2.5rem] bg-teal-400/15" />
           {/* Sonar Radar Wave 2 (delayed) */}
-          <div className="pointer-events-none absolute h-48 w-48 rounded-[3rem] bg-teal-500/15 animate-pulse-ring-delayed" />
+          <div className="pointer-events-none absolute h-48 w-48 rounded-[3rem] border border-teal-500/15" />
 
           {/* Floating Central Icon Badge matching user's reference image */}
           <div
             id="inbox-animated-badge"
-            className="relative z-10 grid h-28 w-28 place-items-center rounded-[2.2rem] bg-[#e6f7f5] shadow-lg shadow-teal-700/10 transition-transform duration-300 hover:scale-105 dark:bg-teal-950/50 dark:shadow-teal-900/30 animate-float"
+            className="relative z-10 grid h-28 w-28 place-items-center rounded-[2.2rem] bg-[#e6f7f5] shadow-lg shadow-teal-700/10 transition-transform duration-300 motion-safe:hover:scale-[1.03] dark:bg-teal-950/50 dark:shadow-teal-900/30"
           >
             {/* Ambient inner glow */}
             <div className="absolute inset-0 rounded-[2.2rem] bg-gradient-to-tr from-teal-500/10 to-transparent" />
@@ -39,23 +39,22 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
 
             {/* Micro Live Signal Beacon */}
             <span className="absolute -top-1 -right-1 flex h-4 w-4">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-canvas bg-emerald-500" />
             </span>
           </div>
 
           {/* Floating Element 1: Typing Bubble (Top Right) */}
-          <div className="absolute -top-4 -right-12 z-20 hidden sm:flex items-center gap-1.5 rounded-full border border-teal-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md dark:border-teal-800/60 animate-bounce-subtle">
+          <div className="absolute -top-4 -right-12 z-20 hidden items-center gap-1.5 rounded-full border border-teal-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md sm:flex dark:border-teal-800/60">
             <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300">Nuevo mensaje</span>
             <div className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0ms]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:150ms]" />
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:300ms]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-500/70" />
+              <span className="h-1.5 w-1.5 rounded-full bg-teal-500/40" />
             </div>
           </div>
 
           {/* Floating Element 2: Heart / DM Pill (Bottom Left) */}
-          <div className="absolute -bottom-3 -left-10 z-20 hidden sm:flex items-center gap-1.5 rounded-full border border-pink-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md dark:border-pink-900/60 animate-drift">
+          <div className="absolute -bottom-3 -left-10 z-20 hidden items-center gap-1.5 rounded-full border border-pink-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md sm:flex dark:border-pink-900/60">
             <Heart size={13} className="fill-pink-500 text-pink-500" />
             <span className="text-[11px] font-semibold text-ink/70">Instagram DM</span>
           </div>
@@ -68,7 +67,7 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
 
         {/* Live Status Pill */}
         <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-          <Radio size={13} className="animate-pulse text-emerald-600 dark:text-emerald-400" />
+          <Radio size={13} className="text-emerald-600 dark:text-emerald-400" />
           <span>Escaneando canales en tiempo real</span>
         </div>
 
@@ -145,48 +144,33 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
       {/* Main Animated Visual Hub */}
       <div className="relative mb-6 flex items-center justify-center">
         {/* Network Connection Ring (Dashed Orbit) */}
-        <div className="pointer-events-none absolute h-44 w-44 rounded-full border-2 border-dashed border-teal-500/25 animate-spin-slow" />
+        <div className="pointer-events-none absolute h-44 w-44 rounded-full border-2 border-dashed border-teal-500/25" />
 
         {/* Orbiting Avatar 1 */}
-        <div className="pointer-events-none absolute h-36 w-36 animate-orbit">
+        <div className="pointer-events-none absolute h-36 w-36 -rotate-12">
           <div className="h-7 w-7 overflow-hidden rounded-full border-2 border-white shadow-md bg-purple-100">
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-              alt="Lead"
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+            <span className="grid h-full w-full place-items-center text-[10px] font-bold text-purple-800">AM</span>
           </div>
         </div>
 
         {/* Orbiting Avatar 2 */}
-        <div className="pointer-events-none absolute h-36 w-36 animate-orbit [animation-delay:-4s]">
+        <div className="pointer-events-none absolute h-36 w-36 rotate-[108deg]">
           <div className="h-7 w-7 overflow-hidden rounded-full border-2 border-white shadow-md bg-amber-100">
-            <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"
-              alt="Lead"
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+            <span className="grid h-full w-full place-items-center text-[10px] font-bold text-amber-800">JR</span>
           </div>
         </div>
 
         {/* Orbiting Avatar 3 */}
-        <div className="pointer-events-none absolute h-36 w-36 animate-orbit [animation-delay:-8s]">
+        <div className="pointer-events-none absolute h-36 w-36 rotate-[228deg]">
           <div className="h-7 w-7 overflow-hidden rounded-full border-2 border-white shadow-md bg-pink-100">
-            <img
-              src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80"
-              alt="Lead"
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+            <span className="grid h-full w-full place-items-center text-[10px] font-bold text-pink-800">LC</span>
           </div>
         </div>
 
         {/* Floating Central Icon Badge matching user's reference image */}
         <div
           id="contacts-animated-badge"
-          className="relative z-10 grid h-28 w-28 place-items-center rounded-[2.2rem] bg-[#e6f7f5] shadow-lg shadow-teal-700/10 transition-transform duration-300 hover:scale-105 dark:bg-teal-950/50 dark:shadow-teal-900/30 animate-float"
+          className="relative z-10 grid h-28 w-28 place-items-center rounded-[2.2rem] bg-[#e6f7f5] shadow-lg shadow-teal-700/10 transition-transform duration-300 motion-safe:hover:scale-[1.03] dark:bg-teal-950/50 dark:shadow-teal-900/30"
         >
           {/* Ambient inner glow */}
           <div className="absolute inset-0 rounded-[2.2rem] bg-gradient-to-tr from-teal-500/10 to-transparent" />
@@ -194,19 +178,18 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
 
           {/* Micro Live Signal Beacon */}
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
             <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-canvas bg-[#00897b]" />
           </span>
         </div>
 
         {/* Floating Community Badge (Top Left) */}
-        <div className="absolute -top-3 -left-12 z-20 hidden sm:flex items-center gap-1.5 rounded-full border border-teal-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md dark:border-teal-800/60 animate-bounce-subtle">
+        <div className="absolute -top-3 -left-12 z-20 hidden items-center gap-1.5 rounded-full border border-teal-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md sm:flex dark:border-teal-800/60">
           <UserPlus size={13} className="text-teal-600 dark:text-teal-400" />
           <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300">+1 Lead</span>
         </div>
 
         {/* Floating Audience Pill (Bottom Right) */}
-        <div className="absolute -bottom-3 -right-10 z-20 hidden sm:flex items-center gap-1.5 rounded-full border border-purple-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md dark:border-purple-900/60 animate-drift">
+        <div className="absolute -bottom-3 -right-10 z-20 hidden items-center gap-1.5 rounded-full border border-purple-200/60 bg-panel/90 px-3 py-1.5 shadow-md backdrop-blur-md sm:flex dark:border-purple-900/60">
           <Instagram size={13} className="text-pink-500" />
           <span className="text-[11px] font-semibold text-ink/70">Comunidad</span>
         </div>
@@ -219,7 +202,7 @@ export function AnimatedEmptyState({ type, onAction }: AnimatedEmptyStateProps) 
 
       {/* Live Status Pill */}
       <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300">
-        <Radio size={13} className="animate-pulse text-teal-600 dark:text-teal-400" />
+        <Radio size={13} className="text-teal-600 dark:text-teal-400" />
         <span>Sincronizando comunidad y leads en vivo</span>
       </div>
 

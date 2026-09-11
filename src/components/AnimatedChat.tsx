@@ -15,24 +15,24 @@ const chatTranslations = {
     { id: '2', sender: 'bot', text: '¡Hola! 👋 Gracias por escribirnos. Soy el asistente virtual de Stage.', delay: 3000 },
     { id: '3', sender: 'bot', text: 'Para ayudarte mejor, ¿estás buscando información sobre planes o necesitas soporte técnico?', delay: 5000 },
     { id: '4', sender: 'user', text: 'Quisiera ver los planes, por favor.', delay: 7500 },
-    { id: '5', sender: 'bot', text: '¡Claro! Manejamos planes desde Básico hasta Enterprise.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Puedes revisarlos a detalle aquí: stage-labs.ai/planes ✨', delay: 11000 },
+    { id: '5', sender: 'bot', text: 'Claro. Tenemos Launch, Pulse e Infinity según el volumen y los canales de tu operación.', delay: 9000 },
+    { id: '6', sender: 'bot', text: 'Puedes compararlos en stage-labs.ai.studio/pricing.', delay: 11000 },
   ],
   EN: [
     { id: '1', sender: 'user', text: 'Hi! I am interested in learning more about your services. 🚀', delay: 1500 },
     { id: '2', sender: 'bot', text: 'Hello! 👋 Thanks for reaching out. I am your Stage virtual assistant.', delay: 3000 },
     { id: '3', sender: 'bot', text: 'To assist you better, are you looking for pricing plans or technical support?', delay: 5000 },
     { id: '4', sender: 'user', text: 'I would like to see the pricing plans, please.', delay: 7500 },
-    { id: '5', sender: 'bot', text: 'Sure! We offer plans ranging from Basic to Enterprise.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'You can check them out in detail here: stage-labs.ai/pricing ✨', delay: 11000 },
+    { id: '5', sender: 'bot', text: 'Sure. We offer Launch, Pulse, and Infinity based on your volume and channels.', delay: 9000 },
+    { id: '6', sender: 'bot', text: 'Compare them at stage-labs.ai.studio/pricing.', delay: 11000 },
   ],
   PT: [
     { id: '1', sender: 'user', text: 'Olá! Estou interessado em saber mais sobre seus serviços. 🚀', delay: 1500 },
     { id: '2', sender: 'bot', text: 'Olá! 👋 Obrigado por nos contatar. Sou o assistente virtual do Stage.', delay: 3000 },
     { id: '3', sender: 'bot', text: 'Para ajudar melhor, você está procurando informações sobre planos ou suporte técnico?', delay: 5000 },
     { id: '4', sender: 'user', text: 'Gostaria de ver os planos, por favor.', delay: 7500 },
-    { id: '5', sender: 'bot', text: 'Claro! Oferecemos planos do Básico ao Enterprise.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Você pode conferi-los em detalhes aqui: stage-labs.ai/planos ✨', delay: 11000 },
+    { id: '5', sender: 'bot', text: 'Claro. Oferecemos Launch, Pulse e Infinity conforme seu volume e seus canais.', delay: 9000 },
+    { id: '6', sender: 'bot', text: 'Compare em stage-labs.ai.studio/pricing.', delay: 11000 },
   ]
 } as const;
 
@@ -59,7 +59,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
   }, [visibleMessages, isTyping]);
 
   useEffect(() => {
-    let timeouts: NodeJS.Timeout[] = [];
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
     
     const runAnimation = () => {
       setVisibleMessages([]);
@@ -87,7 +87,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
     return () => {
       timeouts.forEach(clearTimeout);
     };
-  }, [lang]); // Re-run animation if language changes
+  }, [lang, messages]); // Re-run animation if language changes
 
   return (
     <div className="flex h-full w-full flex-col bg-white overflow-hidden rounded-[2rem] shadow-inner relative z-10">

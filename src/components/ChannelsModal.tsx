@@ -85,10 +85,10 @@ export function ChannelsModal({ isOpen, onClose, onConnectChannel }: ChannelsMod
                       referrerPolicy="no-referrer"
                     />
                   </div>
-                  <span className="text-xs font-semibold text-white">svrnx___</span>
+                  <span className="text-xs font-semibold text-white">Cuenta de Instagram</span>
                 </div>
                 <button
-                  onClick={() => showToast('Opciones de cuenta svrnx___')}
+                  onClick={() => showToast('Opciones de la cuenta de Instagram')}
                   className="text-zinc-400 hover:text-white"
                 >
                   <MoreVertical size={16} />
