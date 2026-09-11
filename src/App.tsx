@@ -17,10 +17,12 @@ import { AnimatedEmptyState } from './components/AnimatedEmptyState';
 import { MobileAuthView } from './components/MobileAuthView';
 import { DesktopLanding } from './components/DesktopLanding';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
+import { STAGE_PLANS, type StagePlan } from './lib/product-data';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
 type ThemePref = 'light' | 'dark' | 'system';
+type PlanId = StagePlan['id'];
 type Profile = {
   id: string;
   display_name: string | null;
@@ -345,9 +347,15 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
 /* ── Dashboard ─────────────────────────────────────────────── */
 
 function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => void }) {
+  const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
+  const hasCheckoutRequest = STAGE_PLANS.some((plan) => plan.id === requestedPlan);
+  const initialCheckoutPlan: PlanId = hasCheckoutRequest
+    ? requestedPlan as PlanId
+    : 'pulse';
   const [tab, setTab] = useState<DashboardTab>('Inicio');
   const [showSettings, setShowSettings] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(hasCheckoutRequest);
+  const [checkoutPlan] = useState<PlanId>(initialCheckoutPlan);
   const [showChannels, setShowChannels] = useState(false);
   const { themePref, updateTheme } = useTheme(profile);
 
@@ -362,7 +370,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
           onBack={() => setShowSettings(false)}
           onOpenUpgrade={() => setShowUpgrade(true)}
         />
-        <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} />
+        <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
       </div>
     );
   }
@@ -401,7 +409,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
       <BottomNavBar currentTab={tab} onSelectTab={setTab} />
 
       {/* Global Modals */}
-      <UpgradeModal isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
       <ChannelsModal isOpen={showChannels} onClose={() => setShowChannels(false)} />
     </div>
   );

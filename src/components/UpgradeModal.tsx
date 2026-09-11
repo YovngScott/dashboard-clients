@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Check, ShieldCheck, X } from 'lucide-react';
+import { ArrowUpRight, Check, LoaderCircle, ShieldCheck, X } from 'lucide-react';
 import { LANDING_URL, STAGE_PLANS } from '@/lib/product-data';
+import { openStageCheckout } from '@/lib/paddle';
 
-interface UpgradeModalProps { isOpen: boolean; onClose: () => void }
+interface UpgradeModalProps { isOpen: boolean; onClose: () => void; initialPlan?: PlanId }
 type PlanId = (typeof STAGE_PLANS)[number]['id'];
 
-export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>('pulse');
+export function UpgradeModal({ isOpen, onClose, initialPlan = 'pulse' }: UpgradeModalProps) {
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>(initialPlan);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isOpeningCheckout, setIsOpeningCheckout] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const selected = STAGE_PLANS.find((plan) => plan.id === selectedPlan) ?? STAGE_PLANS[1];
 
@@ -25,6 +28,18 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  async function handleCheckout() {
+    setCheckoutError(null);
+    setIsOpeningCheckout(true);
+    try {
+      await openStageCheckout(selected.id);
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : 'No se pudo abrir el checkout. Intenta de nuevo.');
+    } finally {
+      setIsOpeningCheckout(false);
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#07131f]/80 p-0 backdrop-blur-sm sm:items-center sm:p-5" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
@@ -57,10 +72,12 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-            <a href={`${LANDING_URL}/contact?plan=${selected.id}`} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#126769] px-5 font-bold text-white transition-[background-color,transform] hover:bg-[#0d5557]">Agendar demo para {selected.name}<ArrowUpRight size={17} /></a>
-            <a href={`${LANDING_URL}/pricing`} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-[#172c43]/15 px-5 font-semibold text-[#172c43] hover:bg-[#172c43]/5">Comparar detalles</a>
+            <button type="button" disabled={isOpeningCheckout} onClick={handleCheckout} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#126769] px-5 font-bold text-white transition-[background-color,transform] hover:bg-[#0d5557] disabled:cursor-wait disabled:opacity-65">
+              {isOpeningCheckout ? <><LoaderCircle className="animate-spin" size={17} /> Preparando pago seguro</> : <>Continuar al pago <ArrowUpRight size={17} /></>}
+            </button>
+            <a href={`${LANDING_URL}/contact?plan=${selected.id}`} className="flex min-h-12 items-center justify-center rounded-xl border border-[#172c43]/15 px-5 font-semibold text-[#172c43] hover:bg-[#172c43]/5">Hablar con Stage</a>
           </div>
-          <p className="mt-4 text-center text-xs leading-5 text-[#172c43]/50">La solicitud no genera un cobro ni reserva un horario automáticamente.</p>
+          <p aria-live="polite" className={`mt-4 text-center text-xs leading-5 ${checkoutError ? 'font-semibold text-red-700' : 'text-[#172c43]/50'}`}>{checkoutError ?? 'El cobro se procesa de forma segura en Paddle. Tu acceso se activa al confirmar el pago.'}</p>
         </div>
       </section>
     </div>
