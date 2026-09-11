@@ -59,3 +59,10 @@ button { cursor: pointer; }
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (prefers-reduced-transparency: reduce) {
+  .agent-dialog-backdrop {
+    background: rgb(0 0 0 / 0.9);
+    backdrop-filter: none;
+  }
+}

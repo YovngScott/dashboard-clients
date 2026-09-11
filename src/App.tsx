@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
-  ArrowLeft, ArrowRight, BarChart3, Bot, Check, ChevronRight, CircleHelp,
-  Clock3, Instagram, LayoutGrid, Link2, MessageCircle, Play, Search,
-  Sparkles, Store, Target, Users, X, Zap,
+  ArrowLeft, ArrowRight, BarChart3, Check, CircleHelp,
+  Clock3, Instagram, LayoutGrid, Link2, Search,
+  Sparkles, Store, Target, Users, Zap,
 } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
@@ -19,6 +19,7 @@ import { MobileAuthView } from './components/MobileAuthView';
 import { DesktopLanding } from './components/DesktopLanding';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
 import { STAGE_PLANS, type StagePlan } from './lib/product-data';
+import { AgentWorkspace } from './features/agents/AgentWorkspace';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
@@ -403,7 +404,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
             onAction={() => setShowUpgrade(true)}
           />
         )}
-        {tab === 'Automatizaciones' && <AutomationView />}
+        {tab === 'Automatizaciones' && <AgentWorkspace userId={profile.id} profileName={profile.display_name} />}
       </main>
 
       {/* Bottom navigation bar: Home, Inbox, Contacts, Automation */}
@@ -412,69 +413,6 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
       {/* Global Modals */}
       <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
       <ChannelsModal isOpen={showChannels} onClose={() => setShowChannels(false)} />
-    </div>
-  );
-}
-
-function AutomationView() {
-  const [active, setActive] = useState<string | null>(null);
-  const cards = [
-    { title: 'Responder comentarios', text: 'Envía un enlace a todas las personas que comenten en tus publicaciones', icon: <MessageCircle size={20} /> },
-    { title: 'Nuevos seguidores', text: 'Saluda a tus nuevos seguidores y construye comunidad desde el primer día', icon: <Users size={20} /> },
-    { title: 'Respuestas a historias', text: 'Automatiza respuestas cuando alguien reacciona a tus historias', icon: <Zap size={20} /> },
-    { title: 'Preguntas frecuentes', text: 'Responde automáticamente a las preguntas que más recibes', icon: <CircleHelp size={20} /> },
-  ];
-  return (
-    <div className="animate-rise">
-      <div className="mb-9 flex items-end justify-between">
-        <div><p className="mb-2 text-sm text-teal-600 dark:text-teal-400">Biblioteca de ideas</p><h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Automatizaciones</h1></div>
-        <button className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 text-ink/50 hover:text-ink"><Search size={19} /></button>
-      </div>
-      <div className="mb-8 flex gap-2 overflow-x-auto">
-        <button className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-ink">Para empezar</button>
-        <button className="rounded-xl border border-ink/10 px-4 py-2.5 text-sm font-semibold text-ink/50">Mis automatizaciones</button>
-      </div>
-      <div className="grid gap-5 md:grid-cols-2">
-        {cards.map(card => (
-          <button key={card.title} onClick={() => setActive(card.title)} className="group overflow-hidden rounded-3xl border border-ink/10 bg-ink/[.035] text-left transition hover:-translate-y-1 hover:border-ink/25">
-            <div className="h-44 bg-panel p-5">
-              <div className="flex items-start justify-between">
-                <span className="rounded-lg bg-ink/10 px-2.5 py-1 text-xs font-semibold text-ink/70">IDEA</span>
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-ink/10 text-ink/70"><Play size={15} fill="currentColor" /></span>
-              </div>
-              <div className="mt-8 flex items-center gap-3">
-                <div className="rounded-xl bg-ink/10 px-4 py-2 text-sm text-ink/70">¿Precio?</div>
-                <ArrowRight className="text-ink/40" size={20} />
-                <div className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-ink">Ver detalles</div>
-              </div>
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink/5 text-ink/60">{card.icon}</span>
-                <h2 className="font-display text-lg font-bold text-ink">{card.title}</h2>
-              </div>
-              <p className="mt-3 leading-6 text-ink/45">{card.text}</p>
-              <div className="mt-6 flex items-center justify-between text-sm text-ink/35">
-                <span className="flex items-center gap-2"><Instagram size={15} /> Instagram</span>
-                <ChevronRight className="transition group-hover:translate-x-1 group-hover:text-ink" size={17} />
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-      {active && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-black/40 p-5 backdrop-blur-sm" onClick={() => setActive(null)}>
-          <div className="w-full max-w-md rounded-3xl border border-ink/10 bg-panel p-6 shadow-2xl" onClick={event => event.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400"><Bot size={22} /></div>
-              <button onClick={() => setActive(null)} className="text-ink/40 hover:text-ink"><X size={20} /></button>
-            </div>
-            <h2 className="mt-7 font-display text-2xl font-extrabold text-ink">{active}</h2>
-            <p className="mt-3 leading-6 text-ink/50">Esta idea está lista para convertirse en tu próxima automatización. Personaliza el mensaje y activa el flujo cuando quieras.</p>
-            <Button onClick={() => setActive(null)} className="mt-7 w-full">Empezar configuración <ArrowRight size={17} /></Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
