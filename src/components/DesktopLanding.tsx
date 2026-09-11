@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { AnimatedChat } from './AnimatedChat';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
+import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { Profile } from '../types';
 
 interface DesktopLandingProps {
@@ -164,18 +165,20 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   ] as const;
 
   async function handleSocial(provider: 'google' | 'facebook') {
+    if (loading) return;
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: getAuthRedirectUrl() },
       });
       if (authError) {
-        setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
+        setError(authErrorMessage(authError.message));
       }
     } catch {
-      setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
+      setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -185,27 +188,30 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
     event.preventDefault();
     setError('');
     setNotice('');
+    const normalizedEmail = normalizeEmail(email);
+    const nameError = tab === 'signup' ? validateDisplayName(name) : null;
+    const passwordError = tab === 'signup' ? validatePassword(password) : null;
+    if (nameError || passwordError) {
+      setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
+      return;
+    }
     setLoading(true);
     try {
       const result =
         tab === 'signup'
           ? await supabase.auth.signUp({
-              email,
+              email: normalizedEmail,
               password,
               options: {
                 data: { display_name: name || 'Creador' },
                 emailRedirectTo: getAuthRedirectUrl(),
               },
             })
-          : await supabase.auth.signInWithPassword({ email, password });
+          : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
 
       setLoading(false);
       if (result.error) {
-        if (result.error.message.includes('Invalid')) {
-          setError('El correo o la contraseña no son correctos.');
-        } else {
-          setError('No pudimos completar el acceso. Inténtalo de nuevo.');
-        }
+        setError(authErrorMessage(result.error.message));
         return;
       }
 
@@ -432,7 +438,9 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                           {t.form.nameLabel}
                         </label>
                         <input
-                          type="text"
+                        type="text"
+                        autoComplete="name"
+                        maxLength={80}
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           required
@@ -448,7 +456,8 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                       {t.form.emailLabel}
                     </label>
                     <input
-                      type="email"
+                    type="email"
+                    autoComplete="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -463,7 +472,8 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                     </label>
                     <div className="relative">
                       <input
-                        type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                         required
                         minLength={6}
                         value={password}
@@ -482,13 +492,13 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                   </div>
 
                   {error && (
-                    <div className="rounded-xl border border-red-200/80 bg-red-50/80 p-3 text-xs text-red-600 backdrop-blur-md">
+                    <div role="alert" aria-live="assertive" className="rounded-xl border border-red-200/80 bg-red-50/80 p-3 text-xs text-red-600 backdrop-blur-md">
                       {error}
                     </div>
                   )}
 
                   {notice && (
-                    <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-3 text-xs text-emerald-700 backdrop-blur-md">
+                    <div role="status" aria-live="polite" className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-3 text-xs text-emerald-700 backdrop-blur-md">
                       {notice}
                     </div>
                   )}

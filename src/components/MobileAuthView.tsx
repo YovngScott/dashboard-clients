@@ -4,6 +4,7 @@ import { Mail, X, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Globe, Chevro
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
+import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { Profile } from '../types';
 
 interface MobileAuthViewProps {
@@ -118,8 +119,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
   // Social login handler (Google & Facebook only)
   async function handleSocialLogin(provider: 'google' | 'facebook') {
+    if (loading) return;
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
@@ -129,10 +132,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       });
 
       if (authError) {
-        setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
+        setError(authErrorMessage(authError.message));
       }
     } catch {
-      setError('No pudimos iniciar la conexión. Inténtalo de nuevo.');
+      setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -142,13 +145,20 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
     e.preventDefault();
     setError('');
     setNotice('');
+    const normalizedEmail = normalizeEmail(email);
+    const nameError = tab === 'signup' ? validateDisplayName(name) : null;
+    const passwordError = tab === 'signup' ? validatePassword(password) : null;
+    if (nameError || passwordError) {
+      setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
+      return;
+    }
     setLoading(true);
 
     try {
       const result =
         tab === 'signup'
           ? await supabase.auth.signUp({
-              email,
+              email: normalizedEmail,
               password,
               options: {
                 data: { display_name: name || 'Creador Stage' },
@@ -156,18 +166,14 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               },
             })
           : await supabase.auth.signInWithPassword({
-              email,
+              email: normalizedEmail,
               password,
             });
 
       setLoading(false);
 
       if (result.error) {
-        if (result.error.message.includes('Invalid')) {
-          setError('El correo o la contraseña no son correctos.');
-        } else {
-          setError('No pudimos completar el acceso. Inténtalo de nuevo.');
-        }
+        setError(authErrorMessage(result.error.message));
         return;
       }
 
@@ -475,6 +481,8 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       </label>
                       <input
                         type="text"
+                        autoComplete="name"
+                        maxLength={80}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t.form.namePlaceholder}
@@ -490,6 +498,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   </label>
                   <input
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -505,6 +514,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                       required
                       minLength={6}
                       value={password}
@@ -523,13 +533,13 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 </div>
 
                 {error && (
-                  <div className="rounded-xl border border-red-400/30 bg-red-500/20 p-3 text-xs text-red-200">
+                  <div role="alert" aria-live="assertive" className="rounded-xl border border-red-400/30 bg-red-500/20 p-3 text-xs text-red-200">
                     {error}
                   </div>
                 )}
 
                 {notice && (
-                  <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/20 p-3 text-xs text-emerald-200">
+                  <div role="status" aria-live="polite" className="rounded-xl border border-emerald-400/30 bg-emerald-500/20 p-3 text-xs text-emerald-200">
                     {notice}
                   </div>
                 )}

@@ -6,6 +6,7 @@ import {
   Sparkles, Store, Target, Users, X, Zap,
 } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import type { Session } from '@supabase/supabase-js';
 import { DashboardTopBar } from './components/DashboardTopBar';
 import { SettingsScreen } from './components/SettingsScreen';
 import { UpgradeModal } from './components/UpgradeModal';
@@ -486,31 +487,63 @@ function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [channel, setChannel] = useState('');
   const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data, error: sessionError }) => {
+    const defaultProfile = (id: string): Profile => ({ id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' });
+
+    const hydrateSession = async (session: Session | null) => {
       if (!mounted) return;
-      if (sessionError) {
+      setAuthError('');
+      if (!session?.user) {
+        setProfile(null);
+        setScreen('landing');
         setLoading(false);
         return;
       }
-      if (data.session?.user) {
-        const { data: current } = await supabase.from('onboarding_profiles').select('*').eq('id', data.session.user.id).maybeSingle();
-        if (!current) {
-          await supabase.from('onboarding_profiles').upsert({ id: data.session.user.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
-          setProfile({ id: data.session.user.id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' });
-          setScreen('channel');
-        } else {
-          setProfile(current as Profile);
-          setScreen(current.onboarding_complete ? 'dashboard' : 'channel');
+
+      const { data: current, error: profileError } = await supabase
+        .from('onboarding_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (!mounted) return;
+      if (profileError) {
+        setAuthError('Tu sesión está activa, pero no pudimos cargar tu espacio. Revisa tu conexión y vuelve a intentarlo.');
+        setLoading(false);
+        return;
+      }
+      if (!current) {
+        const profile = defaultProfile(session.user.id);
+        const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
+        if (!mounted) return;
+        if (createError) {
+          setAuthError('Tu cuenta fue creada, pero no pudimos preparar tu espacio. Inténtalo nuevamente.');
+          setLoading(false);
+          return;
         }
+        setProfile(profile);
+        setScreen('channel');
+      } else {
+        const profile = current as Profile;
+        setProfile(profile);
+        setScreen(profile.onboarding_complete ? 'dashboard' : 'channel');
       }
       setLoading(false);
+    };
+
+    supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (sessionError) {
+        setAuthError('No pudimos verificar tu sesión. Revisa tu conexión y vuelve a intentarlo.');
+        setLoading(false);
+        return;
+      }
+      void hydrateSession(data.session);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) { setProfile(null); setScreen('landing'); }
+      void hydrateSession(session);
     });
     return () => { mounted = false; listener.subscription.unsubscribe(); };
   }, []);
@@ -554,6 +587,17 @@ function App() {
   );
 
   if (loading) return <div role="status" aria-label="Cargando tu espacio" className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
+
+  if (authError) return (
+    <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
+      <section className="w-full max-w-lg rounded-2xl border border-ink/10 bg-white p-7 shadow-xl dark:bg-zinc-900">
+        <Logo />
+        <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">No pudimos abrir tu espacio.</h1>
+        <p role="alert" className="mt-3 leading-7 text-ink/60">{authError}</p>
+        <button type="button" onClick={() => window.location.reload()} className="mt-7 min-h-12 rounded-xl bg-[#0d5c58] px-5 font-bold text-white transition hover:bg-[#094542] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
+      </section>
+    </main>
+  );
 
   if (screen === 'landing') {
     return (
