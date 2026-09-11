@@ -24,7 +24,7 @@ const channelMeta: Record<AgentChannel, { label: string; icon: typeof Instagram;
 
 const statusMeta: Record<AgentRecord['status'], { label: string; tone: string }> = {
   draft: { label: 'Borrador', tone: 'bg-ink/5 text-ink/55' },
-  processing: { label: 'Procesando contexto', tone: 'bg-amber-500/10 text-amber-700 dark:text-amber-300' },
+  processing: { label: 'Preparando información', tone: 'bg-amber-500/10 text-amber-700 dark:text-amber-300' },
   needs_attention: { label: 'Requiere atención', tone: 'bg-rose-500/10 text-rose-700 dark:text-rose-300' },
   ready: { label: 'Listo para conectar', tone: 'bg-sky-500/10 text-sky-700 dark:text-sky-300' },
   activating: { label: 'Activando', tone: 'bg-violet-500/10 text-violet-700 dark:text-violet-300' },
@@ -54,7 +54,7 @@ export function AgentWorkspace({ userId, profileName }: Props) {
       setWorkspace(nextWorkspace);
       setAgents(await listAgents(nextWorkspace.organizationId));
     } catch {
-      setError('No pudimos cargar tus agentes. La base segura de agentes puede requerir la nueva migración.');
+      setError('No pudimos cargar tus asistentes. Inténtalo de nuevo en unos segundos.');
     } finally { setLoading(false); }
   }
 
@@ -70,7 +70,7 @@ export function AgentWorkspace({ userId, profileName }: Props) {
       })
       .catch(() => {
         if (cancelled) return;
-        setError('No pudimos cargar tus agentes. La base segura de agentes puede requerir la nueva migración.');
+        setError('No pudimos cargar tus asistentes. Inténtalo de nuevo en unos segundos.');
         setLoading(false);
       });
     return () => { cancelled = true; };
@@ -84,7 +84,7 @@ export function AgentWorkspace({ userId, profileName }: Props) {
           <h1 id="automation-title" className="font-display text-4xl font-extrabold tracking-[-.045em] text-ink sm:text-5xl">Automatizaciones</h1>
         </div>
         <div className="hidden items-center gap-2 rounded-full border border-ink/10 bg-panel px-3 py-2 text-xs font-semibold text-ink/55 sm:flex">
-          <ShieldCheck size={15} className="text-emerald-500" /> Aislamiento por organización
+          <ShieldCheck size={15} className="text-emerald-500" /> Tus datos quedan separados
         </div>
       </div>
 
@@ -106,19 +106,27 @@ export function AgentWorkspace({ userId, profileName }: Props) {
               </div>
               <p className="mt-10 text-xs font-bold uppercase tracking-[.18em] text-teal-300">Agente multicanal</p>
               <h2 className="mt-3 max-w-xl font-display text-3xl font-extrabold tracking-[-.04em] sm:text-4xl">Agente de Atención Inteligente</h2>
-              <p className="mt-4 max-w-xl text-base leading-7 text-white/60">Configura la identidad, el contexto y el comportamiento de tu empresa. Habla cualquier idioma y conserva las reglas de seguridad de Stage.</p>
-              <span className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 font-bold text-[#11131a]">Crear agente <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
+              <p className="mt-4 max-w-xl text-base leading-7 text-white/60">Crea un asistente que conoce tu negocio, conversa con tus clientes y te ayuda a recuperar tiempo. Sin configuraciones complicadas.</p>
+              <span className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 font-bold text-[#11131a]">Crear mi asistente <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" /></span>
             </div>
           </button>
 
           <aside className="rounded-[28px] border border-ink/10 bg-panel p-6">
             <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600"><LockKeyhole size={20} /></span><h2 className="font-display text-lg font-bold">Protección permanente</h2></div>
             <ul className="mt-6 space-y-4 text-sm leading-6 text-ink/55">
-              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />El cliente no puede desactivar la confidencialidad ni el aislamiento.</li>
-              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />Si falta información, el agente lo reconoce o escala.</li>
-              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />Publicar exige contexto procesado, pruebas aprobadas y un canal conectado.</li>
+              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />Cada empresa ve únicamente su propia información.</li>
+              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />Cuando no sabe algo, lo dice o pide ayuda.</li>
+              <li className="flex gap-3"><Check size={17} className="mt-1 shrink-0 text-emerald-500" />Tú decides cuándo conectarlo y ponerlo a trabajar.</li>
             </ul>
           </aside>
+          <div className="lg:col-span-2">
+            <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-sm font-semibold text-teal-700 dark:text-teal-300">Biblioteca de ideas</p><h2 className="mt-1 font-display text-2xl font-extrabold tracking-[-.03em]">Automatiza lo repetitivo</h2></div><span className="hidden text-sm text-ink/45 sm:block">Conecta un canal cuando estés listo</span></div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <AutomationIdea icon={MessageCircle} title="Responder mensajes" text="Envía respuestas útiles cuando alguien te escribe." />
+              <AutomationIdea icon={Instagram} title="Cuidar comentarios" text="Detecta una palabra y envía la información correcta." />
+              <AutomationIdea icon={Radio} title="Compartir un video" text="Entrega un video elegido cuando tu cliente lo necesite." />
+            </div>
+          </div>
         </div>
       ) : (
         <AgentList agents={agents} loading={loading} onCreate={() => setBuilderOpen(true)} />
@@ -137,6 +145,10 @@ export function AgentWorkspace({ userId, profileName }: Props) {
   );
 }
 
+function AutomationIdea({ icon: Icon, title, text }: { icon: typeof MessageCircle; title: string; text: string }) {
+  return <button type="button" className="group flex min-h-32 flex-col items-start justify-between rounded-2xl border border-ink/10 bg-panel p-4 text-left transition-colors hover:border-violet-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"><span className="grid h-9 w-9 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300"><Icon size={18} /></span><span><strong className="block text-sm font-bold">{title}</strong><span className="mt-1 block text-xs leading-5 text-ink/50">{text}</span></span></button>;
+}
+
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return <button type="button" role="tab" aria-selected={active} onClick={onClick} className={`min-h-11 rounded-xl px-4 text-sm font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${active ? 'bg-brand text-brand-ink' : 'border border-ink/10 bg-panel text-ink/55 hover:text-ink'}`}>{children}</button>;
 }
@@ -147,8 +159,8 @@ function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loadi
     <div className="rounded-[28px] border border-dashed border-ink/15 bg-panel px-6 py-14 text-center">
       <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-violet-500/10 text-violet-500"><Bot size={24} /></span>
       <h2 className="mt-5 font-display text-2xl font-bold">Tu primer agente empieza aquí</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/50">Primero lo guardaremos como borrador. Solo podrá activarse después de aprobar calidad y conectar un canal.</p>
-      <button type="button" onClick={onCreate} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 font-bold text-brand-ink"><Plus size={18} /> Crear agente</button>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/50">Primero lo guardaremos para que puedas revisarlo. Tú decides cuándo conectarlo y ponerlo a trabajar.</p>
+      <button type="button" onClick={onCreate} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 font-bold text-brand-ink"><Plus size={18} /> Crear asistente</button>
     </div>
   );
   return <div className="space-y-3">{agents.map(agent => { const state = statusMeta[agent.status]; return (
@@ -200,26 +212,26 @@ function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreat
   }
 
   return (
-    <div className="agent-dialog-backdrop fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/70 p-3 backdrop-blur-sm sm:p-6" role="dialog" aria-modal="true" aria-labelledby="builder-title">
-      <div className="mx-auto my-2 flex min-h-[calc(100dvh-1rem)] max-w-5xl items-start justify-center sm:my-0 sm:min-h-full sm:items-center">
-        <div className="agent-builder-panel flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-canvas shadow-2xl sm:max-h-[calc(100dvh-3rem)]">
-          <header className="shrink-0 border-b border-ink/10 bg-panel px-5 py-4 sm:px-7">
-            <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-teal-700 dark:text-teal-300">Nuevo agente</p><div className="mt-1 flex items-baseline gap-3"><h2 id="builder-title" className="font-display text-xl font-extrabold">{steps[step]}</h2><span className="text-xs font-semibold text-ink/40" aria-live="polite">Paso {step + 1} de {steps.length}</span></div></div><button autoFocus type="button" onClick={onClose} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/45 hover:bg-ink/5 hover:text-ink"><X size={20} /></button></div>
+    <div className="agent-dialog-backdrop fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-canvas" role="dialog" aria-modal="true" aria-labelledby="builder-title">
+      <div className="mx-auto flex min-h-[100dvh] max-w-7xl flex-col">
+        <div className="agent-builder-panel flex min-h-[100dvh] flex-col bg-canvas">
+          <header className="shrink-0 border-b border-ink/10 bg-panel px-5 py-4 sm:px-8">
+            <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4"><div className="min-w-0"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg text-xs font-bold text-ink/50 hover:text-ink"><ArrowLeft size={15} /> {step === 0 ? 'Volver a automatizaciones' : 'Paso anterior'}</button><p className="text-xs font-bold uppercase tracking-[.16em] text-teal-700 dark:text-teal-300">Crear asistente</p><div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><h2 id="builder-title" className="font-display text-xl font-extrabold sm:text-2xl">{steps[step]}</h2><span className="text-xs font-semibold text-ink/40" aria-live="polite">Paso {step + 1} de {steps.length}</span></div></div><button autoFocus type="button" onClick={onClose} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/45 hover:bg-ink/5 hover:text-ink"><X size={20} /></button></div>
             <div className="mt-4 grid grid-cols-5 gap-2" aria-label={`Paso ${step + 1} de 5`}>{steps.map((label, index) => <div key={label} className="min-w-0"><div className={`h-1 rounded-full ${index <= step ? 'bg-violet-500' : 'bg-ink/10'}`} /><span className="mt-2 hidden truncate text-xs text-ink/45 sm:block">{label}</span></div>)}</div>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-8 sm:px-8 sm:pb-10">
-            <div key={step} className="agent-step-enter min-h-[430px] py-5 sm:py-8">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-10 sm:px-8 sm:pb-14">
+            <div key={step} className="agent-step-enter mx-auto min-h-[500px] w-full max-w-5xl py-8 sm:py-12">
             {step === 0 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Bot} title="Dale una identidad clara" text="Este nombre identifica al agente dentro de Stage. El nombre de la empresa se usa al responder a tus clientes." /><Field label="Nombre del agente" required value={draft.name} onChange={value => setField('name', value)} placeholder="Ej. Atlas Atención" /><Field label="Nombre de la empresa" required value={draft.business_name} onChange={value => setField('business_name', value)} placeholder="Stage AI Labs" /><div className="grid gap-4 sm:grid-cols-2"><Field label="Sitio web" value={draft.website_url ?? ''} onChange={value => setField('website_url', value)} placeholder="Opcional" type="url" /><Field label="Teléfono" value={draft.phone ?? ''} onChange={value => setField('phone', value)} placeholder="Opcional" type="tel" /></div></div>}
-            {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="La descripción es obligatoria. El PDF es opcional, privado y se procesa antes de permitir la activación." /><TextArea label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> PDF de contexto <span className="font-normal text-ink/40">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/50 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
+            {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="Cuéntale cómo funciona tu negocio. El PDF es opcional, privado y se revisa antes de ponerlo a trabajar." /><TextArea label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> Documento de apoyo <span className="font-normal text-ink/40">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/50 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
             {step === 2 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Sparkles} title="Define cómo debe atender" text="Tus instrucciones personalizan la operación. Las reglas de privacidad, veracidad y aislamiento siempre tienen prioridad." /><Select label="Objetivo principal" value={draft.goal} onChange={value => setField('goal', value)} options={[['customer_service','Servicio al cliente'],['sales_and_service','Ventas y servicio'],['lead_qualification','Calificación de prospectos']]} /><Select label="Estilo de conversación" value={draft.tone} onChange={value => setField('tone', value)} options={[['clear_and_warm','Claro y cercano'],['professional','Profesional'],['concise','Breve y directo'],['friendly','Amigable']]} /><TextArea label="Instrucciones operativas" value={draft.operating_instructions ?? ''} onChange={value => setField('operating_instructions', value)} placeholder="Ej. Primero comprende la necesidad; después recomienda solo opciones disponibles." /><TextArea label="Cuándo escalar a una persona" value={draft.handoff_instructions ?? ''} onChange={value => setField('handoff_instructions', value)} placeholder="Ej. Reclamos de pago, cancelaciones o cuando el cliente lo solicite." /><div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm leading-6 text-ink/60"><span className="font-bold text-ink">Protección fija:</span> responde en el idioma del cliente, no revela datos de otros negocios, no inventa y pide ayuda cuando falta información.</div></div>}
-            {step === 3 && <div className="mx-auto max-w-3xl"><Intro icon={Globe2} title="Elige dónde atenderá" text={`Tu plan ${workspace.planCode} permite ${workspace.maxConnectedChannels} canal conectado. Aquí eliges la intención; las credenciales se autorizan en el paso seguro de conexión.`} /><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(channelMeta) as AgentChannel[]).map(channel => { const meta = channelMeta[channel]; const Icon = meta.icon; const allowed = workspace.allowedChannels.includes(channel); const selected = draft.requested_channels.includes(channel); return <button key={channel} type="button" disabled={!allowed} onClick={() => toggleChannel(channel)} className={`flex min-h-[82px] items-center gap-4 rounded-2xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-violet-500 bg-violet-500/8' : 'border-ink/10 bg-panel hover:border-ink/25'}`}><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/5"><Icon size={20} /></span><span className="min-w-0 flex-1"><strong className="block text-sm">{meta.label}</strong><span className="mt-1 block text-xs text-ink/45">{allowed ? meta.note : 'Requiere otro plan'}</span></span>{selected && <CheckCircle2 size={18} className="text-violet-500" />}</button>; })}</div></div>}
-            {step === 4 && <div className="mx-auto max-w-2xl"><Intro icon={ShieldCheck} title="Revisa antes de guardar" text="Se creará un borrador real. Stage procesará el contexto y ejecutará las pruebas antes de habilitar la conexión y la activación explícita." /><dl className="mt-7 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-panel px-5"><ReviewRow label="Agente" value={draft.name} /><ReviewRow label="Empresa" value={draft.business_name} /><ReviewRow label="Idiomas" value="Automático, responde en el idioma del cliente" /><ReviewRow label="Contexto" value={pdf ? `Descripción + ${pdf.name}` : 'Descripción y datos ingresados'} /><ReviewRow label="Canales solicitados" value={draft.requested_channels.map(channel => channelMeta[channel].label).join(', ')} /><ReviewRow label="Activación" value="Explícita, después de conexión y calidad" /></dl></div>}
+            {step === 3 && <div className="mx-auto max-w-3xl"><Intro icon={Globe2} title="Elige dónde atenderá" text={`Puedes empezar con ${workspace.maxConnectedChannels} canal conectado. Elige dónde quieres probarlo primero; después podrás sumar más lugares según tu plan.`} /><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(channelMeta) as AgentChannel[]).map(channel => { const meta = channelMeta[channel]; const Icon = meta.icon; const allowed = workspace.allowedChannels.includes(channel); const selected = draft.requested_channels.includes(channel); return <button key={channel} type="button" disabled={!allowed} onClick={() => toggleChannel(channel)} className={`flex min-h-[82px] items-center gap-4 rounded-2xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-violet-500 bg-violet-500/8' : 'border-ink/10 bg-panel hover:border-ink/25'}`}><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/5"><Icon size={20} /></span><span className="min-w-0 flex-1"><strong className="block text-sm">{meta.label}</strong><span className="mt-1 block text-xs text-ink/45">{allowed ? meta.note : 'Disponible en otro plan'}</span></span>{selected && <CheckCircle2 size={18} className="text-violet-500" />}</button>; })}</div></div>}
+            {step === 4 && <div className="mx-auto max-w-2xl"><Intro icon={ShieldCheck} title="Todo listo para revisar" text="Guardaremos tu asistente para que puedas revisarlo. Solo empezará a responder cuando tú conectes un canal y lo actives." /><dl className="mt-7 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-panel px-5"><ReviewRow label="Asistente" value={draft.name} /><ReviewRow label="Empresa" value={draft.business_name} /><ReviewRow label="Idiomas" value="Todos: responderá en el idioma del cliente" /><ReviewRow label="Información" value={pdf ? `Datos ingresados + ${pdf.name}` : 'Datos ingresados'} /><ReviewRow label="Lugares" value={draft.requested_channels.map(channel => channelMeta[channel].label).join(', ')} /><ReviewRow label="Inicio" value="Lo activas cuando quieras" /></dl></div>}
             {error && <p role="alert" className="mx-auto mt-5 max-w-2xl rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200">{error}</p>}
             </div>
           </div>
 
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-ink/10 bg-panel px-5 py-4 sm:px-7"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink/55 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={17} /> {step === 0 ? 'Cancelar' : 'Atrás'}</button>{step < 4 ? <button type="button" disabled={!canContinue} onClick={() => setStep((step + 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:cursor-not-allowed disabled:opacity-40">Continuar <ArrowRight size={17} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:opacity-50">{saving ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar borrador</button>}</footer>
+          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-ink/10 bg-panel px-5 py-4 sm:px-7"><div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink/55 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={17} /> {step === 0 ? 'Cancelar' : 'Atrás'}</button>{step < 4 ? <button type="button" disabled={!canContinue} onClick={() => setStep((step + 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:cursor-not-allowed disabled:opacity-40">Continuar <ArrowRight size={17} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:opacity-50">{saving ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar asistente</button>}</div></footer>
         </div>
       </div>
     </div>
