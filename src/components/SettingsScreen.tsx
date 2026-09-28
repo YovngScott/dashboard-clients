@@ -53,6 +53,7 @@ export function SettingsScreen({
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const displayName = profile.display_name?.trim() || 'Mi espacio';
+  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
   const username = displayName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') || 'mi.espacio';
 
   const triggerToast = (msg: string) => {
@@ -64,7 +65,7 @@ export function SettingsScreen({
     themePref === 'dark' ? 'Oscuro' : themePref === 'light' ? 'Claro' : 'Sistema';
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl pb-24 text-ink animate-rise">
+    <div className="mx-auto w-full max-w-5xl pb-24 text-ink lg:pb-8">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 left-1/2 z-50 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-900/95 px-5 py-2.5 text-xs font-medium text-white shadow-2xl backdrop-blur-md">
@@ -73,7 +74,7 @@ export function SettingsScreen({
       )}
 
       {/* Header */}
-      <div className="sticky top-0 z-20 flex items-center gap-4 bg-canvas/90 px-4 py-4 backdrop-blur-md">
+      <div className="sticky top-0 z-20 flex items-center gap-4 bg-canvas/95 px-1 py-3 lg:hidden">
         <button
           id="settings-back-button"
           onClick={onBack}
@@ -82,14 +83,14 @@ export function SettingsScreen({
         >
           <ArrowLeft size={22} />
         </button>
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Settings</h1>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink">Configuración</h1>
       </div>
 
-      <div className="space-y-6 px-4 pt-2">
+      <div className="grid gap-6 px-1 pt-2 lg:grid-cols-2 lg:items-start">
         {/* ACCOUNT SECTION */}
         <div>
           <h2 className="mb-2 px-1 text-xs font-bold tracking-wider text-ink/40 uppercase">
-            Account
+            Cuenta
           </h2>
           <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
             {/* User Profile Item */}
@@ -98,22 +99,10 @@ export function SettingsScreen({
               className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
             >
               <div className="flex items-center gap-3">
-                <div className="relative h-10 w-10 overflow-hidden rounded-full border border-white/20 bg-zinc-800">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
-                    alt="Avatar"
-                    className="h-full w-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                <div aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500 text-xs font-extrabold text-white">
+                  {initials}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-['Playfair_Display',serif] text-base font-bold italic tracking-wide text-ink">
-                    {displayName}
-                  </span>
-                  <span className="text-base" role="img" aria-label="eye">
-                    👁️
-                  </span>
-                </div>
+                <span className="text-base font-bold text-ink">{displayName}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="rounded-md border border-zinc-300 px-2 py-0.5 text-[11px] font-bold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
@@ -131,7 +120,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <Sparkles size={19} className="text-purple-500" />
-                <span className="text-sm font-medium text-ink">Upgrade Plan</span>
+                <span className="text-sm font-medium text-ink">Mejorar plan</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -144,7 +133,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <AtSign size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Channels</span>
+                <span className="text-sm font-medium text-ink">Canales</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-ink/40">{profile.channel || 'Instagram'}</span>
@@ -160,7 +149,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <Bell size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Notifications</span>
+                <span className="text-sm font-medium text-ink">Notificaciones</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -173,7 +162,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <MessageSquare size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Inbox</span>
+                <span className="text-sm font-medium text-ink">Bandeja de entrada</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -186,7 +175,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <Shield size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Privacy preferences</span>
+                <span className="text-sm font-medium text-ink">Preferencias de privacidad</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -196,7 +185,7 @@ export function SettingsScreen({
         {/* LEGAL & SUPPORT SECTION (formerly Useful Resources) */}
         <div>
           <h2 className="mb-2 px-1 text-xs font-bold tracking-wider text-ink/40 uppercase">
-            Legal & Support
+            Legal y soporte
           </h2>
           <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
             {/* Help center */}
@@ -206,7 +195,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <LifeBuoy size={19} className="text-ink/60" />
-                <span className="text-sm font-medium text-ink">Help center</span>
+                <span className="text-sm font-medium text-ink">Centro de ayuda</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -246,7 +235,7 @@ export function SettingsScreen({
         {/* PROFILE SECTION */}
         <div>
           <h2 className="mb-2 px-1 text-xs font-bold tracking-wider text-ink/40 uppercase">
-            Profile
+            Perfil
           </h2>
           <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
             {/* User row */}
@@ -266,7 +255,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <Trash2 size={19} className="text-zinc-500" />
-                <span className="text-sm font-medium text-ink">Delete Stage AI Labs profile</span>
+                <span className="text-sm font-medium text-ink">Solicitar eliminación del perfil</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
             </div>
@@ -288,7 +277,7 @@ export function SettingsScreen({
                     <Monitor size={19} className="text-zinc-400" />
                   )}
                   <span className="text-sm font-medium text-ink">
-                    Color mode: <span className="font-normal text-ink/60">{themeLabel}</span>
+                    Apariencia: <span className="font-normal text-ink/60">{themeLabel}</span>
                   </span>
                 </div>
                 <ChevronDown
@@ -343,7 +332,7 @@ export function SettingsScreen({
             >
               <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400">
                 <LogOut size={19} />
-                <span className="text-sm font-medium">Log out</span>
+                <span className="text-sm font-medium">Cerrar sesión</span>
               </div>
               <ChevronRight size={17} className="text-red-400/40" />
             </div>
@@ -351,8 +340,8 @@ export function SettingsScreen({
         </div>
 
         {/* Footer Build info */}
-        <div className="pt-4 text-center text-xs font-medium text-ink/40">
-          v6.21.0 (396) — USA
+        <div className="pt-4 text-center text-xs font-medium text-ink/40 lg:col-span-2">
+          Stage AI Labs
         </div>
       </div>
 

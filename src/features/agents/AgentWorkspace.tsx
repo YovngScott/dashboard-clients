@@ -9,7 +9,7 @@ import {
   type AgentChannel, type AgentDraft, type AgentRecord, type Workspace,
 } from './agent-service';
 
-type Props = { userId: string; profileName: string | null };
+type Props = { userId: string; profileName: string | null; createRequest?: number };
 type BuilderStep = 0 | 1 | 2 | 3 | 4;
 
 const channelMeta: Record<AgentChannel, { label: string; icon: typeof Instagram; note: string }> = {
@@ -39,13 +39,13 @@ const emptyDraft: AgentDraft = {
   handoff_instructions: '', requested_channels: ['instagram'],
 };
 
-export function AgentWorkspace({ userId, profileName }: Props) {
+export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props) {
   const [tab, setTab] = useState<'ideas' | 'agents'>('ideas');
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [agents, setAgents] = useState<AgentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderOpen, setBuilderOpen] = useState(createRequest > 0);
 
   async function refresh() {
     setLoading(true); setError('');
@@ -81,7 +81,7 @@ export function AgentWorkspace({ userId, profileName }: Props) {
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-sm font-semibold text-teal-700 dark:text-teal-300">Centro de operaciones</p>
-          <h1 id="automation-title" className="font-display text-4xl font-extrabold tracking-[-.045em] text-ink sm:text-5xl">Automatizaciones</h1>
+          <h1 id="automation-title" className="font-display text-4xl font-extrabold tracking-[-.035em] text-ink sm:text-5xl">Agentes</h1>
         </div>
         <div className="hidden items-center gap-2 rounded-full border border-ink/10 bg-panel px-3 py-2 text-xs font-semibold text-ink/55 sm:flex">
           <ShieldCheck size={15} className="text-emerald-500" /> Tus datos quedan separados

@@ -13,7 +13,7 @@ export function DashboardTopBar({ profile, onOpenSettings }: DashboardTopBarProp
   return (
     <header
       id="dashboard-top-bar"
-      className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-zinc-200/60 bg-canvas/85 px-4 backdrop-blur-xl sm:px-6 dark:border-zinc-800/80"
+      className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-zinc-200/60 bg-canvas/95 px-4 sm:px-6 dark:border-zinc-800/80 lg:hidden"
     >
       {/* Top Left: User Avatar & Name */}
       <div id="topbar-user-profile" className="flex items-center gap-3">

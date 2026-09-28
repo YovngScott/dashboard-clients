@@ -32,15 +32,20 @@
   background: rgb(var(--c-canvas));
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; background: rgb(var(--c-canvas)); }
-button, input { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
+::selection { background: rgb(var(--c-brand) / 0.22); color: rgb(var(--c-ink)); }
+input, textarea { caret-color: rgb(var(--c-brand)); }
+:focus-visible { outline-color: rgb(var(--c-brand)); }
+* { scrollbar-color: rgb(var(--c-ink) / 0.2) transparent; scrollbar-width: thin; }
 
-@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.animate-rise { animation: rise .55s ease-out both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.animate-rise { animation: rise 220ms cubic-bezier(0.23, 1, 0.32, 1) both; }
 
 @keyframes agent-panel-enter {
   from { opacity: 0; transform: translateY(10px) scale(0.99); }

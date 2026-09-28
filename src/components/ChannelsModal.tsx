@@ -1,5 +1,17 @@
-import { useState } from 'react';
-import { X, MoreVertical, MessageCircle, Send, Phone, Mail, ChevronRight, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  AtSign,
+  CheckCircle2,
+  ChevronRight,
+  Facebook,
+  Instagram,
+  Mail,
+  MessageCircle,
+  Phone,
+  Radio,
+  Send,
+  X,
+} from 'lucide-react';
 
 interface ChannelsModalProps {
   isOpen: boolean;
@@ -7,238 +19,110 @@ interface ChannelsModalProps {
   onConnectChannel?: (channel: string) => void;
 }
 
+const channels = [
+  { name: 'Instagram', icon: Instagram, status: 'available', description: 'Mensajes directos, comentarios y respuestas a historias.' },
+  { name: 'Facebook', icon: Facebook, status: 'planned', description: 'Messenger y conversaciones desde páginas.' },
+  { name: 'WhatsApp', icon: MessageCircle, status: 'planned', description: 'Atención y seguimiento desde WhatsApp Business.' },
+  { name: 'TikTok', icon: Radio, status: 'planned', description: 'Interacciones y mensajería de tu comunidad.' },
+  { name: 'Email', icon: Mail, status: 'planned', description: 'Consultas, seguimiento y clasificación por correo.' },
+  { name: 'Telegram', icon: Send, status: 'planned', description: 'Chats, grupos y comunidades.' },
+  { name: 'SMS', icon: Phone, status: 'planned', description: 'Mensajes transaccionales y recordatorios.' },
+] as const;
+
 export function ChannelsModal({ isOpen, onClose, onConnectChannel }: ChannelsModalProps) {
-  const [toast, setToast] = useState<string | null>(null);
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  };
+  function selectChannel(name: string, status: 'available' | 'planned') {
+    if (status === 'planned') {
+      setNotice(`${name} estará disponible en una próxima integración.`);
+      return;
+    }
+    if (onConnectChannel) {
+      onConnectChannel(name);
+      return;
+    }
+    setNotice('Instagram está preparado en la aplicación. La conexión se habilitará al completar la autorización de Meta.');
+  }
 
   return (
     <div
-      id="channels-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 p-0 backdrop-blur-sm sm:items-center sm:p-4"
-      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-0 sm:items-center sm:p-5"
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div
-        id="channels-modal"
-        className="relative flex max-h-[92vh] w-full max-w-md flex-col rounded-t-3xl bg-[#171717] text-white shadow-2xl sm:rounded-3xl"
-        onClick={(e) => e.stopPropagation()}
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="channels-title"
+        className="max-h-[92dvh] w-full max-w-2xl overflow-hidden rounded-t-2xl bg-panel text-ink shadow-[0_28px_100px_-36px_rgba(0,0,0,.8)] sm:rounded-2xl"
       >
-        {/* Toast */}
-        {toast && (
-          <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-900/95 px-4 py-2 text-xs font-medium text-white shadow-xl">
-            {toast}
+        <header className="flex items-start justify-between gap-5 border-b border-ink/10 px-5 py-5 sm:px-6">
+          <div>
+            <h2 id="channels-title" className="font-display text-xl font-extrabold tracking-[-.02em]">Canales</h2>
+            <p className="mt-1 max-w-lg text-sm leading-6 text-ink/55">Conecta cada proveedor cuando la integración esté verificada. Elegirlo aquí no lo activa.</p>
           </div>
-        )}
-
-        {/* Header */}
-        <div className="relative flex items-center px-5 pt-5 pb-3">
           <button
+            autoFocus
+            type="button"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full bg-white text-zinc-900 transition hover:bg-zinc-200"
-            aria-label="Cerrar"
+            aria-label="Cerrar canales"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/50 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-500"
           >
-            <X size={16} strokeWidth={2.5} />
+            <X size={20} />
           </button>
-          <h2 className="flex-1 text-center font-bold text-lg text-white pr-8">
-            Channels
-          </h2>
-        </div>
+        </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-3 space-y-6 pb-8">
-          {/* CONNECTED CHANNELS */}
-          <div>
-            <h3 className="mb-2 text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-              Connected Channels
-            </h3>
-
-            {/* Instagram connected card */}
-            <div className="rounded-2xl border border-blue-900/40 bg-gradient-to-b from-[#0e1e38] to-[#0a1528] p-4 text-white shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-sm">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                    </svg>
-                  </div>
-                  <span className="font-bold text-sm text-white">Instagram</span>
-                </div>
-                <span className="text-xs font-semibold text-blue-300">Connected ✓</span>
-              </div>
-
-              <p className="mt-2 text-xs text-zinc-300 leading-relaxed">
-                Supercharge your social media marketing with Instagram Automation.
-              </p>
-
-              {/* Sub-account profile info */}
-              <div className="mt-4 flex items-center justify-between border-t border-blue-800/40 pt-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-6 w-6 overflow-hidden rounded-full bg-zinc-700">
-                    <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                      alt="Avatar"
-                      className="h-full w-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <span className="text-xs font-semibold text-white">Cuenta de Instagram</span>
-                </div>
-                <button
-                  onClick={() => showToast('Opciones de la cuenta de Instagram')}
-                  className="text-zinc-400 hover:text-white"
-                >
-                  <MoreVertical size={16} />
-                </button>
-              </div>
+        <div className="max-h-[calc(92dvh-104px)] overflow-y-auto px-5 py-5 sm:px-6">
+          {notice && (
+            <div role="status" aria-live="polite" className="mb-5 flex items-start gap-3 rounded-xl bg-amber-500/10 p-4 text-sm leading-6 text-ink/70">
+              <AtSign size={18} className="mt-0.5 shrink-0 text-amber-600" />
+              <span>{notice}</span>
             </div>
-          </div>
+          )}
 
-          {/* CONNECT NEW CHANNEL TO THE ACCOUNT */}
-          <div>
-            <h3 className="mb-2 text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
-              Connect New Channel to the Account
-            </h3>
-
-            <div className="space-y-3">
-              {/* Facebook */}
-              <div
-                onClick={() => {
-                  if (onConnectChannel) onConnectChannel('Facebook');
-                  showToast('Conectando Facebook Messenger...');
-                }}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
+          <div className="grid gap-3 sm:grid-cols-2">
+            {channels.map(({ name, icon: Icon, status, description }) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => selectChannel(name, status)}
+                className="group flex min-h-[126px] flex-col items-start rounded-2xl border border-ink/10 bg-canvas/60 p-4 text-left transition-[border-color,background-color,transform] duration-150 hover:border-ink/20 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-blue-600 text-white">
-                      <MessageCircle size={15} />
-                    </div>
-                    <span className="font-bold text-sm text-white">Facebook</span>
-                  </div>
-                  <span className="text-xs font-semibold text-blue-400 flex items-center gap-0.5">
-                    Connect <ChevronRight size={13} />
+                <span className="flex w-full items-start justify-between gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-ink/5 text-ink/70">
+                    <Icon size={19} />
                   </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Use the #1 Messenger chatbot and create meaningful relationships with your customers.
-                </p>
-              </div>
-
-              {/* TikTok */}
-              <div
-                onClick={() => {
-                  if (onConnectChannel) onConnectChannel('TikTok');
-                  showToast('Conectando TikTok...');
-                }}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-black text-cyan-400 border border-zinc-700">
-                      <span className="font-black text-xs">TT</span>
-                    </div>
-                    <span className="font-bold text-sm text-white">TikTok</span>
-                  </div>
-                  <span className="text-xs font-semibold text-blue-400 flex items-center gap-0.5">
-                    Connect <ChevronRight size={13} />
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${status === 'available' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-ink/5 text-ink/45'}`}>
+                    {status === 'available' && <CheckCircle2 size={12} />}
+                    {status === 'available' ? 'Preparado' : 'Próximamente'}
                   </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Elevate your marketing with TikTok seamless automation.
-                </p>
-              </div>
-
-              {/* Telegram */}
-              <div
-                onClick={() => showToast('Guía para conectar Telegram')}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#229ED9] text-white">
-                      <Send size={14} className="-translate-x-0.5 translate-y-0.5" />
-                    </div>
-                    <span className="font-bold text-sm text-white">Telegram</span>
-                  </div>
-                  <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    How to connect <Info size={13} />
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Unleash the power of limitless Telegram messaging automation.
-                </p>
-              </div>
-
-              {/* WhatsApp */}
-              <div
-                onClick={() => showToast('Guía para conectar WhatsApp')}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#25D366] text-white">
-                      <Phone size={14} />
-                    </div>
-                    <span className="font-bold text-sm text-white">WhatsApp</span>
-                  </div>
-                  <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    How to connect <Info size={13} />
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Choose the most popular mobile messaging app in the world and reach 2 billion users.
-                </p>
-              </div>
-
-              {/* SMS */}
-              <div
-                onClick={() => showToast('Guía para configurar SMS')}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-600 text-white">
-                      <MessageCircle size={14} />
-                    </div>
-                    <span className="font-bold text-sm text-white">SMS</span>
-                  </div>
-                  <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    How to connect <Info size={13} />
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Collect phone numbers and reengage your contacts via text.
-                </p>
-              </div>
-
-              {/* Email */}
-              <div
-                onClick={() => showToast('Guía para configurar Email')}
-                className="cursor-pointer rounded-2xl border border-zinc-800 bg-[#212124] p-4 transition hover:bg-zinc-800/40"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-purple-600 text-white">
-                      <Mail size={14} />
-                    </div>
-                    <span className="font-bold text-sm text-white">Email</span>
-                  </div>
-                  <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    How to connect <Info size={13} />
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                  Use Email marketing for automation and rich content campaigns.
-                </p>
-              </div>
-            </div>
+                </span>
+                <strong className="mt-4 text-sm font-bold">{name}</strong>
+                <span className="mt-1 flex-1 text-xs leading-5 text-ink/50">{description}</span>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-ink/45 group-hover:text-violet-700 dark:group-hover:text-violet-300">
+                  {status === 'available' ? 'Revisar conexión' : 'Ver estado'}
+                  <ChevronRight size={13} />
+                </span>
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

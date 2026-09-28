@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Check, CircleHelp,
-  Clock3, Instagram, LayoutGrid, Link2, Search,
+  Clock3, Globe, Instagram, LayoutGrid, Link2, Search,
   Sparkles, Store, Target, Users, Zap,
 } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
@@ -11,8 +11,6 @@ import { DashboardTopBar } from './components/DashboardTopBar';
 import { SettingsScreen } from './components/SettingsScreen';
 import { UpgradeModal } from './components/UpgradeModal';
 import { ChannelsModal } from './components/ChannelsModal';
-import { HomeHeroBanner } from './components/HomeHeroBanner';
-import { TemplateCards } from './components/TemplateCards';
 import { BottomNavBar } from './components/BottomNavBar';
 import { AnimatedEmptyState } from './components/AnimatedEmptyState';
 import { MobileAuthView } from './components/MobileAuthView';
@@ -20,6 +18,8 @@ import { DesktopLanding } from './components/DesktopLanding';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
 import { STAGE_PLANS, type StagePlan } from './lib/product-data';
 import { AgentWorkspace } from './features/agents/AgentWorkspace';
+import { DashboardSidebar } from './components/DashboardSidebar';
+import { DashboardOverview } from './components/DashboardOverview';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
@@ -34,6 +34,21 @@ type Profile = {
   discovery_source: string | null;
   onboarding_complete: boolean;
   theme_preference: ThemePref;
+};
+
+const previewMode = import.meta.env.DEV
+  ? new URLSearchParams(window.location.search).get('preview')
+  : null;
+
+const previewProfile: Profile = {
+  id: 'demo-desktop-preview',
+  display_name: 'Stage AI Labs',
+  channel: 'Instagram',
+  account_type: 'empresa',
+  goals: ['digital', 'fisico'],
+  discovery_source: 'ia',
+  onboarding_complete: true,
+  theme_preference: 'light',
 };
 
 type Option = { label: string; value: string; icon: ReactNode };
@@ -126,18 +141,18 @@ function Button({ children, onClick, variant = 'primary', disabled = false, type
     : variant === 'secondary'
     ? 'border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10'
     : 'text-ink/60 hover:bg-ink/5 hover:text-ink';
-  return <button type={type} disabled={disabled} onClick={onClick} className={`flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}>{children}</button>;
+  return <button type={type} disabled={disabled} onClick={onClick} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-[background-color,color,transform] duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}>{children}</button>;
 }
 
 /* ── Onboarding ─────────────────────────────────────────────── */
 
 function Progress({ step }: { step: number }) {
-  return <div className="mb-10 flex items-center gap-2">{[1, 2, 3].map(item => <div key={item} className={`h-1.5 flex-1 rounded-full transition-all ${item <= step ? 'bg-teal-500' : 'bg-ink/10'}`} />)}</div>;
+  return <div className="mb-9 flex items-center gap-2" aria-label={`Paso ${step} de 4`}>{[1, 2, 3, 4].map(item => <div key={item} className={`h-1 flex-1 rounded-full transition-colors duration-150 ${item <= step ? 'bg-teal-500' : 'bg-ink/10'}`} />)}</div>;
 }
 
 function ChoiceCard({ option, selected, onClick, multi = false }: { option: Option; selected: boolean; onClick: () => void; multi?: boolean }) {
   return (
-    <button onClick={onClick} className={`group flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all duration-200 ${selected ? 'border-teal-500 bg-teal-500/10 shadow-lg shadow-teal-500/5' : 'border-ink/10 bg-ink/[.03] hover:border-ink/25 hover:bg-ink/[.06]'}`}>
+    <button type="button" onClick={onClick} aria-pressed={selected} className={`group flex min-h-[76px] w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${selected ? 'border-teal-500 bg-teal-500/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition ${selected ? 'bg-teal-500 text-white' : 'bg-ink/5 text-ink/60 group-hover:text-ink'}`}>{option.icon}</span>
       <span className={`flex-1 text-sm font-semibold ${selected ? 'text-ink' : 'text-ink/70'}`}>{option.label}</span>
       <span className={`grid h-5 w-5 place-items-center rounded-md border transition ${selected ? 'border-teal-500 bg-teal-500 text-white' : 'border-ink/20'} ${!multi && selected ? 'rounded-full' : ''}`}>{selected && <Check size={13} strokeWidth={3} />}</span>
@@ -145,15 +160,13 @@ function ChoiceCard({ option, selected, onClick, multi = false }: { option: Opti
   );
 }
 
-import { Globe } from 'lucide-react';
-
 function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: ReactNode; onBack: () => void; eyebrow: string; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
   const [showLangMenu, setShowLangMenu] = useState(false);
   return (
-    <div className="min-h-screen bg-canvas px-6 py-6 sm:px-10">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-12 flex items-center justify-between">
-          <button onClick={onBack} aria-label="Volver" className="grid h-10 w-10 place-items-center rounded-xl border border-ink/10 text-ink/60 transition hover:border-ink/25 hover:text-ink"><ArrowLeft size={19} /></button>
+    <div className="min-h-screen bg-canvas px-4 py-4 text-ink sm:px-8 sm:py-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 text-ink/60 transition-colors duration-150 hover:border-ink/25 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"><ArrowLeft size={19} /></button>
           <Logo />
           
           <div className="flex items-center gap-4">
@@ -161,13 +174,13 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
             <div className="relative">
               <button 
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex items-center gap-1.5 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-bold text-ink hover:bg-ink/5"
+                className="flex min-h-11 items-center gap-1.5 rounded-xl border border-ink/10 bg-panel px-3 text-xs font-bold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
               >
                 <Globe size={14} className="text-teal-600" />
                 {lang}
               </button>
               {showLangMenu && (
-                <div className="absolute right-0 top-full mt-2 w-32 rounded-xl border border-ink/10 bg-white p-1.5 shadow-xl">
+                <div className="absolute right-0 top-full z-20 mt-2 w-36 rounded-xl bg-panel p-1.5 shadow-xl">
                   {(['ES', 'EN', 'PT'] as const).map((l) => (
                     <button
                       key={l}
@@ -182,7 +195,23 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
             </div>
           </div>
         </div>
-        {children}
+        <div className="mt-8 grid gap-8 lg:mt-14 lg:grid-cols-[280px_minmax(0,720px)] lg:justify-center lg:gap-16 xl:gap-24">
+          <aside className="hidden lg:block">
+            <div className="sticky top-12">
+              <h2 className="font-display text-2xl font-extrabold tracking-[-.025em]">Configura tu espacio</h2>
+              <p className="mt-3 text-sm leading-6 text-ink/55">Cuatro decisiones breves para adaptar Stage a tu forma de atender.</p>
+              <ul className="mt-8 space-y-5 text-sm text-ink/55">
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Tus respuestas se guardan en tu cuenta.</li>
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Elegir un canal no lo conecta todavía.</li>
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Podrás cambiar esta información después.</li>
+              </ul>
+            </div>
+          </aside>
+          <main className="min-w-0 rounded-2xl bg-panel p-5 shadow-[0_24px_70px_-56px_rgba(15,23,42,.65)] sm:p-8 lg:p-10">
+            <div className="mb-5 text-xs font-bold uppercase tracking-[.14em] text-ink/40 lg:hidden">{eyebrow}</div>
+            {children}
+          </main>
+        </div>
       </div>
     </div>
   );
@@ -190,10 +219,10 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
 
 const setupTranslations = {
   ES: {
-    channelTitle: 'Conecta tu primer canal.',
-    channelDesc: 'Puedes sumar los demás cuando quieras. Empecemos por donde vive tu comunidad.',
-    connect: 'Conectar',
-    connected: 'Conectado',
+    channelTitle: '¿Dónde quieres empezar?',
+    channelDesc: 'Elige una prioridad. La autorización del canal se hará después, desde tu espacio de trabajo.',
+    connect: 'Elegir',
+    connected: 'Elegido',
     continue: 'Continuar',
     qTitle1: '¿Para quién es este espacio?',
     qDesc1: 'Así podremos recomendarte automatizaciones más útiles.',
@@ -212,10 +241,10 @@ const setupTranslations = {
     title: 'Hagamos que sea tuyo.'
   },
   EN: {
-    channelTitle: 'Connect your first channel.',
-    channelDesc: 'You can add the others later. Let’s start where your community lives.',
-    connect: 'Connect',
-    connected: 'Connected',
+    channelTitle: 'Where would you like to start?',
+    channelDesc: 'Choose a priority. You will authorize the channel later from your workspace.',
+    connect: 'Choose',
+    connected: 'Selected',
     continue: 'Continue',
     qTitle1: 'Who is this space for?',
     qDesc1: 'So we can recommend the most useful automations.',
@@ -234,10 +263,10 @@ const setupTranslations = {
     title: 'Let’s make it yours.'
   },
   PT: {
-    channelTitle: 'Conecte seu primeiro canal.',
-    channelDesc: 'Você pode adicionar os outros depois. Vamos começar por onde sua comunidade vive.',
-    connect: 'Conectar',
-    connected: 'Conectado',
+    channelTitle: 'Onde você quer começar?',
+    channelDesc: 'Escolha uma prioridade. A autorização do canal será feita depois, no seu espaço de trabalho.',
+    connect: 'Escolher',
+    connected: 'Escolhido',
     continue: 'Continuar',
     qTitle1: 'Para quem é este espaço?',
     qDesc1: 'Assim podemos recomendar as automações mais úteis.',
@@ -257,28 +286,45 @@ const setupTranslations = {
   }
 };
 
-function Channel({ onNext, onBack, selected, setSelected, lang, setLang }: { onNext: () => void; onBack: () => void; selected: string; setSelected: (channel: string) => void; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
+function Channel({ onNext, onBack, selected, setSelected, lang, setLang }: { onNext: () => Promise<void>; onBack: () => void; selected: string; setSelected: (channel: string) => void; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
   const t = setupTranslations[lang];
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  async function continueSetup() {
+    if (!selected || saving) return;
+    setSaving(true);
+    setError('');
+    try {
+      await onNext();
+    } catch {
+      setError(t.error);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <SetupShell onBack={onBack} eyebrow={`${t.step} 1 ${t.of} 3`} lang={lang} setLang={setLang}>
+    <SetupShell onBack={onBack} eyebrow={`${t.step} 1 ${t.of} 4`} lang={lang} setLang={setLang}>
       <Progress step={1} />
-      <div className="mb-10 max-w-xl">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">{t.channelTitle}</h1>
-        <p className="mt-4 text-lg leading-7 text-ink/50">{t.channelDesc}</p>
+      <div className="mb-8 max-w-xl">
+        <h1 className="text-balance font-display text-3xl font-extrabold tracking-[-.03em] text-ink sm:text-4xl">{t.channelTitle}</h1>
+        <p className="mt-3 text-base leading-7 text-ink/55">{t.channelDesc}</p>
       </div>
-      <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {channels.map(channel => (
-          <button key={channel.name} onClick={() => setSelected(channel.name)} className={`flex w-full items-center gap-4 rounded-2xl border p-5 text-left transition-all ${selected === channel.name ? 'border-teal-500 bg-teal-500/5' : 'border-ink/10 bg-ink/[.03] hover:border-ink/25'}`}>
-            <span className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br ${channel.tone}`}>{channel.icon}</span>
-            <span className="flex-1">
-              <span className="block font-display text-lg font-bold text-ink">{channel.name}</span>
-              <span className="mt-1 block text-sm text-ink/45">{channel.detail}</span>
+          <button key={channel.name} type="button" aria-pressed={selected === channel.name} onClick={() => setSelected(channel.name)} className={`flex min-h-[126px] flex-col items-start rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${selected === channel.name ? 'border-teal-500 bg-teal-500/5' : 'border-ink/10 bg-canvas/55 hover:border-ink/25'}`}>
+            <span className="flex w-full items-start justify-between gap-3">
+              <span className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${channel.tone}`}>{channel.icon}</span>
+              <span className={`text-xs font-bold ${selected === channel.name ? 'text-teal-700 dark:text-teal-300' : 'text-ink/42'}`}>{selected === channel.name ? t.connected : t.connect}</span>
             </span>
-            <span className={`text-sm font-semibold ${selected === channel.name ? 'text-teal-600 dark:text-teal-400' : 'text-ink/50'}`}>{selected === channel.name ? t.connected : t.connect}</span>
+            <span className="mt-4 block font-display text-base font-bold text-ink">{channel.name}</span>
+            <span className="mt-1 block text-xs leading-5 text-ink/48">{channel.detail}</span>
           </button>
         ))}
       </div>
-      <div className="mt-8 flex justify-end"><Button disabled={!selected} onClick={onNext}>{t.continue} <ArrowRight size={17} /></Button></div>
+      {error && <p role="alert" className="mt-4 text-sm text-rose-600 dark:text-rose-300">{error}</p>}
+      <div className="mt-8 flex justify-end"><Button disabled={!selected || saving} onClick={() => void continueSetup()}>{saving ? t.save : t.continue} <ArrowRight size={17} /></Button></div>
     </SetupShell>
   );
 }
@@ -297,6 +343,11 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
   const title = step === 1 ? t.qTitle1 : step === 2 ? t.qTitle2 : t.qTitle3;
   const subtitle = step === 1 ? t.qDesc1 : step === 2 ? t.qDesc2 : t.qDesc3;
   const selected = step === 1 ? account : step === 2 ? goals : source;
+  const canContinue = step === 1
+    ? account.length > 0 && name.trim().length >= 2
+    : step === 2
+      ? goals.length > 0
+      : source.length > 0;
 
   function toggle(value: string) {
     if (step === 1) setAccount(value);
@@ -305,11 +356,20 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
   }
 
   async function next() {
-    if (!selected || (step === 2 && goals.length === 0)) return;
-    if (step < 3) { setStep(step + 1); return; }
+    if (!canContinue || saving) return;
     setSaving(true);
     setError('');
-    const payload = { id: profile.id, display_name: name || 'Creador', account_type: account, goals, discovery_source: source, channel: profile.channel, onboarding_complete: true, updated_at: new Date().toISOString() };
+    const isFinalStep = step === 3;
+    const payload = {
+      id: profile.id,
+      display_name: name.trim(),
+      account_type: account || null,
+      goals,
+      discovery_source: source || null,
+      channel: profile.channel,
+      onboarding_complete: isFinalStep,
+      updated_at: new Date().toISOString(),
+    };
     
     const { error: saveError } = await supabase.from('onboarding_profiles').upsert(payload);
     setSaving(false);
@@ -318,29 +378,30 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
       return;
     }
     setProfile({ ...profile, ...payload });
-    onFinish();
+    if (isFinalStep) onFinish();
+    else setStep(step + 1);
   }
 
   return (
-    <SetupShell onBack={step === 1 ? onBack : () => setStep(step - 1)} eyebrow={`${t.step} ${step + 1} ${t.of} 3`} lang={lang} setLang={setLang}>
+    <SetupShell onBack={step === 1 ? onBack : () => setStep(step - 1)} eyebrow={`${t.step} ${step + 1} ${t.of} 4`} lang={lang} setLang={setLang}>
       <Progress step={step + 1} />
       <div className="mb-8">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">{t.title}</h1>
-        <p className="mt-4 max-w-lg text-lg leading-7 text-ink/50">{subtitle}</p>
+        <h1 className="text-balance font-display text-3xl font-extrabold tracking-[-.03em] text-ink sm:text-4xl">{t.title}</h1>
+        <p className="mt-3 max-w-lg text-base leading-7 text-ink/55">{subtitle}</p>
       </div>
       {step === 1 && (
         <label className="mb-7 block">
           <span className="mb-2 block text-sm text-ink/60">{t.qName}</span>
-          <input value={name} onChange={e => setName(e.target.value)} className="w-full rounded-xl border border-ink/10 bg-ink/5 px-4 py-3.5 text-ink outline-none transition placeholder:text-ink/25 focus:border-teal-500" placeholder={t.qNamePlaceholder} />
+          <input value={name} onChange={e => setName(e.target.value)} className="min-h-12 w-full rounded-xl border border-ink/10 bg-canvas/55 px-4 text-ink outline-none transition-colors duration-150 placeholder:text-ink/30 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15" placeholder={t.qNamePlaceholder} />
         </label>
       )}
       <h2 className="mb-4 font-display text-xl font-bold text-ink">{title}</h2>
-      <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {options.map(option => <ChoiceCard key={option.value} option={option} selected={Array.isArray(selected) ? selected.includes(option.value) : selected === option.value} onClick={() => toggle(option.value)} multi={step === 2} />)}
       </div>
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-300">{error}</p>}
       <div className="mt-8 flex justify-end">
-        <Button disabled={!selected || (step === 2 && goals.length === 0) || saving} onClick={next}>{saving ? t.save : step === 3 ? t.dashboard : t.next} <ArrowRight size={17} /></Button>
+        <Button disabled={!canContinue || saving} onClick={() => void next()}>{saving ? t.save : step === 3 ? t.dashboard : t.next} <ArrowRight size={17} /></Button>
       </div>
     </SetupShell>
   );
@@ -359,56 +420,99 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
   const [showUpgrade, setShowUpgrade] = useState(hasCheckoutRequest);
   const [checkoutPlan] = useState<PlanId>(initialCheckoutPlan);
   const [showChannels, setShowChannels] = useState(false);
+  const [createAgentRequest, setCreateAgentRequest] = useState(0);
   const { themePref, updateTheme } = useTheme(profile);
 
-  if (showSettings) {
-    return (
-      <div className="min-h-screen bg-canvas text-ink">
-        <SettingsScreen
-          profile={profile}
-          themePref={themePref}
-          updateTheme={updateTheme}
-          onLogout={onLogout}
-          onBack={() => setShowSettings(false)}
-          onOpenUpgrade={() => setShowUpgrade(true)}
-        />
-        <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
-      </div>
-    );
+  const activeTab: DashboardTab = showSettings ? 'Configuración' : tab;
+  const pageTitle = showSettings
+    ? 'Configuración'
+    : tab === 'Automatizaciones'
+      ? 'Agentes'
+      : tab;
+
+  function openAgentBuilder() {
+    setShowSettings(false);
+    setTab('Automatizaciones');
+    setCreateAgentRequest((request) => request + 1);
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-24 lg:pb-12">
-      {/* Header: user name and icon on the top-left, 3 lines menu on the top-right */}
-      <DashboardTopBar
+    <div className="min-h-screen bg-canvas text-ink lg:flex">
+      <a href="#dashboard-main" className="sr-only z-[70] rounded-lg bg-panel px-4 py-3 font-bold text-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
+        Ir al contenido
+      </a>
+      <DashboardSidebar
+        currentTab={activeTab}
         profile={profile}
+        onSelectTab={(nextTab) => { setShowSettings(false); setTab(nextTab); }}
+        onOpenChannels={() => setShowChannels(true)}
         onOpenSettings={() => setShowSettings(true)}
+        onLogout={onLogout}
       />
 
-      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        {tab === 'Inicio' && (
-          <div className="space-y-8 animate-rise">
-            <HomeHeroBanner onOpenUpgrade={() => setShowUpgrade(true)} />
-            <TemplateCards />
-          </div>
-        )}
-        {tab === 'Bandeja' && (
-          <AnimatedEmptyState
-            type="inbox"
-            onAction={() => setShowChannels(true)}
-          />
-        )}
-        {tab === 'Contactos' && (
-          <AnimatedEmptyState
-            type="contacts"
-            onAction={() => setShowUpgrade(true)}
-          />
-        )}
-        {tab === 'Automatizaciones' && <AgentWorkspace userId={profile.id} profileName={profile.display_name} />}
-      </main>
+      <div className="min-w-0 flex-1 pb-24 lg:pb-0">
+        <DashboardTopBar profile={profile} onOpenSettings={() => setShowSettings(true)} />
 
-      {/* Bottom navigation bar: Home, Inbox, Contacts, Automation */}
-      <BottomNavBar currentTab={tab} onSelectTab={setTab} />
+        <header className="hidden h-20 items-center justify-between border-b border-ink/8 bg-panel/70 px-8 lg:flex xl:px-10">
+          <div>
+            <p className="text-xs font-semibold text-ink/42">Espacio de trabajo</p>
+            <h1 className="mt-1 font-display text-xl font-extrabold tracking-[-.02em]">{pageTitle}</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-xl bg-ink/5 px-3 text-xs font-semibold text-ink/55">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              Configuración pendiente
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowChannels(true)}
+              className="inline-flex min-h-10 items-center rounded-xl border border-ink/10 bg-panel px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+            >
+              Canales
+            </button>
+          </div>
+        </header>
+
+        <main id="dashboard-main" className={`mx-auto w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8 xl:px-10 ${showSettings ? 'max-w-6xl' : 'max-w-[1500px]'}`}>
+          {showSettings ? (
+            <SettingsScreen
+              profile={profile}
+              themePref={themePref}
+              updateTheme={updateTheme}
+              onLogout={onLogout}
+              onBack={() => setShowSettings(false)}
+              onOpenUpgrade={() => setShowUpgrade(true)}
+            />
+          ) : (
+            <>
+              {tab === 'Inicio' && (
+                <DashboardOverview
+                  profile={profile}
+                  onCreateAgent={openAgentBuilder}
+                  onOpenChannels={() => setShowChannels(true)}
+                  onOpenInbox={() => setTab('Bandeja')}
+                />
+              )}
+              {tab === 'Bandeja' && (
+                <AnimatedEmptyState type="inbox" onAction={() => setShowChannels(true)} />
+              )}
+              {tab === 'Contactos' && (
+                <AnimatedEmptyState type="contacts" onAction={() => setShowChannels(true)} />
+              )}
+              {tab === 'Automatizaciones' && (
+                <AgentWorkspace
+                  key={`agents-${createAgentRequest}`}
+                  userId={profile.id}
+                  profileName={profile.display_name}
+                  createRequest={createAgentRequest}
+                />
+              )}
+            </>
+          )}
+        </main>
+
+        <BottomNavBar currentTab={tab} onSelectTab={(nextTab) => { setShowSettings(false); setTab(nextTab); }} />
+      </div>
 
       {/* Global Modals */}
       <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
@@ -421,14 +525,14 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
 
 function App() {
   const [lang, setLang] = useState<"ES" | "EN" | "PT">("ES");
-  const [screen, setScreen] = useState<Screen>('landing');
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [channel, setChannel] = useState('');
-  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [screen, setScreen] = useState<Screen>(previewMode === 'dashboard' ? 'dashboard' : previewMode === 'onboarding' ? 'channel' : previewMode === 'questions' ? 'questions' : 'landing');
+  const [profile, setProfile] = useState<Profile | null>(previewMode ? previewProfile : null);
+  const [channel, setChannel] = useState(previewMode ? 'Instagram' : '');
+  const [loading, setLoading] = useState(previewMode ? false : isSupabaseConfigured);
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (previewMode || !isSupabaseConfigured) return;
     let mounted = true;
     const defaultProfile = (id: string): Profile => ({ id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' });
 
@@ -463,10 +567,12 @@ function App() {
           return;
         }
         setProfile(profile);
+        setChannel('');
         setScreen('channel');
       } else {
         const profile = current as Profile;
         setProfile(profile);
+        setChannel(profile.channel ?? '');
         setScreen(profile.onboarding_complete ? 'dashboard' : 'channel');
       }
       setLoading(false);
@@ -489,9 +595,11 @@ function App() {
   async function handleAuthSuccess(nextProfile: Profile | null) {
     if (nextProfile?.onboarding_complete) {
       setProfile(nextProfile);
+      setChannel(nextProfile.channel ?? '');
       setScreen('dashboard');
     } else if (nextProfile) {
       setProfile(nextProfile);
+      setChannel(nextProfile.channel ?? '');
       setScreen('channel');
     } else {
       const { data: { user } } = await supabase.auth.getUser();
@@ -513,7 +621,7 @@ function App() {
     }
   }
 
-  if (!isSupabaseConfigured) return (
+  if (!isSupabaseConfigured && !previewMode) return (
     <main className="grid min-h-screen place-items-center bg-[#07131f] px-5 text-white">
       <section className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[.04] p-7 shadow-2xl">
         <div className="flex items-center gap-3"><Logo /><span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200">Configuración requerida</span></div>
@@ -572,10 +680,9 @@ function App() {
   if (screen === 'channel' && profile) return <Channel selected={channel} setSelected={setChannel} lang={lang} setLang={setLang} onBack={() => setScreen('landing')} onNext={async () => {
     const updated = { ...profile, channel };
     const { error } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, channel });
-    if (!error) {
-      setProfile(updated);
-      setScreen('questions');
-    }
+    if (error) throw error;
+    setProfile(updated);
+    setScreen('questions');
   }} />;
 
   if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} lang={lang} setLang={setLang} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
