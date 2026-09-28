@@ -37,7 +37,7 @@ const translations = {
       submitSignin: 'Entrar a mi espacio',
       processing: 'Procesando...',
       errorInvalid: 'El correo o la contraseña no son correctos.',
-      noticeEmail: '¡Cuenta creada! Revisa tu correo o entra directamente.'
+      noticeEmail: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.'
     }
   },
   EN: {
@@ -64,7 +64,7 @@ const translations = {
       submitSignin: 'Enter my space',
       processing: 'Processing...',
       errorInvalid: 'Invalid email or password.',
-      noticeEmail: 'Account created! Check your email or sign in.'
+      noticeEmail: 'Account created. We sent you a confirmation link. Also check spam or promotions.'
     }
   },
   PT: {
@@ -91,7 +91,7 @@ const translations = {
       submitSignin: 'Entrar no meu espaço',
       processing: 'Processando...',
       errorInvalid: 'O e-mail ou a senha estão incorretos.',
-      noticeEmail: 'Conta criada! Verifique seu e-mail ou entre.'
+      noticeEmail: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.'
     }
   }
 };
@@ -161,7 +161,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               email: normalizedEmail,
               password,
               options: {
-                data: { display_name: name || 'Creador Stage' },
+                data: { display_name: name.trim() },
                 emailRedirectTo: getAuthRedirectUrl(),
               },
             })
@@ -178,7 +178,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       }
 
       if (tab === 'signup' && !result.data.session) {
-        setNotice('Cuenta creada. Revisa tu correo para confirmarla y continuar.');
+        setNotice(t.form.noticeEmail);
         return;
       }
 
@@ -482,11 +482,12 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       <input
                         type="text"
                         autoComplete="name"
+                        required
                         maxLength={80}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t.form.namePlaceholder}
-                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
                       />
                     </motion.div>
                   )}
@@ -503,7 +504,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.form.emailPlaceholder}
-                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
                   />
                 </div>
 
@@ -520,7 +521,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t.form.passwordPlaceholder}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-10 text-sm text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-10 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
                     />
                     <button
                       type="button"

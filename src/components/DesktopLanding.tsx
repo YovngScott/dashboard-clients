@@ -35,12 +35,12 @@ const translations = {
       emailLabel: 'Correo electrónico',
       emailPlaceholder: 'tu@correo.com',
       passwordLabel: 'Contraseña',
-      passwordPlaceholder: 'Mínimo 6 caracteres',
+      passwordPlaceholder: 'Mínimo 8 caracteres',
       submitSignup: 'Crear mi espacio',
       submitSignin: 'Entrar a mi espacio',
       processing: 'Procesando...',
       errorInvalid: 'El correo o la contraseña no son correctos.',
-      noticeEmail: 'Revisa tu correo para confirmar la cuenta y continuar.'
+      noticeEmail: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.'
     },
     footer: {
       text1: 'Consulta la ',
@@ -70,12 +70,12 @@ const translations = {
       emailLabel: 'Email address',
       emailPlaceholder: 'you@email.com',
       passwordLabel: 'Password',
-      passwordPlaceholder: 'Minimum 6 characters',
+      passwordPlaceholder: 'Minimum 8 characters',
       submitSignup: 'Create my space',
       submitSignin: 'Enter my space',
       processing: 'Processing...',
       errorInvalid: 'Invalid email or password.',
-      noticeEmail: 'Check your email to confirm your account and continue.'
+      noticeEmail: 'Account created. We sent you a confirmation link. Also check spam or promotions.'
     },
     footer: {
       text1: 'See the Stage AI Labs ',
@@ -105,12 +105,12 @@ const translations = {
       emailLabel: 'E-mail',
       emailPlaceholder: 'seu@email.com',
       passwordLabel: 'Senha',
-      passwordPlaceholder: 'Mínimo 6 caracteres',
+      passwordPlaceholder: 'Mínimo 8 caracteres',
       submitSignup: 'Criar meu espaço',
       submitSignin: 'Entrar no meu espaço',
       processing: 'Processando...',
       errorInvalid: 'O e-mail ou a senha estão incorretos.',
-      noticeEmail: 'Verifique seu e-mail para confirmar a conta e continuar.'
+      noticeEmail: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.'
     },
     footer: {
       text1: 'Consulte a ',
@@ -203,7 +203,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               email: normalizedEmail,
               password,
               options: {
-                data: { display_name: name || 'Creador' },
+                data: { display_name: name.trim() },
                 emailRedirectTo: getAuthRedirectUrl(),
               },
             })
@@ -216,7 +216,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       }
 
       if (tab === 'signup' && !result.data.session) {
-        setNotice('Revisa tu correo para confirmar la cuenta y continuar.');
+        setNotice(t.form.noticeEmail);
         return;
       }
 
@@ -235,7 +235,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#fbfaf8] text-[#101e28] antialiased selection:bg-[#0d5c58] selection:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-[#fbfaf8] text-[#101e28] antialiased selection:bg-[#0d5c58] selection:text-white">
       {/* 1. Header matching Image 2 with exact links */}
       <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#fbfaf8]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
