@@ -16,7 +16,7 @@ const chatTranslations = {
     { id: '3', sender: 'bot', text: 'Para ayudarte mejor, ¿estás buscando información sobre planes o necesitas soporte técnico?', delay: 5000 },
     { id: '4', sender: 'user', text: 'Quisiera ver los planes, por favor.', delay: 7500 },
     { id: '5', sender: 'bot', text: 'Claro. Tenemos Launch, Pulse e Infinity según el volumen y los canales de tu operación.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Puedes compararlos en stage-labs.ai.studio/pricing.', delay: 11000 },
+    { id: '6', sender: 'bot', text: 'Puedes compararlos en stagelaboratories.com/pricing.', delay: 11000 },
   ],
   EN: [
     { id: '1', sender: 'user', text: 'Hi! I am interested in learning more about your services. 🚀', delay: 1500 },
@@ -24,7 +24,7 @@ const chatTranslations = {
     { id: '3', sender: 'bot', text: 'To assist you better, are you looking for pricing plans or technical support?', delay: 5000 },
     { id: '4', sender: 'user', text: 'I would like to see the pricing plans, please.', delay: 7500 },
     { id: '5', sender: 'bot', text: 'Sure. We offer Launch, Pulse, and Infinity based on your volume and channels.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Compare them at stage-labs.ai.studio/pricing.', delay: 11000 },
+    { id: '6', sender: 'bot', text: 'Compare them at stagelaboratories.com/pricing.', delay: 11000 },
   ],
   PT: [
     { id: '1', sender: 'user', text: 'Olá! Estou interessado em saber mais sobre seus serviços. 🚀', delay: 1500 },
@@ -32,7 +32,7 @@ const chatTranslations = {
     { id: '3', sender: 'bot', text: 'Para ajudar melhor, você está procurando informações sobre planos ou suporte técnico?', delay: 5000 },
     { id: '4', sender: 'user', text: 'Gostaria de ver os planos, por favor.', delay: 7500 },
     { id: '5', sender: 'bot', text: 'Claro. Oferecemos Launch, Pulse e Infinity conforme seu volume e seus canais.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Compare em stage-labs.ai.studio/pricing.', delay: 11000 },
+    { id: '6', sender: 'bot', text: 'Compare em stagelaboratories.com/pricing.', delay: 11000 },
   ]
 } as const;
 

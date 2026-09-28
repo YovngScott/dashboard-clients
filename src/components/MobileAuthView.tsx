@@ -383,7 +383,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         <p className="mt-6 mb-2 text-center text-[11px] leading-4 text-white/60 drop-shadow-sm">
           {t.separator}
           <a
-            href="https://stage-labs.ai.studio/privacidad"
+            href="https://stagelaboratories.com/privacidad"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-white underline underline-offset-2 hover:text-teal-200"
@@ -392,7 +392,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
           </a>
           {t.and}
           <a
-            href="https://stage-labs.ai.studio/security"
+            href="https://stagelaboratories.com/security"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-white underline underline-offset-2 hover:text-teal-200"

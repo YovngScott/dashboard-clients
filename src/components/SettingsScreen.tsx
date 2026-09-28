@@ -203,7 +203,7 @@ export function SettingsScreen({
             {/* Security center */}
             <a
               id="settings-privacy-policy-link"
-              href="https://stage-labs.ai.studio/security"
+              href="https://stagelaboratories.com/security"
               target="_blank"
               rel="noopener noreferrer"
               className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
@@ -218,7 +218,7 @@ export function SettingsScreen({
             {/* Privacy policy */}
             <a
               id="settings-terms-of-service-link"
-              href="https://stage-labs.ai.studio/privacidad"
+              href="https://stagelaboratories.com/privacidad"
               target="_blank"
               rel="noopener noreferrer"
               className="flex cursor-pointer items-center justify-between p-4 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/30"

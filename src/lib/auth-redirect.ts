@@ -1,12 +1,13 @@
-export const canonicalDashboardUrl = 'https://app-stage-labs.ai.studio';
+export const canonicalDashboardUrl = 'https://app.stagelaboratories.com';
 
-const retiredDashboardHosts = new Set([
+const legacyDashboardHosts = new Set([
+  'app-stage-labs.ai.studio',
   'stage-dash.ai.studio',
 ]);
 
 /**
- * Resolves every production auth callback to the live dashboard while keeping
- * local and preview environments usable during development.
+ * Sends production sign-in and email-confirmation callbacks to the custom
+ * Stage app domain while keeping local and explicit preview environments usable.
  */
 export function resolveAuthRedirectUrl(
   currentOrigin: string,
@@ -16,7 +17,7 @@ export function resolveAuthRedirectUrl(
 
   if (
     current.hostname === new URL(canonicalDashboardUrl).hostname ||
-    retiredDashboardHosts.has(current.hostname)
+    legacyDashboardHosts.has(current.hostname)
   ) {
     return canonicalDashboardUrl;
   }
@@ -24,7 +25,7 @@ export function resolveAuthRedirectUrl(
   if (configuredAppUrl) {
     try {
       const configured = new URL(configuredAppUrl);
-      return retiredDashboardHosts.has(configured.hostname)
+      return legacyDashboardHosts.has(configured.hostname)
         ? canonicalDashboardUrl
         : configured.origin;
     } catch {

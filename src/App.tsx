@@ -638,7 +638,7 @@ function App() {
         <div className="flex items-center gap-3"><Logo /><span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200">Configuración requerida</span></div>
         <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">El acceso está temporalmente fuera de servicio.</h1>
         <p className="mt-3 leading-7 text-slate-300">Faltan las variables públicas de Supabase en este despliegue. No se creó ninguna sesión ni dato de demostración.</p>
-        <a href="https://stage-labs.ai.studio/contact" className="mt-7 flex min-h-12 items-center justify-center rounded-xl bg-teal-300 px-5 font-bold text-[#07131f]">Contactar a Stage AI Labs</a>
+        <a href="https://stagelaboratories.com/contact" className="mt-7 flex min-h-12 items-center justify-center rounded-xl bg-teal-300 px-5 font-bold text-[#07131f]">Contactar a Stage AI Labs</a>
       </section>
     </main>
   );

@@ -1,4 +1,4 @@
-export const LANDING_URL = 'https://stage-labs.ai.studio';
+export const LANDING_URL = 'https://stagelaboratories.com';
 
 export type StagePlan = {
   id: 'launch' | 'pulse' | 'infinity'; name: string; price: number; audience: string;

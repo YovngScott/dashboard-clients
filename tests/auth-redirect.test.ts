@@ -6,18 +6,18 @@ import {
   resolveAuthRedirectUrl,
 } from '../src/lib/auth-redirect.ts';
 
-test('keeps the live Stage dashboard as the confirmation destination', () => {
+test('keeps the live Stage app as the confirmation destination', () => {
   assert.equal(
-    resolveAuthRedirectUrl('https://app-stage-labs.ai.studio'),
+    resolveAuthRedirectUrl('https://app.stagelaboratories.com'),
     canonicalDashboardUrl,
   );
 });
 
-test('replaces the retired dashboard callback with the live dashboard', () => {
+test('replaces legacy Google AI Studio callbacks with the live app', () => {
   assert.equal(
     resolveAuthRedirectUrl(
       'https://preview.example.net',
-      'https://stage-dash.ai.studio',
+      'https://app-stage-labs.ai.studio',
     ),
     canonicalDashboardUrl,
   );

@@ -240,7 +240,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#fbfaf8]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Brand Logo */}
-          <a href="https://stage-labs.ai.studio/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <a href="https://stagelaboratories.com/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <span className="h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm ring-2 ring-[#0d5c58]/20" />
             <div className="flex items-center gap-1.5">
               <span className="font-display text-xl font-black tracking-tight text-[#0f2331]">
@@ -255,7 +255,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
           {/* Navigation links matching requested URLs */}
           <nav className="flex items-center gap-8 text-sm font-semibold text-[#3b4c58]">
             <a
-              href="https://stage-labs.ai.studio/#product"
+              href="https://stagelaboratories.com/#product"
               target="_blank"
               rel="noopener noreferrer"
               className="transition hover:text-[#0d5c58]"
@@ -263,7 +263,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               {t.nav.product}
             </a>
             <a
-              href="https://stage-labs.ai.studio/#solutions"
+              href="https://stagelaboratories.com/#solutions"
               target="_blank"
               rel="noopener noreferrer"
               className="transition hover:text-[#0d5c58]"
@@ -271,7 +271,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               {t.nav.solutions}
             </a>
             <a
-              href="https://stage-labs.ai.studio/pricing"
+              href="https://stagelaboratories.com/pricing"
               target="_blank"
               rel="noopener noreferrer"
               className="transition hover:text-[#0d5c58]"
@@ -529,7 +529,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                 <p className="mt-5 text-center text-[11px] leading-4 text-zinc-500">
                   {t.footer.text1}
                   <a
-                    href="https://stage-labs.ai.studio/privacidad"
+                    href="https://stagelaboratories.com/privacidad"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium underline hover:text-zinc-800"
@@ -538,7 +538,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                   </a>
                   {t.footer.text2}
                   <a
-                    href="https://stage-labs.ai.studio/security"
+                    href="https://stagelaboratories.com/security"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium underline hover:text-zinc-800"

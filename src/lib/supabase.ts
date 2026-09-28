@@ -6,8 +6,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
 
 /**
- * Keeps OAuth and confirmation links on the canonical Stage dashboard instead
- * of a temporary preview URL or a stale Supabase Site URL.
+ * Keeps OAuth and confirmation links on the canonical Stage app instead of a
+ * temporary preview URL or a stale Supabase Site URL.
  */
 export function getAuthRedirectUrl() {
   return resolveAuthRedirectUrl(window.location.origin, configuredAppUrl);
