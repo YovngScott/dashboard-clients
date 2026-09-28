@@ -16,6 +16,8 @@ interface DashboardSidebarProps {
   onOpenChannels: () => void;
   onOpenSettings: () => void;
   onLogout: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
 }
 
 const navigation: Array<{
@@ -36,6 +38,8 @@ export function DashboardSidebar({
   onOpenChannels,
   onOpenSettings,
   onLogout,
+  collapsed,
+  onToggleCollapsed,
 }: DashboardSidebarProps) {
   const displayName = profile.display_name?.trim() || 'Mi espacio';
   const initials = displayName
@@ -46,13 +50,15 @@ export function DashboardSidebar({
     .toUpperCase();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-ink/10 bg-[#101116] text-white lg:flex">
-      <div className="flex h-20 items-center gap-3 px-6">
-        <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-teal-400" />
-        <span className="font-display text-lg font-extrabold tracking-[-.02em]">Stage AI Labs</span>
+    <aside className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-ink/10 bg-[#101116] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
+      <div className={`flex h-20 items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-6'}`}>
+        <button type="button" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'} aria-expanded={!collapsed} title={collapsed ? 'Expandir menú' : 'Contraer menú'} className="group flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400">
+          <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full bg-teal-400" />
+          {!collapsed && <span className="font-display text-lg font-extrabold tracking-[-.02em] transition-opacity duration-150 group-hover:text-white/80">Stage AI Labs</span>}
+        </button>
       </div>
 
-      <nav className="flex-1 px-3" aria-label="Navegación principal">
+      <nav className={`flex-1 ${collapsed ? 'px-2' : 'px-3'}`} aria-label="Navegación principal">
         <div className="space-y-1">
           {navigation.map(({ tab, label, icon: Icon }) => {
             const active = currentTab === tab;
@@ -62,14 +68,15 @@ export function DashboardSidebar({
                 type="button"
                 aria-current={active ? 'page' : undefined}
                 onClick={() => onSelectTab(tab)}
-                className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400 ${
+                title={collapsed ? label : undefined}
+                className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400 ${
                   active
                     ? 'bg-white text-[#101116]'
                     : 'text-white/58 hover:bg-white/[.07] hover:text-white'
                 }`}
               >
                 <Icon size={19} strokeWidth={active ? 2.25 : 1.9} />
-                <span>{label}</span>
+                {!collapsed && <span>{label}</span>}
               </button>
             );
           })}
@@ -80,30 +87,32 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={onOpenChannels}
-          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+          title={collapsed ? 'Canales' : undefined}
+          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400`}
         >
           <SlidersHorizontal size={19} />
-          <span>Canales</span>
+          {!collapsed && <span>Canales</span>}
         </button>
         <button
           type="button"
           onClick={onOpenSettings}
-          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+          title={collapsed ? 'Configuración' : undefined}
+          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400`}
         >
           <Settings size={19} />
-          <span>Configuración</span>
+          {!collapsed && <span>Configuración</span>}
         </button>
       </nav>
 
-      <div className="border-t border-white/10 p-3">
-        <div className="flex items-center gap-3 rounded-xl px-2 py-3">
+      <div className={`border-t border-white/10 ${collapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`flex items-center rounded-xl py-3 ${collapsed ? 'flex-col gap-2 px-0' : 'gap-3 px-2'}`}>
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-500 text-xs font-extrabold text-white">
             {initials}
           </span>
-          <div className="min-w-0 flex-1">
+          {!collapsed && <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold">{displayName}</p>
             <p className="mt-0.5 text-xs text-white/42">Espacio de trabajo</p>
-          </div>
+          </div>}
           <button
             type="button"
             onClick={onLogout}

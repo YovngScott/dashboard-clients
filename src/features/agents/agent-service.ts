@@ -59,7 +59,9 @@ export async function ensureWorkspace(profileName: string | null): Promise<Works
   return {
     organizationId,
     planCode: entitlement.plan_code,
-    maxConnectedChannels: entitlement.max_connected_channels,
+    maxConnectedChannels: entitlement.plan_code === 'launch'
+      ? Math.min(entitlement.max_connected_channels, 3)
+      : entitlement.max_connected_channels,
     allowedChannels: entitlement.allowed_channels as AgentChannel[],
   };
 }

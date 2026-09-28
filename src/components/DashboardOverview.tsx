@@ -6,9 +6,11 @@ import {
   Inbox,
   Instagram,
   MessageCircleMore,
+  MessageSquareText,
   ShieldCheck,
   Sparkles,
   Workflow,
+  UsersRound,
 } from 'lucide-react';
 import type { Profile } from '../types';
 
@@ -22,18 +24,39 @@ interface DashboardOverviewProps {
 const starters = [
   {
     icon: MessageCircleMore,
-    title: 'Responder consultas frecuentes',
-    description: 'Prepara respuestas consistentes sobre productos, horarios y políticas.',
+    channels: 'Instagram · TikTok',
+    title: 'Dar la bienvenida a nuevos seguidores',
+    description: 'Prepara un primer mensaje útil para quienes comienzan a seguir tu marca.',
+  },
+  {
+    icon: MessageSquareText,
+    channels: 'Instagram · TikTok',
+    title: 'Responder comentarios por palabras clave',
+    description: 'Si un comentario incluye palabras que definas, prepara una respuesta pública o un mensaje de seguimiento.',
   },
   {
     icon: Instagram,
-    title: 'Atender mensajes de Instagram',
-    description: 'Usa el contexto del negocio cuando el canal esté autorizado.',
+    channels: 'Instagram',
+    title: 'Atender respuestas a historias',
+    description: 'Continúa la conversación con el contexto de tu negocio y reglas de atención.',
+  },
+  {
+    icon: Sparkles,
+    channels: 'Todos los canales conectados',
+    title: 'Asistente con IA y contexto del negocio',
+    description: 'Responde dentro de tus instrucciones; reconoce límites y deriva cuando haga falta.',
   },
   {
     icon: Workflow,
-    title: 'Escalar a una persona',
-    description: 'Define cuándo detener la automatización y pedir ayuda al equipo.',
+    channels: 'Todos los canales conectados',
+    title: 'Pasar la conversación a tu equipo',
+    description: 'Define cuándo pausar la automatización para que una persona tome el control.',
+  },
+  {
+    icon: UsersRound,
+    channels: 'Instagram · WhatsApp · Messenger · Email · más',
+    title: 'Unificar la atención multicanal',
+    description: 'Organiza conversaciones y contactos en un espacio compartido por tu equipo.',
   },
 ];
 
@@ -112,8 +135,8 @@ export function DashboardOverview({
       <section aria-labelledby="quick-actions-title">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <h2 id="quick-actions-title" className="font-display text-2xl font-extrabold tracking-[-.025em]">Empieza por una tarea real</h2>
-            <p className="mt-1 text-sm text-ink/55">Cada opción abre la configuración del agente. Nada se activa sin tu revisión.</p>
+            <h2 id="quick-actions-title" className="font-display text-2xl font-extrabold tracking-[-.025em]">Automatizaciones que puedes preparar</h2>
+            <p className="mt-1 text-sm text-ink/55">Diseña reglas para los canales de tu plan. Se activarán después de conectar y revisar cada integración.</p>
           </div>
           <button
             type="button"
@@ -125,22 +148,25 @@ export function DashboardOverview({
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          {starters.map(({ icon: Icon, title, description }) => (
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {starters.map(({ icon: Icon, title, description, channels }) => (
             <button
               key={title}
               type="button"
               onClick={onCreateAgent}
-              className="group flex min-h-44 flex-col items-start rounded-2xl bg-panel p-5 text-left shadow-[0_16px_42px_-38px_rgba(15,23,42,.5)] transition-transform duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+              className="feature-card group flex min-h-48 flex-col items-start rounded-2xl bg-panel p-5 text-left shadow-[0_14px_32px_-28px_rgba(15,23,42,.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
             >
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
                 <Icon size={19} />
               </span>
               <strong className="mt-6 block text-base font-bold text-ink">{title}</strong>
               <span className="mt-2 block text-sm leading-6 text-ink/52">{description}</span>
-              <span className="mt-auto flex items-center gap-1.5 pt-5 text-xs font-bold text-ink/48 group-hover:text-violet-700 dark:group-hover:text-violet-300">
-                Configurar
+              <span className="mt-auto flex w-full items-center justify-between gap-2 pt-5 text-xs font-semibold text-ink/45">
+                <span>{channels}</span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 font-bold text-violet-700 dark:text-violet-300">
+                Preparar
                 <ArrowRight size={14} />
+                </span>
               </span>
             </button>
           ))}

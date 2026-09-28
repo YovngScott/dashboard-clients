@@ -220,7 +220,7 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
 const setupTranslations = {
   ES: {
     channelTitle: '¿Dónde quieres empezar?',
-    channelDesc: 'Elige una prioridad. La autorización del canal se hará después, desde tu espacio de trabajo.',
+    channelDesc: 'Elige por dónde empezar. Después podrás seleccionar hasta 3 canales desde Canales, en tu espacio de trabajo.',
     connect: 'Elegir',
     connected: 'Elegido',
     continue: 'Continuar',
@@ -242,7 +242,7 @@ const setupTranslations = {
   },
   EN: {
     channelTitle: 'Where would you like to start?',
-    channelDesc: 'Choose a priority. You will authorize the channel later from your workspace.',
+    channelDesc: 'Choose where to start. Later, you can select up to 3 channels from Channels in your workspace.',
     connect: 'Choose',
     connected: 'Selected',
     continue: 'Continue',
@@ -264,7 +264,7 @@ const setupTranslations = {
   },
   PT: {
     channelTitle: 'Onde você quer começar?',
-    channelDesc: 'Escolha uma prioridade. A autorização do canal será feita depois, no seu espaço de trabalho.',
+    channelDesc: 'Escolha por onde começar. Depois, você poderá selecionar até 3 canais em Canais, no seu espaço de trabalho.',
     connect: 'Escolher',
     connected: 'Escolhido',
     continue: 'Continuar',
@@ -416,6 +416,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
     ? requestedPlan as PlanId
     : 'pulse';
   const [tab, setTab] = useState<DashboardTab>('Inicio');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('stage-sidebar-collapsed') === 'true');
   const [showSettings, setShowSettings] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(hasCheckoutRequest);
   const [checkoutPlan] = useState<PlanId>(initialCheckoutPlan);
@@ -436,6 +437,14 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
     setCreateAgentRequest((request) => request + 1);
   }
 
+  function toggleSidebar() {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      localStorage.setItem('stage-sidebar-collapsed', String(next));
+      return next;
+    });
+  }
+
   return (
     <div className="min-h-screen bg-canvas text-ink lg:flex">
       <a href="#dashboard-main" className="sr-only z-[70] rounded-lg bg-panel px-4 py-3 font-bold text-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
@@ -448,6 +457,8 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
         onOpenChannels={() => setShowChannels(true)}
         onOpenSettings={() => setShowSettings(true)}
         onLogout={onLogout}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={toggleSidebar}
       />
 
       <div className="min-w-0 flex-1 pb-24 lg:pb-0">
