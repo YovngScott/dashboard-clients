@@ -17,13 +17,13 @@ interface ChannelsModalProps {
 }
 
 const channels: Array<{ name: string; icon: ReactNode; brand: string; status: 'available' | 'planned'; description: string; readiness: string }> = [
-  { name: 'Instagram', icon: <InstagramIcon />, brand: 'instagram', status: 'available', description: 'Mensajes directos, comentarios y respuestas a historias.', readiness: 'La configuración inicial está preparada. La autorización de Meta todavía no está habilitada.' },
-  { name: 'Facebook', icon: <FacebookIcon />, brand: 'facebook', status: 'planned', description: 'Messenger y conversaciones desde páginas.', readiness: 'Podrás elegir una página y revisar sus permisos cuando la integración esté lista.' },
-  { name: 'WhatsApp', icon: <WhatsAppIcon />, brand: 'whatsapp', status: 'planned', description: 'Atención y seguimiento desde WhatsApp Business.', readiness: 'La conexión se habilitará cuando esté lista la autorización de WhatsApp Business.' },
-  { name: 'TikTok', icon: <TikTokIcon />, brand: 'tiktok', status: 'planned', description: 'Interacciones y mensajería de tu comunidad.', readiness: 'La integración está en preparación; todavía no se solicitarán permisos a TikTok.' },
-  { name: 'Email', icon: <GmailIcon />, brand: 'email', status: 'planned', description: 'Consultas, seguimiento y clasificación por correo.', readiness: 'Podrás autorizar un buzón de correo cuando la integración esté disponible.' },
-  { name: 'Telegram', icon: <TelegramIcon />, brand: 'telegram', status: 'planned', description: 'Chats, grupos y comunidades.', readiness: 'La conexión con Telegram estará disponible en una próxima etapa.' },
-  { name: 'SMS', icon: <Phone size={19} />, brand: 'sms', status: 'planned', description: 'Mensajes transaccionales y recordatorios.', readiness: 'El proveedor y la autorización para SMS se configurarán cuando esta integración esté lista.' },
+  { name: 'Instagram', icon: <InstagramIcon />, brand: 'instagram', status: 'available', description: 'Mensajes directos, comentarios y respuestas a historias.', readiness: 'La configuración inicial está preparada. Falta habilitar la autorización de Meta para conectar la cuenta.' },
+  { name: 'Facebook', icon: <FacebookIcon />, brand: 'facebook', status: 'planned', description: 'Messenger y conversaciones desde páginas.', readiness: 'La conexión requiere autorizar una página de Facebook y sus permisos de Messenger.' },
+  { name: 'WhatsApp', icon: <WhatsAppIcon />, brand: 'whatsapp', status: 'planned', description: 'Atención y seguimiento desde WhatsApp Business.', readiness: 'La conexión requiere autorizar una cuenta de WhatsApp Business.' },
+  { name: 'TikTok', icon: <TikTokIcon />, brand: 'tiktok', status: 'planned', description: 'Interacciones y mensajería de tu comunidad.', readiness: 'La conexión requiere habilitar los permisos de mensajería de TikTok.' },
+  { name: 'Email', icon: <GmailIcon />, brand: 'email', status: 'planned', description: 'Consultas, seguimiento y clasificación por correo.', readiness: 'La conexión requiere autorizar un buzón de correo.' },
+  { name: 'Telegram', icon: <TelegramIcon />, brand: 'telegram', status: 'planned', description: 'Chats, grupos y comunidades.', readiness: 'La conexión requiere configurar y autorizar un bot de Telegram.' },
+  { name: 'SMS', icon: <Phone size={19} />, brand: 'sms', status: 'planned', description: 'Mensajes transaccionales y recordatorios.', readiness: 'La conexión requiere configurar un proveedor y autorizar el número de envío.' },
 ];
 
 export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: ChannelsModalProps) {
@@ -101,7 +101,7 @@ export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: Chann
               <div className="flex items-start gap-4 rounded-2xl border border-ink/10 bg-canvas/70 p-5 sm:p-6">
                 <span className={`channel-brand-icon channel-brand-icon--${selectedChannel.brand} grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/65`}>{selectedChannel.icon}</span>
                 <div>
-                  <p className="text-sm font-bold">{connectedChannels.includes(selectedChannel.name) ? 'Canal conectado' : selectedChannel.status === 'available' ? 'Integración preparada' : 'Integración en preparación'}</p>
+                  <p className="text-sm font-bold">{connectedChannels.includes(selectedChannel.name) ? 'Canal conectado' : 'Conexión pendiente'}</p>
                   <p className="mt-2 text-sm leading-6 text-ink/55">{selectedChannel.readiness}</p>
                   <p className="mt-4 text-xs leading-5 text-ink/45">Primero se autorizará el acceso. Después podrás seleccionar este canal para un agente y decidir cuándo activarlo.</p>
                 </div>
@@ -115,20 +115,20 @@ export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: Chann
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
-              {channels.map(({ name, icon, brand, status, description }) => {
+              {channels.map(({ name, icon, brand, description }) => {
                 const connected = connectedChannels.includes(name);
                 return (
                   <button key={name} type="button" onClick={() => setSelected(name)} className={`channel-card group flex min-h-[142px] flex-col items-start rounded-2xl border border-ink/10 bg-canvas/60 p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${connected ? 'is-connected' : ''}`}>
                     <span className="flex w-full items-start justify-between gap-3">
                       <span className={`channel-brand-icon channel-brand-icon--${brand} grid h-10 w-10 place-items-center rounded-xl bg-ink/5 text-ink/65`}>{icon}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${connected ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : status === 'available' ? 'bg-amber-500/10 text-amber-800 dark:text-amber-200' : 'bg-ink/5 text-ink/45'}`}>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${connected ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-violet-500/10 text-violet-700 dark:text-violet-300'}`}>
                         {connected ? <CheckCircle2 size={12} /> : null}
-                        {connected ? 'Conectado' : status === 'available' ? 'Preparado' : 'Próximamente'}
+                        {connected ? 'Conectado' : 'Configurar'}
                       </span>
                     </span>
                     <strong className="mt-4 text-sm font-bold">{name}</strong>
                     <span className="mt-1 flex-1 text-xs leading-5 text-ink/50">{description}</span>
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-ink/45 group-hover:text-violet-700 dark:group-hover:text-violet-300">Ver configuración <ChevronRight size={13} /></span>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-violet-700 dark:text-violet-300">Configurar canal <ChevronRight size={13} /></span>
                   </button>
                 );
               })}
