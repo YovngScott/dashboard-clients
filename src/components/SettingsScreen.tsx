@@ -99,7 +99,7 @@ export function SettingsScreen({
               className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
             >
               <div className="flex items-center gap-3">
-                <div aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500 text-xs font-extrabold text-white">
+                <div aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500 text-xs font-extrabold text-white">
                   {initials}
                 </div>
                 <span className="text-base font-bold text-ink">{displayName}</span>
@@ -119,7 +119,7 @@ export function SettingsScreen({
               className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
             >
               <div className="flex items-center gap-3.5 text-ink/90">
-                <Sparkles size={19} className="text-purple-500" />
+                <Sparkles size={19} className="text-teal-500" />
                 <span className="text-sm font-medium text-ink">Mejorar plan</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
@@ -270,7 +270,7 @@ export function SettingsScreen({
               >
                 <div className="flex items-center gap-3.5 text-ink/90">
                   {themePref === 'dark' ? (
-                    <Moon size={19} className="text-purple-400" />
+                    <Moon size={19} className="text-teal-400" />
                   ) : themePref === 'light' ? (
                     <Sun size={19} className="text-amber-500" />
                   ) : (
@@ -282,7 +282,7 @@ export function SettingsScreen({
                 </div>
                 <ChevronDown
                   size={17}
-                  className={`text-ink/40 transition-transform duration-200 ${showThemePicker ? 'rotate-180 text-purple-600 dark:text-purple-400' : ''}`}
+                  className={`text-ink/40 transition-transform duration-200 ${showThemePicker ? 'rotate-180 text-teal-600 dark:text-teal-400' : ''}`}
                 />
               </button>
 
@@ -305,17 +305,17 @@ export function SettingsScreen({
                             idx !== 0 ? 'border-t border-zinc-100 dark:border-zinc-800/50' : ''
                           } ${
                             isActive
-                              ? 'bg-purple-500/10 font-semibold text-purple-600 dark:text-purple-400'
+                              ? 'bg-teal-500/10 font-semibold text-teal-600 dark:text-teal-400'
                               : 'text-ink/80 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60'
                           }`}
                         >
                           <div className="flex items-center gap-3">
                             {pref === 'light' && <Sun size={17} className="text-amber-500" />}
-                            {pref === 'dark' && <Moon size={17} className="text-purple-400" />}
+                            {pref === 'dark' && <Moon size={17} className="text-teal-400" />}
                             {pref === 'system' && <Monitor size={17} className="text-zinc-400" />}
                             <span>{label}</span>
                           </div>
-                          {isActive && <Check size={16} className="text-purple-600 dark:text-purple-400" />}
+                          {isActive && <Check size={16} className="text-teal-600 dark:text-teal-400" />}
                         </button>
                       );
                     })}

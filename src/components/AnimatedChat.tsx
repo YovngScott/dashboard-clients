@@ -11,28 +11,28 @@ interface Message {
 
 const chatTranslations = {
   ES: [
-    { id: '1', sender: 'user', text: '¡Hola! Me interesa saber más sobre sus servicios. 🚀', delay: 1500 },
-    { id: '2', sender: 'bot', text: '¡Hola! 👋 Gracias por escribirnos. Soy el asistente virtual de Stage.', delay: 3000 },
-    { id: '3', sender: 'bot', text: 'Para ayudarte mejor, ¿estás buscando información sobre planes o necesitas soporte técnico?', delay: 5000 },
-    { id: '4', sender: 'user', text: 'Quisiera ver los planes, por favor.', delay: 7500 },
-    { id: '5', sender: 'bot', text: 'Claro. Tenemos Launch, Pulse e Infinity según el volumen y los canales de tu operación.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Puedes compararlos en stagelaboratories.com/pricing.', delay: 11000 },
+    { id: '1', sender: 'user', text: '¡Hola! Me interesa saber más sobre sus servicios. 🚀', delay: 500 },
+    { id: '2', sender: 'bot', text: '¡Hola! 👋 Gracias por escribirnos. Soy el asistente virtual de Stage.', delay: 1800 },
+    { id: '3', sender: 'bot', text: 'Para ayudarte mejor, ¿estás buscando información sobre planes o necesitas soporte técnico?', delay: 3300 },
+    { id: '4', sender: 'user', text: 'Quisiera ver los planes, por favor.', delay: 5000 },
+    { id: '5', sender: 'bot', text: 'Claro. Tenemos Launch, Pulse e Infinity según el volumen y los canales de tu operación.', delay: 6500 },
+    { id: '6', sender: 'bot', text: 'Puedes compararlos en stagelaboratories.com/pricing.', delay: 8000 },
   ],
   EN: [
-    { id: '1', sender: 'user', text: 'Hi! I am interested in learning more about your services. 🚀', delay: 1500 },
-    { id: '2', sender: 'bot', text: 'Hello! 👋 Thanks for reaching out. I am your Stage virtual assistant.', delay: 3000 },
-    { id: '3', sender: 'bot', text: 'To assist you better, are you looking for pricing plans or technical support?', delay: 5000 },
-    { id: '4', sender: 'user', text: 'I would like to see the pricing plans, please.', delay: 7500 },
-    { id: '5', sender: 'bot', text: 'Sure. We offer Launch, Pulse, and Infinity based on your volume and channels.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Compare them at stagelaboratories.com/pricing.', delay: 11000 },
+    { id: '1', sender: 'user', text: 'Hi! I am interested in learning more about your services. 🚀', delay: 500 },
+    { id: '2', sender: 'bot', text: 'Hello! 👋 Thanks for reaching out. I am your Stage virtual assistant.', delay: 1800 },
+    { id: '3', sender: 'bot', text: 'To assist you better, are you looking for pricing plans or technical support?', delay: 3300 },
+    { id: '4', sender: 'user', text: 'I would like to see the pricing plans, please.', delay: 5000 },
+    { id: '5', sender: 'bot', text: 'Sure. We offer Launch, Pulse, and Infinity based on your volume and channels.', delay: 6500 },
+    { id: '6', sender: 'bot', text: 'Compare them at stagelaboratories.com/pricing.', delay: 8000 },
   ],
   PT: [
-    { id: '1', sender: 'user', text: 'Olá! Estou interessado em saber mais sobre seus serviços. 🚀', delay: 1500 },
-    { id: '2', sender: 'bot', text: 'Olá! 👋 Obrigado por nos contatar. Sou o assistente virtual do Stage.', delay: 3000 },
-    { id: '3', sender: 'bot', text: 'Para ajudar melhor, você está procurando informações sobre planos ou suporte técnico?', delay: 5000 },
-    { id: '4', sender: 'user', text: 'Gostaria de ver os planos, por favor.', delay: 7500 },
-    { id: '5', sender: 'bot', text: 'Claro. Oferecemos Launch, Pulse e Infinity conforme seu volume e seus canais.', delay: 9000 },
-    { id: '6', sender: 'bot', text: 'Compare em stagelaboratories.com/pricing.', delay: 11000 },
+    { id: '1', sender: 'user', text: 'Olá! Estou interessado em saber mais sobre seus serviços. 🚀', delay: 500 },
+    { id: '2', sender: 'bot', text: 'Olá! 👋 Obrigado por nos contatar. Sou o assistente virtual do Stage.', delay: 1800 },
+    { id: '3', sender: 'bot', text: 'Para ajudar melhor, você está procurando informações sobre planos ou suporte técnico?', delay: 3300 },
+    { id: '4', sender: 'user', text: 'Gostaria de ver os planos, por favor.', delay: 5000 },
+    { id: '5', sender: 'bot', text: 'Claro. Oferecemos Launch, Pulse e Infinity conforme seu volume e seus canais.', delay: 6500 },
+    { id: '6', sender: 'bot', text: 'Compare em stagelaboratories.com/pricing.', delay: 8000 },
   ]
 } as const;
 
@@ -44,6 +44,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
   const reduceMotion = useReducedMotion();
 
   const messages = chatTranslations[lang];
+  const displayedMessages = reduceMotion ? messages : visibleMessages;
 
   useEffect(() => {
     const viewport = containerRef.current;
@@ -65,40 +66,45 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
   }, [reduceMotion]);
 
   useEffect(() => {
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
-    
-    const runAnimation = () => {
-      if (reduceMotion) {
-        setVisibleMessages([...messages]);
-        setIsTyping(false);
-        return;
-      }
+    if (reduceMotion) {
+      return;
+    }
+    const viewport = containerRef.current;
+    if (!viewport) return;
+    let timeouts: ReturnType<typeof setTimeout>[] = [];
+    let playing = false;
+    const clearSequence = () => {
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+    };
+    const schedule = (callback: () => void, delay: number) => {
+      timeouts.push(setTimeout(callback, delay));
+    };
+    const runSequence = () => {
+      clearSequence();
       setVisibleMessages([]);
       setIsTyping(false);
-      
       messages.forEach((msg) => {
-        // Show typing indicator before bot messages
-        if (msg.sender === 'bot') {
-          const typingTimeout = setTimeout(() => {
-            setIsTyping(true);
-          }, msg.delay - 1200);
-          timeouts.push(typingTimeout);
-        }
-
-        const msgTimeout = setTimeout(() => {
+        if (msg.sender === 'bot') schedule(() => setIsTyping(true), msg.delay - 650);
+        schedule(() => {
           setIsTyping(false);
-          setVisibleMessages((prev) => [...prev, msg]);
+          setVisibleMessages(previous => [...previous, msg]);
         }, msg.delay);
-        timeouts.push(msgTimeout);
       });
+      schedule(runSequence, 11500);
     };
-
-    runAnimation();
-
-    return () => {
-      timeouts.forEach(clearTimeout);
-    };
-  }, [lang, messages, reduceMotion]);
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !playing) {
+        playing = true;
+        runSequence();
+      } else if (!entry.isIntersecting && playing) {
+        playing = false;
+        clearSequence();
+      }
+    }, { threshold: 0.25 });
+    observer.observe(viewport);
+    return () => { observer.disconnect(); clearSequence(); };
+  }, [messages, reduceMotion]);
 
   return (
     <div className="flex h-full w-full flex-col bg-white overflow-hidden rounded-[2rem] shadow-inner relative z-10">
@@ -167,8 +173,8 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
 
           <div className="space-y-3">
             <AnimatePresence initial={false}>
-              {visibleMessages.map((msg, index) => {
-                const isLast = index === visibleMessages.length - 1;
+              {displayedMessages.map((msg, index) => {
+                const isLast = index === displayedMessages.length - 1;
                 return (
                   <motion.div
                     key={msg.id}
@@ -178,7 +184,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {msg.sender === 'bot' && (
-                      <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#0d5c58] flex items-center justify-center mr-1.5 mt-auto mb-0.5 shadow-sm">
+                      <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#126769] flex items-center justify-center mr-1.5 mt-auto mb-0.5 shadow-sm">
                         <span className="text-[9px] font-bold text-white tracking-tighter">AI</span>
                       </div>
                     )}
@@ -186,7 +192,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
                       <div
                         className={`max-w-[210px] rounded-[1rem] px-3.5 py-2 text-[13px] leading-relaxed shadow-sm ${
                           msg.sender === 'user'
-                            ? 'bg-gradient-to-br from-[#0d5c58] to-[#168a84] text-white rounded-br-sm'
+                            ? 'bg-gradient-to-br from-[#126769] to-[#126769] text-white rounded-br-sm'
                             : 'bg-white border border-zinc-100/80 text-zinc-800 rounded-bl-sm'
                         }`}
                       >
@@ -209,7 +215,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
               })}
               
               {/* Typing Indicator */}
-              {isTyping && (
+              {isTyping && !reduceMotion && (
                 <motion.div
                   key="typing-indicator"
                   initial={{ opacity: 0, transform: 'translate3d(0, 8px, 0)' }}
@@ -218,7 +224,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
                   transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
                   className="flex justify-start items-end mt-3"
                 >
-                  <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#0d5c58] flex items-center justify-center mr-1.5 mb-0.5 shadow-sm">
+                  <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#126769] flex items-center justify-center mr-1.5 mb-0.5 shadow-sm">
                     <span className="text-[9px] font-bold text-white tracking-tighter">AI</span>
                   </div>
                   <div className="flex items-center gap-1.5 rounded-[1rem] rounded-bl-sm bg-white border border-zinc-100/80 px-3.5 py-3 shadow-sm">
@@ -248,7 +254,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
       {/* Instagram-like Input Area */}
       <div className="flex flex-col bg-white pb-3 pt-2 pointer-events-none">
         <div className="flex items-center gap-2 px-3 py-1">
-          <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[#0d5c58] transition-colors hover:bg-zinc-200">
+          <button className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[#126769] transition-colors hover:bg-zinc-200">
             <PlusCircle size={18} strokeWidth={1.5} />
           </button>
           

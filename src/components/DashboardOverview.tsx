@@ -72,8 +72,8 @@ export function DashboardOverview({
   return (
     <div className="space-y-8">
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(310px,.65fr)]">
-        <div className="relative overflow-hidden rounded-2xl bg-[#151720] px-6 py-8 text-white shadow-[0_24px_70px_-52px_rgba(15,23,42,.9)] sm:px-8 sm:py-10">
-          <div aria-hidden="true" className="absolute right-[-6rem] top-[-7rem] h-64 w-64 rounded-full bg-violet-500/18 blur-3xl" />
+        <div className="relative overflow-hidden rounded-2xl bg-[#172c43] px-6 py-8 text-white shadow-[0_24px_70px_-52px_rgba(15,23,42,.9)] sm:px-8 sm:py-10">
+          <div aria-hidden="true" className="absolute right-[-6rem] top-[-7rem] h-64 w-64 rounded-full bg-teal-500/18 blur-3xl" />
           <div className="relative max-w-2xl">
             <div className="flex items-center gap-2 text-sm font-semibold text-teal-300">
               <ShieldCheck size={17} />
@@ -89,7 +89,7 @@ export function DashboardOverview({
               <button
                 type="button"
                 onClick={onCreateAgent}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#151720] transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#172c43] transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-300"
               >
                 <Sparkles size={17} />
                 Crear mi agente
@@ -97,7 +97,7 @@ export function DashboardOverview({
               <button
                 type="button"
                 onClick={onOpenChannels}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-bold text-white transition-colors duration-150 hover:bg-white/[.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-300"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/15 px-5 text-sm font-bold text-white transition-colors duration-150 hover:bg-white/[.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-300"
               >
                 Revisar canales
                 <ArrowRight size={17} />
@@ -124,7 +124,7 @@ export function DashboardOverview({
           <button
             type="button"
             onClick={onCreateAgent}
-            className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+            className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
           >
             Continuar preparación
             <ArrowRight size={16} />
@@ -141,7 +141,7 @@ export function DashboardOverview({
           <button
             type="button"
             onClick={onOpenInbox}
-            className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl px-3 text-sm font-bold text-violet-700 transition-colors duration-150 hover:bg-violet-500/8 dark:text-violet-300 sm:self-auto"
+            className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl px-3 text-sm font-bold text-teal-700 transition-colors duration-150 hover:bg-teal-500/8 dark:text-teal-300 sm:self-auto"
           >
             <Inbox size={17} />
             Ver bandeja
@@ -154,16 +154,16 @@ export function DashboardOverview({
               key={title}
               type="button"
               onClick={onCreateAgent}
-              className="feature-card group flex min-h-48 flex-col items-start rounded-2xl bg-panel p-5 text-left shadow-[0_14px_32px_-28px_rgba(15,23,42,.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+              className="feature-card group flex min-h-48 flex-col items-start rounded-2xl bg-panel p-5 text-left shadow-[0_14px_32px_-28px_rgba(15,23,42,.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
             >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-300">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-300">
                 <Icon size={19} />
               </span>
               <strong className="mt-6 block text-base font-bold text-ink">{title}</strong>
               <span className="mt-2 block text-sm leading-6 text-ink/52">{description}</span>
               <span className="mt-auto flex w-full items-center justify-between gap-2 pt-5 text-xs font-semibold text-ink/45">
                 <span>{channels}</span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 font-bold text-violet-700 dark:text-violet-300">
+                <span className="inline-flex shrink-0 items-center gap-1.5 font-bold text-teal-700 dark:text-teal-300">
                 Preparar
                 <ArrowRight size={14} />
                 </span>
@@ -188,7 +188,7 @@ export function DashboardOverview({
         <button
           type="button"
           onClick={onCreateAgent}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-ink/12 px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-ink/12 px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
         >
           Abrir agentes
           <ArrowRight size={16} />

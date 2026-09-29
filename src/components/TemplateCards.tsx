@@ -48,7 +48,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
             </button>
             <button
               onClick={() => setActiveModal('Todas las automatizaciones')}
-              className="ml-2 flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-500 dark:text-purple-400"
+              className="ml-2 flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400"
             >
               View all
             </button>
@@ -64,7 +64,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="card-create-comments"
             onClick={() => handleCardClick('Comments automation')}
-            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-purple-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-teal-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             <div>
               <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <Instagram size={14} className="text-pink-500" />
                 <span>Instagram</span>
               </div>
-              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-purple-500" />
+              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-teal-500" />
             </div>
           </div>
 
@@ -91,11 +91,11 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="card-create-followers"
             onClick={() => handleCardClick('New followers automation')}
-            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-purple-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-teal-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             <div>
               <div className="flex items-center justify-between">
-                <span className="rounded-md bg-purple-500/15 px-2 py-0.5 text-[11px] font-bold text-purple-600 dark:text-purple-400">
+                <span className="rounded-md bg-teal-500/15 px-2 py-0.5 text-[11px] font-bold text-teal-600 dark:text-teal-400">
                   NEW
                 </span>
               </div>
@@ -109,7 +109,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <Instagram size={14} className="text-pink-500" />
                 <span>Instagram</span>
               </div>
-              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-purple-500" />
+              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-teal-500" />
             </div>
           </div>
 
@@ -117,7 +117,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="card-create-story"
             onClick={() => handleCardClick('Story replies automation')}
-            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-purple-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-teal-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             <div>
               <div className="flex items-center justify-between">
@@ -135,7 +135,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <Instagram size={14} className="text-pink-500" />
                 <span>Instagram</span>
               </div>
-              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-purple-500" />
+              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-teal-500" />
             </div>
           </div>
 
@@ -143,7 +143,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="card-create-dms"
             onClick={() => handleCardClick('Direct Messages flow')}
-            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-purple-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group flex w-[260px] sm:w-[280px] shrink-0 snap-start cursor-pointer flex-col justify-between rounded-2xl border border-zinc-200/70 bg-panel p-5 transition hover:border-teal-300 hover:shadow-md dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             <div>
               <div className="flex items-center justify-between">
@@ -162,7 +162,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <Instagram size={14} className="text-pink-500" />
                 <span>Instagram</span>
               </div>
-              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-purple-500" />
+              <ChevronRight size={15} className="text-ink/30 transition group-hover:translate-x-1 group-hover:text-teal-500" />
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
             </button>
             <button
               onClick={() => setActiveModal('Todas las plantillas')}
-              className="ml-2 flex items-center gap-1 text-xs font-semibold text-purple-600 hover:text-purple-500 dark:text-purple-400"
+              className="ml-2 flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-500 dark:text-teal-400"
             >
               View all
             </button>
@@ -208,11 +208,11 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="template-card-auto-reply"
             onClick={() => handleCardClick('Auto-reply to all comments')}
-            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-purple-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-teal-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             {/* Visual Chat Mockup Preview */}
             <div
-              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#26063b] via-[#1a052b] to-[#120420] p-5 text-white"
+              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#172c43] via-[#23465a] to-[#126769] p-5 text-white"
               style={{
                 backgroundImage:
                   'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
@@ -233,9 +233,9 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                   <div className="inline-block rounded-2xl rounded-bl-sm bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                     Link please! 🙋‍♀️
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-[#381154] border border-purple-400/30 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
+                  <div className="rounded-2xl rounded-tl-sm bg-[#172c43] border border-teal-400/30 px-3 py-1.5 text-xs font-medium text-white shadow-lg">
                     <p>Hey! Happy you're interested! 👇</p>
-                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                       <span>🔗 See courses</span>
                     </div>
                   </div>
@@ -255,7 +255,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <span className="flex items-center gap-1.5">
                   <Instagram size={13} className="text-pink-500" /> Instagram
                 </span>
-                <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                <span className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-semibold group-hover:translate-x-0.5 transition-transform">
                   Preview template <ChevronRight size={13} />
                 </span>
               </div>
@@ -266,11 +266,11 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="template-card-keyword-trigger"
             onClick={() => handleCardClick('Auto-DM keyword trigger')}
-            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-purple-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-teal-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             {/* Visual Chat Mockup Preview */}
             <div
-              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#1e0836] via-[#140526] to-[#0c0317] p-5 text-white"
+              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#172c43] via-[#1c3b50] to-[#126769] p-5 text-white"
               style={{
                 backgroundImage:
                   'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
@@ -279,7 +279,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
             >
               <div className="space-y-2">
                 <div className="flex justify-end">
-                  <span className="rounded-2xl rounded-br-sm bg-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                  <span className="rounded-2xl rounded-br-sm bg-teal-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
                     Keyword: GUIDE
                   </span>
                 </div>
@@ -304,7 +304,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <span className="flex items-center gap-1.5">
                   <Instagram size={13} className="text-pink-500" /> Instagram
                 </span>
-                <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                <span className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-semibold group-hover:translate-x-0.5 transition-transform">
                   Preview template <ChevronRight size={13} />
                 </span>
               </div>
@@ -315,11 +315,11 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
           <div
             id="template-card-story-reward"
             onClick={() => handleCardClick('Story mention reward')}
-            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-purple-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-purple-800/60"
+            className="group w-[295px] sm:w-[340px] shrink-0 snap-start cursor-pointer overflow-hidden rounded-3xl border border-zinc-200/70 bg-panel transition hover:border-teal-300 hover:shadow-lg dark:border-zinc-800/80 dark:hover:border-teal-800/60"
           >
             {/* Visual Chat Mockup Preview */}
             <div
-              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#16062b] via-[#21093b] to-[#120420] p-5 text-white"
+              className="relative flex h-48 flex-col justify-center overflow-hidden bg-gradient-to-br from-[#172c43] via-[#24475b] to-[#126769] p-5 text-white"
               style={{
                 backgroundImage:
                   'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
@@ -331,9 +331,9 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                   <div className="grid h-7 w-7 place-items-center rounded-full bg-pink-500/20 text-pink-400">
                     <Gift size={14} />
                   </div>
-                  <span className="text-xs font-semibold text-purple-200">Story mention detected</span>
+                  <span className="text-xs font-semibold text-teal-200">Story mention detected</span>
                 </div>
-                <div className="max-w-[240px] rounded-2xl rounded-tl-sm border border-purple-400/30 bg-[#351052] p-2.5 text-xs text-white shadow-lg">
+                <div className="max-w-[240px] rounded-2xl rounded-tl-sm border border-teal-400/30 bg-[#172c43] p-2.5 text-xs text-white shadow-lg">
                   <p>Thanks for the shoutout! Here's your 20% OFF gift code 🎉</p>
                   <div className="mt-1.5 inline-block rounded-md bg-white/20 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-300">
                     CODE: VIP20
@@ -354,7 +354,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
                 <span className="flex items-center gap-1.5">
                   <Instagram size={13} className="text-pink-500" /> Instagram
                 </span>
-                <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                <span className="flex items-center gap-1 text-teal-600 dark:text-teal-400 font-semibold group-hover:translate-x-0.5 transition-transform">
                   Preview template <ChevronRight size={13} />
                 </span>
               </div>
@@ -374,7 +374,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400">
                 <Sparkles size={20} />
               </div>
               <button
@@ -391,7 +391,7 @@ export function TemplateCards({ onSelectFlow }: TemplateCardsProps) {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setActiveModal(null)}
-                className="w-full rounded-xl bg-purple-600 py-3 text-sm font-bold text-white transition hover:bg-purple-500 active:scale-95"
+                className="w-full rounded-xl bg-teal-600 py-3 text-sm font-bold text-white transition hover:bg-teal-500 active:scale-95"
               >
                 Activar flujo ahora
               </button>

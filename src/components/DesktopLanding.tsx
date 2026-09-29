@@ -274,15 +274,15 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fbfaf8] text-[#101e28] antialiased selection:bg-[#0d5c58] selection:text-white">
+    <div className="min-h-screen overflow-x-hidden bg-[#f7f6f1] text-[#172c43] antialiased selection:bg-[#126769] selection:text-white">
       {/* 1. Header matching Image 2 with exact links */}
-      <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#fbfaf8]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
+      <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#f7f6f1]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           {/* Brand Logo */}
           <a href="https://stagelaboratories.com/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm ring-2 ring-[#0d5c58]/20" />
+            <img src="/stage-logo.png" alt="" className="h-8 w-8 shrink-0 object-contain" />
             <div className="flex items-center gap-1.5">
-              <span className="font-display text-xl font-black tracking-tight text-[#0f2331]">
+              <span className="font-display text-xl font-black tracking-tight text-[#172c43]">
                 Stage AI Labs
               </span>
               <span className="rounded-md border border-zinc-300/80 bg-zinc-100/90 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600">
@@ -297,7 +297,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               href="https://stagelaboratories.com/#product"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-[#0d5c58]"
+              className="transition hover:text-[#126769]"
             >
               {t.nav.product}
             </a>
@@ -305,7 +305,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               href="https://stagelaboratories.com/#solutions"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-[#0d5c58]"
+              className="transition hover:text-[#126769]"
             >
               {t.nav.solutions}
             </a>
@@ -313,7 +313,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               href="https://stagelaboratories.com/pricing"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-[#0d5c58]"
+              className="transition hover:text-[#126769]"
             >
               {t.nav.pricing}
             </a>
@@ -327,7 +327,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               onClick={() => setShowLangMenu(!showLangMenu)}
               className="flex items-center gap-1.5 rounded-xl border border-zinc-200/90 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 active:scale-95"
             >
-              <Globe size={14} className="text-[#0d5c58]" />
+              <Globe size={14} className="text-[#126769]" />
               <span>{lang}</span>
               <ChevronDown size={12} className="text-zinc-400" />
             </button>
@@ -345,12 +345,12 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                     }}
                     className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition ${
                       lang === l.code
-                        ? 'bg-[#0d5c58]/10 text-[#0d5c58]'
+                        ? 'bg-[#126769]/10 text-[#126769]'
                         : 'text-zinc-600 hover:bg-zinc-50'
                     }`}
                   >
                     <span>{l.label}</span>
-                    {lang === l.code && <Check size={13} className="text-[#0d5c58]" />}
+                    {lang === l.code && <Check size={13} className="text-[#126769]" />}
                   </button>
                 ))}
               </div>
@@ -362,22 +362,22 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       {/* 2. Main Hero Section matching Image 2 */}
       <main className="relative mx-auto max-w-7xl px-6 pt-8 pb-16 sm:px-10 lg:px-16 lg:pt-12">
         {/* Soft background ambient gradients */}
-        <div className="pointer-events-none absolute -left-20 top-16 h-[420px] w-[420px] rounded-full bg-[#0d5c58]/8 blur-[130px]" />
+        <div className="pointer-events-none absolute -left-20 top-16 h-[420px] w-[420px] rounded-full bg-[#126769]/8 blur-[130px]" />
         <div className="pointer-events-none absolute -right-20 top-32 h-[450px] w-[450px] rounded-full bg-[#0f766e]/8 blur-[140px]" />
 
         <div className="grid items-stretch gap-12 lg:grid-cols-12 lg:gap-14">
           {/* Left Column: Headline & Direct Liquid Glass Auth Card */}
           <div className="flex flex-col lg:col-span-6 animate-rise">
             {/* Tagline */}
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#0d5c58]/20 bg-[#0d5c58]/8 px-3.5 py-1 text-xs font-bold text-[#0d5c58]">
-              <Sparkles size={14} className="text-[#0d5c58]" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#126769]/20 bg-[#126769]/8 px-3.5 py-1 text-xs font-bold text-[#126769]">
+              <Sparkles size={14} className="text-[#126769]" />
               <span>{t.tagline}</span>
             </div>
 
             {/* Headline matching Image 2 */}
             <h1 className="font-display text-4xl font-black tracking-[-0.035em] sm:text-5xl lg:text-[3.5rem] lg:leading-[1.08]">
-              <span className="block text-[#0f2331]">{t.headline.part1}</span>
-              <span className="block text-[#0d5c58]">{t.headline.part2}</span>
+              <span className="block text-[#172c43]">{t.headline.part1}</span>
+              <span className="block text-[#126769]">{t.headline.part2}</span>
             </h1>
 
             {/* Subtitle matching Image 2 */}
@@ -391,6 +391,10 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/60 to-white/20 pointer-events-none" />
 
               <div className="relative z-10">
+                <div className="mb-5 flex items-center gap-2 text-xs font-bold tracking-wide text-[#172c43]">
+                  <img src="/stage-logo.png" alt="" className="h-7 w-7 object-contain" />
+                  <span>Stage AI Labs</span>
+                </div>
                 {/* Apple Segmented Switcher */}
                 <div className="relative mb-6 flex rounded-2xl border border-white/60 bg-white/40 p-1.5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
                   <button
@@ -406,7 +410,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                         transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                       />
                     )}
-                    <span className={`relative z-20 ${tab === 'signup' ? 'text-[#0f2331] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
+                    <span className={`relative z-20 ${tab === 'signup' ? 'text-[#172c43] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
                       {t.tabs.signup}
                     </span>
                   </button>
@@ -424,7 +428,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                         transition={{ type: 'spring', stiffness: 450, damping: 35 }}
                       />
                     )}
-                    <span className={`relative z-20 ${tab === 'signin' ? 'text-[#0f2331] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
+                    <span className={`relative z-20 ${tab === 'signin' ? 'text-[#172c43] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
                       {t.tabs.signin}
                     </span>
                   </button>
@@ -484,7 +488,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                           onChange={(e) => setName(e.target.value)}
                           required
                           placeholder={t.form.namePlaceholder}
-                          className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#0d5c58]/40 focus:bg-white focus:ring-4 focus:ring-[#0d5c58]/10"
+                          className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
                         />
                       </motion.div>
                     )}
@@ -501,7 +505,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t.form.emailPlaceholder}
-                      className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#0d5c58]/40 focus:bg-white focus:ring-4 focus:ring-[#0d5c58]/10"
+                      className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
                     />
                   </div>
 
@@ -518,7 +522,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t.form.passwordPlaceholder}
-                        className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 pr-10 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#0d5c58]/40 focus:bg-white focus:ring-4 focus:ring-[#0d5c58]/10"
+                        className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 pr-10 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
                       />
                       <button
                         type="button"
@@ -559,11 +563,11 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                     </div>
                   )}
 
-                  {/* Submit Action Button matching #0d5c58 */}
+                  {/* Submit Action Button matching #126769 */}
                   <button
                     type="submit"
                     disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)}
-                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d5c58] py-4 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/25 transition hover:bg-[#094542] active:scale-[0.99] disabled:opacity-50"
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-4 text-sm font-bold text-white shadow-lg shadow-[#126769]/25 transition hover:bg-[#0d5052] active:scale-[0.99] disabled:opacity-50"
                   >
                     {loading ? (
                       t.form.processing
@@ -609,10 +613,10 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
 
             {/* Social Proof Badges replacing the footnote quote */}
             <div className="mt-auto pt-8 flex flex-wrap gap-3">
-              <div className="rounded-md bg-[#0d5c58] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
+              <div className="rounded-md bg-[#126769] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
                 CEO Copilot / Stage AI Labs
               </div>
-              <div className="rounded-md bg-[#0d5c58] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
+              <div className="rounded-md bg-[#126769] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
                 {t.bottomTagline2}
               </div>
             </div>
@@ -624,7 +628,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               
               {/* Aura Glow Behind Phone */}
               <div className="absolute top-1/2 left-1/2 h-[450px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-400/30 blur-[90px] mix-blend-multiply" />
-              <div className="absolute top-1/2 left-1/2 h-[300px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0d5c58]/40 blur-[70px] mix-blend-multiply" />
+              <div className="absolute top-1/2 left-1/2 h-[300px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#126769]/40 blur-[70px] mix-blend-multiply" />
               
               {/* Floating Business Stickers */}
               <motion.div 

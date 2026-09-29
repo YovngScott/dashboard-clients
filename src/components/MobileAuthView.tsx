@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { Mail, X, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
+import { Mail, X, ArrowRight, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
@@ -318,7 +318,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   }
 
   return (
-    <div className="mobile-auth-screen relative flex w-full flex-col overflow-hidden bg-[#0f2331] font-sans text-white">
+    <div className="mobile-auth-screen relative flex w-full flex-col overflow-hidden bg-[#172c43] font-sans text-white">
       {/* 1. Full-screen background photography */}
       <div className="absolute inset-0 z-0">
         <img
@@ -328,10 +328,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
           referrerPolicy="no-referrer"
         />
         {/* Soft atmospheric gradient layers */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0f2331]/80 via-[#0f2331]/40 to-[#0f2331]/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#172c43] via-[#172c43]/35 to-[#172c43]" />
         
         {/* Animated Glowing Orbs for Liquid Glass effect */}
-        <div className="absolute left-[-20%] top-[10%] h-[300px] w-[300px] rounded-full bg-[#168a84]/40 mix-blend-screen blur-[80px] animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute left-[-20%] top-[10%] h-[300px] w-[300px] rounded-full bg-[#126769]/40 mix-blend-screen blur-[80px]" />
         <div className="absolute right-[-10%] top-[40%] h-[250px] w-[250px] rounded-full bg-emerald-500/30 mix-blend-screen blur-[60px] animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-[-10%] left-[20%] h-[400px] w-[400px] rounded-full bg-teal-600/30 mix-blend-screen blur-[100px] animate-pulse" style={{ animationDuration: '10s' }} />
       </div>
@@ -339,7 +339,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       {/* 2. Top Navigation Bar */}
       <header className="mobile-auth-header relative z-50 flex shrink-0 items-center justify-between px-6 pt-6 sm:px-8">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm shadow-[#0d5c58]/80 ring-2 ring-white/30 animate-pulse" />
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white p-1 shadow-sm"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
           <div className="flex items-center gap-1.5">
             <span className="font-display text-2xl font-black tracking-tight text-white drop-shadow-md">
               Stage AI Labs
@@ -363,7 +363,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
           </button>
           
           {showLangMenu && (
-            <div className="absolute right-0 mt-2 w-32 overflow-hidden rounded-xl border border-white/20 bg-[#0f2331]/95 p-1.5 shadow-xl backdrop-blur-xl z-50">
+            <div className="absolute right-0 mt-2 w-32 overflow-hidden rounded-xl border border-white/20 bg-[#172c43]/95 p-1.5 shadow-xl backdrop-blur-xl z-50">
               {languages.map((l) => (
                 <button
                   key={l.code}
@@ -401,7 +401,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       {/* 4. Apple Liquid Glass Bottom Card */}
       <div
         id="mobile-auth-liquid-card"
-        className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[2.4rem] border-x border-t border-white/25 bg-white/[0.14] px-6 pb-10 pt-4 shadow-[0_-12px_45px_rgba(0,0,0,0.45)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
+        className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[2.4rem] border-x border-t border-white/25 bg-[linear-gradient(to_bottom,rgba(255,255,255,.16),rgba(23,44,67,.8))] px-6 pb-10 pt-4 shadow-[0_-12px_45px_rgba(0,0,0,0.35)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
       >
         {/* Apple-style Drag indicator */}
         <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-white/30 backdrop-blur-md" />
@@ -453,7 +453,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             id="mobile-auth-email-button"
             ref={emailTriggerRef}
             onClick={openEmailSheet}
-            className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#0d5c58] py-4 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/35 transition hover:bg-[#094542] active:scale-[0.98] border border-teal-400/30"
+            className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#126769] py-4 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] border border-teal-400/30"
           >
             <Mail size={18} strokeWidth={2.4} />
             <AnimatePresence mode="wait">
@@ -546,7 +546,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="relative max-h-[92dvh] w-full max-w-md touch-pan-y overflow-y-auto overscroll-contain rounded-t-[2.6rem] border-t border-x border-white/30 bg-[#0f2331]/95 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-16px_50px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/20"
+              className="relative max-h-[92dvh] w-full max-w-md touch-pan-y overflow-y-auto overscroll-contain rounded-t-[2.6rem] border-t border-x border-white/30 bg-[#172c43]/95 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-16px_50px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Apple-style pill indicator & Close button */}
@@ -566,8 +566,8 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
               {/* Brand Graphic */}
               <div className="mt-3 flex items-center gap-3.5">
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0d5c58] p-2 shadow-lg shadow-[#0d5c58]/40 border border-teal-400/30">
-                  <Sparkles size={24} className="text-teal-200" />
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#126769] p-2 shadow-lg shadow-[#126769]/40 border border-teal-400/30">
+                  <img src="/stage-logo.png" alt="" className="h-9 w-9 rounded-md bg-white p-1 object-contain" />
                 </div>
                 <div>
                   <span className="inline-flex items-center gap-1 rounded-full border border-teal-400/30 bg-teal-500/20 px-2.5 py-0.5 text-[10px] font-bold text-teal-200">
@@ -710,7 +710,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <button
                   type="submit"
                   disabled={loading || !captchaToken}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d5c58] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/35 transition hover:bg-[#094542] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
                 >
                   {loading ? t.form.processing : tab === 'signup' ? t.form.submitSignup : t.form.submitSignin}
                   <ArrowRight size={16} />

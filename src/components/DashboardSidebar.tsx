@@ -50,10 +50,10 @@ export function DashboardSidebar({
     .toUpperCase();
 
   return (
-    <aside className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-ink/10 bg-[#101116] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
+    <aside className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-ink/10 bg-[#172c43] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
       <div className={`flex h-20 items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-6'}`}>
-        <button type="button" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'} aria-expanded={!collapsed} title={collapsed ? 'Expandir menú' : 'Contraer menú'} className="group flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400">
-          <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full bg-teal-400" />
+        <button type="button" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'} aria-expanded={!collapsed} title={collapsed ? 'Expandir menú' : 'Contraer menú'} className="group flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400">
+          <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white p-1"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
           {!collapsed && <span className="font-display text-lg font-extrabold tracking-[-.02em] transition-opacity duration-150 group-hover:text-white/80">Stage AI Labs</span>}
         </button>
       </div>
@@ -69,9 +69,9 @@ export function DashboardSidebar({
                 aria-current={active ? 'page' : undefined}
                 onClick={() => onSelectTab(tab)}
                 title={collapsed ? label : undefined}
-                className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400 ${
+                className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400 ${
                   active
-                    ? 'bg-white text-[#101116]'
+                    ? 'bg-white text-[#172c43]'
                     : 'text-white/58 hover:bg-white/[.07] hover:text-white'
                 }`}
               >
@@ -88,7 +88,7 @@ export function DashboardSidebar({
           type="button"
           onClick={onOpenChannels}
           title={collapsed ? 'Canales' : undefined}
-          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400`}
+          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400`}
         >
           <SlidersHorizontal size={19} />
           {!collapsed && <span>Canales</span>}
@@ -97,7 +97,7 @@ export function DashboardSidebar({
           type="button"
           onClick={onOpenSettings}
           title={collapsed ? 'Configuración' : undefined}
-          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400`}
+          className={`flex min-h-11 w-full items-center ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'} rounded-xl text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400`}
         >
           <Settings size={19} />
           {!collapsed && <span>Configuración</span>}
@@ -106,7 +106,7 @@ export function DashboardSidebar({
 
       <div className={`border-t border-white/10 ${collapsed ? 'p-2' : 'p-3'}`}>
         <div className={`flex items-center rounded-xl py-3 ${collapsed ? 'flex-col gap-2 px-0' : 'gap-3 px-2'}`}>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-500 text-xs font-extrabold text-white">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-500 text-xs font-extrabold text-white">
             {initials}
           </span>
           {!collapsed && <div className="min-w-0 flex-1">
@@ -118,7 +118,7 @@ export function DashboardSidebar({
             onClick={onLogout}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white/45 transition-colors duration-150 hover:bg-white/[.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-400"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white/45 transition-colors duration-150 hover:bg-white/[.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-400"
           >
             <LogOut size={17} />
           </button>

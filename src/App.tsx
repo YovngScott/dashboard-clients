@@ -120,7 +120,7 @@ function useTheme(profile: Profile | null) {
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm dark:bg-teal-400" />
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white p-1"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
       <div className="flex items-center gap-1.5">
         <span className="font-display text-xl font-extrabold tracking-tight text-ink">
           Stage AI Labs
@@ -137,7 +137,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 function Button({ children, onClick, variant = 'primary', disabled = false, type = 'button', className = '' }: { children: ReactNode; onClick?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; type?: 'button' | 'submit'; className?: string }) {
   const styles = variant === 'primary'
-    ? 'bg-[#0d5c58] text-white hover:bg-[#094542] dark:bg-teal-600 dark:hover:bg-teal-500 shadow-md shadow-[#0d5c58]/20'
+    ? 'bg-[#126769] text-white hover:bg-[#0d5052] dark:bg-teal-600 dark:hover:bg-teal-500 shadow-md shadow-[#126769]/20'
     : variant === 'secondary'
     ? 'border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10'
     : 'text-ink/60 hover:bg-ink/5 hover:text-ink';
@@ -477,7 +477,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
             <button
               type="button"
               onClick={() => setShowChannels(true)}
-              className="inline-flex min-h-10 items-center rounded-xl border border-ink/10 bg-panel px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+              className="inline-flex min-h-10 items-center rounded-xl border border-ink/10 bg-panel px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
             >
               Canales
             </button>
@@ -643,7 +643,7 @@ function App() {
     </main>
   );
 
-  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="fixed inset-0 grid place-items-center bg-[#20394a] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-teal-300" /></div>;
+  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="fixed inset-0 grid place-items-center bg-[#172c43] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-teal-300" /></div>;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
@@ -651,7 +651,7 @@ function App() {
         <Logo />
         <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">No pudimos abrir tu espacio.</h1>
         <p role="alert" className="mt-3 leading-7 text-ink/60">{authError}</p>
-        <button type="button" onClick={() => window.location.reload()} className="mt-7 min-h-12 rounded-xl bg-[#0d5c58] px-5 font-bold text-white transition hover:bg-[#094542] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
+        <button type="button" onClick={() => window.location.reload()} className="mt-7 min-h-12 rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
       </section>
     </main>
   );
