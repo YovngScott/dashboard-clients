@@ -126,8 +126,8 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
   return (
     <div
       className={layout === 'mobile'
-        ? 'rounded-xl border border-white/15 bg-slate-950/25 p-3 text-white shadow-sm'
-        : 'rounded-xl border border-zinc-200/80 bg-white/70 p-3 text-zinc-700 shadow-sm'}
+        ? 'px-1 py-1 text-white'
+        : 'px-1 py-1 text-zinc-700'}
       role="group"
       aria-label={label}
     >
@@ -135,13 +135,13 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
         <ShieldCheck aria-hidden="true" size={15} className={layout === 'mobile' ? 'text-teal-300' : 'text-teal-700'} />
         <span className="text-xs font-semibold">{label}</span>
       </div>
-      <div className={layout === 'mobile' ? 'grid min-h-[65px] place-items-center' : 'min-h-[65px]'}>
-        <div ref={containerRef} className="max-w-full" />
+      <div className="flex min-h-10 w-full justify-center overflow-hidden">
+        <div ref={containerRef} className="w-full max-w-full" />
       </div>
       <p
         role="status"
         aria-live="polite"
-        className={`mt-1 flex items-start gap-1.5 text-[11px] leading-4 ${hasError
+        className={`mt-1 flex items-start gap-1.5 text-xs leading-4 ${hasError
           ? layout === 'mobile' ? 'text-red-200' : 'text-red-700'
           : isVerified
             ? layout === 'mobile' ? 'text-teal-200' : 'text-teal-800'
