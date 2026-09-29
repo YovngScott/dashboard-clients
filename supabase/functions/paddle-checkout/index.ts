@@ -2,12 +2,18 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 type PlanId = 'launch' | 'pulse' | 'infinity';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://app-stage-labs.ai.studio',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Content-Type': 'application/json',
-  'Vary': 'Origin',
-};
+const allowedOrigins = new Set(['https://app.stagelaboratories.com']);
+
+function corsHeaders(origin: string | null): HeadersInit {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json',
+    'Vary': 'Origin',
+  };
+  if (origin && allowedOrigins.has(origin)) headers['Access-Control-Allow-Origin'] = origin;
+  return headers;
+}
 
 function environmentValue(name: string): string | undefined {
   return Deno.env.get(name)?.trim() || undefined;
@@ -30,35 +36,44 @@ function priceFor(planId: PlanId): string | null {
   return prices[planId] && /^pri_[a-z0-9]+$/i.test(prices[planId]!) ? prices[planId]! : null;
 }
 
-function json(body: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: corsHeaders });
+function json(body: Record<string, unknown>, status = 200, headers?: HeadersInit) {
+  return new Response(JSON.stringify(body), { status, headers: headers ?? corsHeaders(null) });
 }
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+  const origin = request.headers.get('Origin');
+  if (origin && !allowedOrigins.has(origin)) return json({ error: 'Origin not allowed' }, 403);
+  const headers = corsHeaders(origin);
+  const respond = (body: Record<string, unknown>, status = 200) => json(body, status, headers);
+  if (request.method === 'OPTIONS') return new Response('ok', { headers });
+  if (request.method !== 'POST') return respond({ error: 'Method not allowed' }, 405);
 
   const token = request.headers.get('Authorization')?.replace(/^Bearer\s+/i, '');
-  if (!token) return json({ error: 'Authentication required' }, 401);
+  if (!token) return respond({ error: 'Authentication required' }, 401);
+
+  const contentLength = Number(request.headers.get('Content-Length') ?? 0);
+  if (Number.isFinite(contentLength) && contentLength > 2_048) return respond({ error: 'Request is too large' }, 413);
 
   let planId: PlanId;
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > 2_048) return respond({ error: 'Request is too large' }, 413);
+    const body = JSON.parse(rawBody);
     planId = body.planId;
   } catch {
-    return json({ error: 'Invalid request body' }, 400);
+    return respond({ error: 'Invalid request body' }, 400);
   }
-  if (!['launch', 'pulse', 'infinity'].includes(planId)) return json({ error: 'Invalid plan' }, 400);
+  if (!['launch', 'pulse', 'infinity'].includes(planId)) return respond({ error: 'Invalid plan' }, 400);
 
   const supabaseUrl = environmentValue('SUPABASE_URL');
-  if (!supabaseUrl) return json({ error: 'Server configuration is incomplete' }, 500);
+  if (!supabaseUrl) return respond({ error: 'Server configuration is incomplete' }, 500);
   const supabase = createClient(supabaseUrl, publishableKey(), { global: { headers: { Authorization: `Bearer ${token}` } } });
   const { data: auth, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !auth.user?.id) return json({ error: 'Invalid session' }, 401);
+  if (authError || !auth.user?.id) return respond({ error: 'Invalid session' }, 401);
 
   const priceId = priceFor(planId);
   const apiKey = environmentValue('PADDLE_API_KEY');
-  if (!priceId || !apiKey) return json({ error: 'Checkout is not configured' }, 503);
+  if (!priceId || !apiKey) return respond({ error: 'Checkout is not configured' }, 503);
 
   const paddleApiBase = environmentValue('PADDLE_ENVIRONMENT') === 'sandbox'
     ? 'https://sandbox-api.paddle.com'
@@ -82,13 +97,13 @@ Deno.serve(async (request) => {
 
   if (!paddleResponse.ok) {
     console.error('Paddle transaction creation failed', paddleResponse.status);
-    return json({ error: 'Could not create checkout transaction' }, 502);
+    return respond({ error: 'Could not create checkout transaction' }, 502);
   }
   const paddle = await paddleResponse.json();
   const transactionId = paddle?.data?.id;
   if (typeof transactionId !== 'string' || !transactionId.startsWith('txn_')) {
-    return json({ error: 'Paddle returned an invalid transaction' }, 502);
+    return respond({ error: 'Paddle returned an invalid transaction' }, 502);
   }
 
-  return json({ transactionId });
+  return respond({ transactionId });
 });

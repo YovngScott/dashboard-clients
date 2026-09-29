@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   normalizeEmail,
+  authErrorMessage,
   validateDisplayName,
   validatePassword,
 } from '../src/lib/auth-validation.ts';
@@ -17,6 +18,10 @@ test('requires a usable business or display name', () => {
 });
 
 test('requires a stronger password for a new account', () => {
-  assert.match(validatePassword('abc12345') ?? '', /mayúscula/);
-  assert.equal(validatePassword('Stage123'), null);
+  assert.match(validatePassword('abcdefgh1234') ?? '', /mayúscula/);
+  assert.equal(validatePassword('Stage123ABC4'), null);
+});
+
+test('explains how to recover from an expired or invalid CAPTCHA', () => {
+  assert.match(authErrorMessage('captcha verification failed'), /Complétala otra vez/);
 });

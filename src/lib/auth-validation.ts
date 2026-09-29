@@ -4,7 +4,7 @@ export function normalizeEmail(value: string) {
 }
 
 export function validatePassword(value: string) {
-  if (value.length < 8) return 'Usa una contraseña de al menos 8 caracteres.';
+  if (value.length < 12) return 'Usa una contraseña de al menos 12 caracteres.';
   if (!/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/\d/.test(value)) {
     return 'Incluye una mayúscula, una minúscula y un número en tu contraseña.';
   }
@@ -29,6 +29,9 @@ export function authErrorMessage(message?: string) {
   }
   if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
     return 'Hiciste demasiados intentos. Espera unos minutos y vuelve a intentarlo.';
+  }
+  if (normalized.includes('captcha')) {
+    return 'La verificación de seguridad venció o no pudo validarse. Complétala otra vez e inténtalo de nuevo.';
   }
   return 'No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.';
 }

@@ -102,6 +102,7 @@ Deno.serve(async (request) => {
   }
 
   const supabase = createClient(environmentValue('SUPABASE_URL')!, supabaseSecretKey());
+  let eventToProcess = event;
   const received = await supabase.from('billing_webhook_events').insert({
     paddle_event_id: event.event_id,
     event_type: event.event_type,
@@ -110,19 +111,38 @@ Deno.serve(async (request) => {
   });
 
   if (received.error?.code === '23505') {
-    return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200, headers: corsHeaders });
+    const existing = await supabase
+      .from('billing_webhook_events')
+      .select('processed_at,payload')
+      .eq('paddle_event_id', event.event_id)
+      .maybeSingle();
+    if (existing.error || !existing.data) {
+      console.error('Could not inspect duplicate Paddle event', existing.error?.code ?? 'not_found');
+      return new Response(JSON.stringify({ error: 'Event status unavailable' }), { status: 500, headers: corsHeaders });
+    }
+    if (existing.data.processed_at) {
+      return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200, headers: corsHeaders });
+    }
+
+    // A previous attempt persisted the event but failed before completion.
+    // Retry the canonical stored payload instead of acknowledging and dropping it.
+    eventToProcess = existing.data.payload as PaddleEvent;
   }
-  if (received.error) {
+  if (received.error && received.error.code !== '23505') {
     console.error('Could not persist Paddle event', received.error.code);
     return new Response(JSON.stringify({ error: 'Event persistence failed' }), { status: 500, headers: corsHeaders });
   }
 
-  if (!allowedEvents.has(event.event_type)) {
-    await supabase.from('billing_webhook_events').update({ processed_at: new Date().toISOString() }).eq('paddle_event_id', event.event_id);
+  if (!allowedEvents.has(eventToProcess.event_type ?? '')) {
+    const { error } = await supabase.from('billing_webhook_events').update({ processed_at: new Date().toISOString() }).eq('paddle_event_id', event.event_id);
+    if (error) {
+      console.error('Could not mark ignored Paddle event as processed', error.code);
+      return new Response(JSON.stringify({ error: 'Event acknowledgement failed' }), { status: 500, headers: corsHeaders });
+    }
     return new Response(JSON.stringify({ received: true, ignored: true }), { status: 200, headers: corsHeaders });
   }
 
-  const subscription = event.data;
+  const subscription = eventToProcess.data;
   const subscriptionId = subscription?.id;
   const priceId = subscription?.items?.[0]?.price?.id;
   const plan = planFromPrice(priceId);
@@ -162,6 +182,13 @@ Deno.serve(async (request) => {
     return new Response(JSON.stringify({ error: 'Subscription synchronization failed' }), { status: 500, headers: corsHeaders });
   }
 
-  await supabase.from('billing_webhook_events').update({ processed_at: new Date().toISOString() }).eq('paddle_event_id', event.event_id);
+  const { error: acknowledgeError } = await supabase
+    .from('billing_webhook_events')
+    .update({ processed_at: new Date().toISOString() })
+    .eq('paddle_event_id', event.event_id);
+  if (acknowledgeError) {
+    console.error('Could not mark Paddle event as processed', acknowledgeError.code);
+    return new Response(JSON.stringify({ error: 'Event acknowledgement failed' }), { status: 500, headers: corsHeaders });
+  }
   return new Response(JSON.stringify({ received: true }), { status: 200, headers: corsHeaders });
 });

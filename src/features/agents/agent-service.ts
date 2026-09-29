@@ -89,10 +89,21 @@ export async function createAgent(organizationId: string, userId: string, draft:
 export async function uploadContextPdf(organizationId: string, agentId: string, userId: string, file: File) {
   if (file.type !== 'application/pdf') throw new Error('El contexto debe ser un archivo PDF.');
   if (file.size > 20 * 1024 * 1024) throw new Error('El PDF no puede superar 20 MB.');
+  const signature = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+  if (String.fromCharCode(...signature) !== '%PDF-') {
+    throw new Error('El archivo no tiene una firma PDF válida.');
+  }
 
   const documentId = crypto.randomUUID();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-160);
   const storagePath = `${organizationId}/${agentId}/${documentId}/${safeName}`;
+  const { error: uploadError } = await supabase.storage.from('agent-context').upload(storagePath, file, {
+    cacheControl: '3600',
+    contentType: 'application/pdf',
+    upsert: false,
+  });
+  if (uploadError) throw uploadError;
+
   const { error: metadataError } = await supabase.from('knowledge_documents').insert({
     id: documentId,
     organization_id: organizationId,
@@ -103,13 +114,9 @@ export async function uploadContextPdf(organizationId: string, agentId: string, 
     mime_type: file.type,
     size_bytes: file.size,
   });
-  if (metadataError) throw metadataError;
-
-  const { error: uploadError } = await supabase.storage.from('agent-context').upload(storagePath, file, {
-    cacheControl: '3600',
-    contentType: 'application/pdf',
-    upsert: false,
-  });
-  if (uploadError) throw uploadError;
+  if (metadataError) {
+    await supabase.storage.from('agent-context').remove([storagePath]);
+    throw metadataError;
+  }
   return documentId;
 }

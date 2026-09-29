@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Mail, X, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -6,6 +6,7 @@ import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { Profile } from '../types';
+import { AuthTurnstile } from './AuthTurnstile';
 
 interface MobileAuthViewProps {
   onSuccess: (profile: Profile | null) => void;
@@ -33,9 +34,16 @@ const translations = {
       emailPlaceholder: 'tu@correo.com',
       passwordLabel: 'Contraseña',
       passwordPlaceholder: '••••••••',
+      showPassword: 'Mostrar contraseña',
+      hidePassword: 'Ocultar contraseña',
       submitSignup: 'Crear mi espacio',
       submitSignin: 'Entrar a mi espacio',
       processing: 'Procesando...',
+      captchaLabel: 'Verificación de seguridad de Cloudflare',
+      captchaChecking: 'La comprobación se ejecuta en segundo plano; solo verás un reto si hace falta.',
+      captchaVerified: 'Verificación completada. Ya puedes continuar.',
+      captchaError: 'No se pudo cargar la verificación. Recarga la página e inténtalo de nuevo.',
+      captchaRequired: 'Completa la verificación de seguridad para continuar.',
       errorInvalid: 'El correo o la contraseña no son correctos.',
       noticeEmail: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.'
     }
@@ -60,9 +68,16 @@ const translations = {
       emailPlaceholder: 'you@email.com',
       passwordLabel: 'Password',
       passwordPlaceholder: '••••••••',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
       submitSignup: 'Create my space',
       submitSignin: 'Enter my space',
       processing: 'Processing...',
+      captchaLabel: 'Cloudflare security verification',
+      captchaChecking: 'Verification runs in the background; you will only see a challenge if needed.',
+      captchaVerified: 'Verification complete. You can continue.',
+      captchaError: 'Security verification could not load. Reload the page and try again.',
+      captchaRequired: 'Complete the security verification to continue.',
       errorInvalid: 'Invalid email or password.',
       noticeEmail: 'Account created. We sent you a confirmation link. Also check spam or promotions.'
     }
@@ -87,9 +102,16 @@ const translations = {
       emailPlaceholder: 'seu@email.com',
       passwordLabel: 'Senha',
       passwordPlaceholder: '••••••••',
+      showPassword: 'Mostrar senha',
+      hidePassword: 'Ocultar senha',
       submitSignup: 'Criar meu espaço',
       submitSignin: 'Entrar no meu espaço',
       processing: 'Processando...',
+      captchaLabel: 'Verificação de segurança da Cloudflare',
+      captchaChecking: 'A verificação acontece em segundo plano; um desafio só aparecerá se necessário.',
+      captchaVerified: 'Verificação concluída. Você já pode continuar.',
+      captchaError: 'Não foi possível carregar a verificação. Atualize a página e tente novamente.',
+      captchaRequired: 'Conclua a verificação de segurança para continuar.',
       errorInvalid: 'O e-mail ou a senha estão incorretos.',
       noticeEmail: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.'
     }
@@ -108,8 +130,12 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
 
   const t = translations[lang];
+  const updateCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
 
   const languages = [
     { code: 'ES', label: 'Español' },
@@ -152,6 +178,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
       return;
     }
+    if (turnstileSiteKey && !captchaToken) {
+      setError(t.form.captchaRequired);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -163,14 +193,14 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               options: {
                 data: { display_name: name.trim() },
                 emailRedirectTo: getAuthRedirectUrl(),
+                captchaToken: turnstileSiteKey ? captchaToken : undefined,
               },
             })
           : await supabase.auth.signInWithPassword({
               email: normalizedEmail,
               password,
+              options: { captchaToken: turnstileSiteKey ? captchaToken : undefined },
             });
-
-      setLoading(false);
 
       if (result.error) {
         setError(authErrorMessage(result.error.message));
@@ -191,8 +221,13 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         onSuccess(data as Profile | null);
       }
     } catch {
-      setLoading(false);
       setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
+    } finally {
+      if (turnstileSiteKey) {
+        setCaptchaToken('');
+        setCaptchaAttempt((attempt) => attempt + 1);
+      }
+      setLoading(false);
     }
   }
 
@@ -517,7 +552,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       type={showPassword ? 'text' : 'password'}
                       autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                       required
-                      minLength={6}
+                      minLength={tab === 'signup' ? 12 : undefined}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t.form.passwordPlaceholder}
@@ -526,12 +561,29 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? t.form.hidePassword : t.form.showPassword}
+                      aria-pressed={showPassword}
                       className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/50 hover:text-white"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
+
+                {turnstileSiteKey && (
+                  <div className="space-y-1">
+                    <AuthTurnstile
+                      key={captchaAttempt}
+                      layout="mobile"
+                      siteKey={turnstileSiteKey}
+                      onTokenChange={updateCaptchaToken}
+                      label={t.form.captchaLabel}
+                      checkingLabel={t.form.captchaChecking}
+                      verifiedLabel={t.form.captchaVerified}
+                      loadError={t.form.captchaError}
+                    />
+                  </div>
+                )}
 
                 {error && (
                   <div role="alert" aria-live="assertive" className="rounded-xl border border-red-400/30 bg-red-500/20 p-3 text-xs text-red-200">
@@ -548,7 +600,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 {/* Submit button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d5c58] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/35 transition hover:bg-[#094542] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
                 >
                   {loading ? t.form.processing : tab === 'signup' ? t.form.submitSignup : t.form.submitSignin}
