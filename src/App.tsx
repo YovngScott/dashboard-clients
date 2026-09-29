@@ -516,6 +516,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
                   userId={profile.id}
                   profileName={profile.display_name}
                   createRequest={createAgentRequest}
+                  preview={Boolean(previewMode)}
                 />
               )}
             </>
@@ -545,15 +546,31 @@ function App() {
   useEffect(() => {
     if (previewMode || !isSupabaseConfigured) return;
     let mounted = true;
+    let bootTimedOut = false;
+    let bootFinished = false;
+    let hydrationVersion = 0;
+    const bootTimer = window.setTimeout(() => {
+      if (!mounted || bootFinished) return;
+      bootTimedOut = true;
+      hydrationVersion += 1;
+      setAuthError('La verificación de tu sesión tardó demasiado. Comprueba tu conexión y vuelve a intentarlo.');
+      setLoading(false);
+    }, 15000);
+    const finishLoading = () => {
+      bootFinished = true;
+      window.clearTimeout(bootTimer);
+      setLoading(false);
+    };
     const defaultProfile = (id: string): Profile => ({ id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' });
 
     const hydrateSession = async (session: Session | null) => {
-      if (!mounted) return;
+      if (!mounted || bootTimedOut) return;
+      const version = ++hydrationVersion;
       setAuthError('');
       if (!session?.user) {
         setProfile(null);
         setScreen('landing');
-        setLoading(false);
+        finishLoading();
         return;
       }
 
@@ -562,19 +579,19 @@ function App() {
         .select('*')
         .eq('id', session.user.id)
         .maybeSingle();
-      if (!mounted) return;
+      if (!mounted || bootTimedOut || version !== hydrationVersion) return;
       if (profileError) {
         setAuthError('Tu sesión está activa, pero no pudimos cargar tu espacio. Revisa tu conexión y vuelve a intentarlo.');
-        setLoading(false);
+        finishLoading();
         return;
       }
       if (!current) {
         const profile = defaultProfile(session.user.id);
         const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
-        if (!mounted) return;
+        if (!mounted || bootTimedOut || version !== hydrationVersion) return;
         if (createError) {
           setAuthError('Tu cuenta fue creada, pero no pudimos preparar tu espacio. Inténtalo nuevamente.');
-          setLoading(false);
+          finishLoading();
           return;
         }
         setProfile(profile);
@@ -586,21 +603,33 @@ function App() {
         setChannel(profile.channel ?? '');
         setScreen(profile.onboarding_complete ? 'dashboard' : 'channel');
       }
-      setLoading(false);
+      finishLoading();
     };
 
+    const startHydration = (session: Session | null) => {
+      void hydrateSession(session).catch(() => {
+        if (!mounted || bootTimedOut) return;
+        setAuthError('No pudimos cargar tu espacio. Comprueba tu conexión y vuelve a intentarlo.');
+        finishLoading();
+      });
+    };
     supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      if (!mounted || bootTimedOut || bootFinished) return;
       if (sessionError) {
         setAuthError('No pudimos verificar tu sesión. Revisa tu conexión y vuelve a intentarlo.');
-        setLoading(false);
+        finishLoading();
         return;
       }
-      void hydrateSession(data.session);
+      startHydration(data.session);
+    }).catch(() => {
+      if (!mounted || bootTimedOut || bootFinished) return;
+      setAuthError('No pudimos verificar tu sesión. Comprueba tu conexión y vuelve a intentarlo.');
+      finishLoading();
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      void hydrateSession(session);
+      startHydration(session);
     });
-    return () => { mounted = false; listener.subscription.unsubscribe(); };
+    return () => { mounted = false; window.clearTimeout(bootTimer); listener.subscription.unsubscribe(); };
   }, []);
 
   async function handleAuthSuccess(nextProfile: Profile | null) {
@@ -643,7 +672,7 @@ function App() {
     </main>
   );
 
-  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="fixed inset-0 grid place-items-center bg-[#172c43] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-teal-300" /></div>;
+  if (loading) return <main role="status" aria-live="polite" className="fixed inset-0 grid place-items-center bg-[#172c43] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)] px-5 text-white"><div className="flex flex-col items-center gap-5"><Logo /><div aria-hidden="true" className="h-8 w-8 rounded-full border-2 border-white/20 border-t-teal-300 motion-safe:animate-spin" /><p className="text-sm font-medium text-white/80">Cargando tu espacio...</p></div></main>;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">

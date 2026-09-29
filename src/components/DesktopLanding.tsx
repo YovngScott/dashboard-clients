@@ -477,10 +477,11 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.18 }}
                       >
-                        <label className="mb-1.5 block text-xs font-semibold text-zinc-600">
+                        <label htmlFor="desktop-auth-name" className="mb-1.5 block text-xs font-semibold text-zinc-600">
                           {t.form.nameLabel}
                         </label>
                         <input
+                        id="desktop-auth-name"
                         type="text"
                         autoComplete="name"
                         maxLength={80}
@@ -495,10 +496,11 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                   </AnimatePresence>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600">
+                    <label htmlFor="desktop-auth-email" className="mb-1.5 block text-xs font-semibold text-zinc-600">
                       {t.form.emailLabel}
                     </label>
                     <input
+                    id="desktop-auth-email"
                     type="email"
                     autoComplete="email"
                       required
@@ -510,11 +512,12 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600">
+                    <label htmlFor="desktop-auth-password" className="mb-1.5 block text-xs font-semibold text-zinc-600">
                       {t.form.passwordLabel}
                     </label>
                     <div className="relative">
                       <input
+                      id="desktop-auth-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                         required

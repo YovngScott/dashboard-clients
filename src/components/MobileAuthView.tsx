@@ -646,10 +646,11 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <label className="mb-1 block text-xs font-semibold text-white/80">
+                      <label htmlFor="mobile-auth-name" className="mb-1 block text-xs font-semibold text-white/80">
                         {t.form.nameLabel}
                       </label>
                       <input
+                        id="mobile-auth-name"
                         type="text"
                         autoComplete="name"
                         required
@@ -664,10 +665,11 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 </AnimatePresence>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-white/80">
+                  <label htmlFor="mobile-auth-email" className="mb-1 block text-xs font-semibold text-white/80">
                     {t.form.emailLabel}
                   </label>
                   <input
+                    id="mobile-auth-email"
                     type="email"
                     ref={emailFieldRef}
                     autoComplete="email"
@@ -680,11 +682,12 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-white/80">
+                  <label htmlFor="mobile-auth-password" className="mb-1 block text-xs font-semibold text-white/80">
                     {t.form.passwordLabel}
                   </label>
                   <div className="relative">
                     <input
+                      id="mobile-auth-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
                       required

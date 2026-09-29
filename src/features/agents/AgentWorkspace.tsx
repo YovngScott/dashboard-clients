@@ -10,7 +10,7 @@ import {
   type AgentChannel, type AgentDraft, type AgentRecord, type Workspace,
 } from './agent-service';
 
-type Props = { userId: string; profileName: string | null; createRequest?: number };
+type Props = { userId: string; profileName: string | null; createRequest?: number; preview?: boolean };
 type BuilderStep = 0 | 1 | 2 | 3 | 4;
 
 const channelMeta: Record<AgentChannel, { label: string; icon: typeof Instagram; note: string }> = {
@@ -40,15 +40,16 @@ const emptyDraft: AgentDraft = {
   handoff_instructions: '', requested_channels: ['instagram'],
 };
 
-export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props) {
+export function AgentWorkspace({ userId, profileName, createRequest = 0, preview = false }: Props) {
   const [tab, setTab] = useState<'ideas' | 'agents'>('ideas');
-  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [workspace, setWorkspace] = useState<Workspace | null>(preview ? { organizationId: 'preview', planCode: 'launch', maxConnectedChannels: 1, allowedChannels: ['instagram'] } : null);
   const [agents, setAgents] = useState<AgentRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!preview);
   const [error, setError] = useState('');
   const [builderOpen, setBuilderOpen] = useState(createRequest > 0);
 
   async function refresh() {
+    if (preview) { setError(''); setLoading(false); return; }
     setLoading(true); setError('');
     try {
       const nextWorkspace = await ensureWorkspace(profileName);
@@ -60,6 +61,7 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props
   }
 
   useEffect(() => {
+    if (preview) return;
     let cancelled = false;
     ensureWorkspace(profileName)
       .then(async nextWorkspace => ({ nextWorkspace, nextAgents: await listAgents(nextWorkspace.organizationId) }))
@@ -75,7 +77,12 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [profileName]);
+  }, [profileName, preview]);
+
+  function openBuilder() {
+    setBuilderOpen(true);
+    if (!workspace && !loading) void refresh();
+  }
 
   return (
     <section className="animate-rise" aria-labelledby="automation-title">
@@ -94,11 +101,11 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props
         <TabButton active={tab === 'agents'} onClick={() => setTab('agents')}>Mis agentes <span className="ml-1 opacity-60">{agents.length}</span></TabButton>
       </div>
 
-      {error && <div role="alert" className="mb-5 flex gap-3 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-700 dark:text-rose-200"><CircleAlert className="mt-0.5 shrink-0" size={18} /><span>{error}</span></div>}
+      {error && <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-700 dark:text-rose-200"><CircleAlert className="shrink-0" size={18} /><span className="flex-1">{error}</span><button type="button" onClick={() => void refresh()} className="min-h-11 rounded-xl border border-current/25 px-4 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button></div>}
 
       {tab === 'ideas' ? (
         <div className="grid gap-5 lg:grid-cols-[1.45fr_.75fr]">
-          <button type="button" onClick={() => setBuilderOpen(true)} className="group relative overflow-hidden rounded-[28px] border border-teal-500/25 bg-[#172c43] p-6 text-left text-white shadow-[0_22px_70px_-44px_rgba(18,103,105,.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-500 sm:p-8">
+          <button type="button" onClick={openBuilder} className="group relative overflow-hidden rounded-[28px] border border-teal-500/25 bg-[#172c43] p-6 text-left text-white shadow-[0_22px_70px_-44px_rgba(18,103,105,.45)] transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-500 sm:p-8">
             <div className="absolute right-0 top-0 h-44 w-44 translate-x-12 -translate-y-12 rounded-full bg-teal-500/15 blur-3xl" />
             <div className="relative">
               <div className="flex items-start justify-between gap-5">
@@ -130,18 +137,20 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0 }: Props
           </div>
         </div>
       ) : (
-        <AgentList agents={agents} loading={loading} onCreate={() => setBuilderOpen(true)} />
+        <AgentList agents={agents} loading={loading} onCreate={openBuilder} />
       )}
 
       {builderOpen && workspace && (
         <AgentBuilder
           workspace={workspace}
           userId={userId}
+          preview={preview}
           initialBusinessName={profileName ?? ''}
           onClose={() => setBuilderOpen(false)}
           onCreated={async () => { setBuilderOpen(false); setTab('agents'); await refresh(); }}
         />
       )}
+      {builderOpen && !workspace && loading && <p role="status" className="mt-5 text-sm text-ink/60">Preparando tu espacio para crear el asistente...</p>}
     </section>
   );
 }
@@ -172,9 +181,9 @@ function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loadi
   ); })}</div>;
 }
 
-export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated }: { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void> }) {
+export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated, preview = false }: { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void>; preview?: boolean }) {
   const [step, setStep] = useState<BuilderStep>(0);
-  const [draft, setDraft] = useState<AgentDraft>({ ...emptyDraft, business_name: initialBusinessName });
+  const [draft, setDraft] = useState<AgentDraft>({ ...emptyDraft, business_name: initialBusinessName, requested_channels: workspace.allowedChannels.includes('instagram') ? ['instagram'] : workspace.allowedChannels.slice(0, 1) });
   const [pdf, setPdf] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -185,7 +194,7 @@ export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, 
   const savedAgent = useRef<AgentRecord | null>(null);
   const closeRef = useRef(onClose);
   useEffect(() => { closeRef.current = onClose; }, [onClose]);
-  const canContinue = useMemo(() => step === 0 ? draft.name.trim().length >= 2 && draft.business_name.trim().length >= 2 : step === 1 ? draft.business_description.trim().length >= 20 : true, [step, draft]);
+  const canContinue = useMemo(() => step === 0 ? draft.name.trim().length >= 2 && draft.business_name.trim().length >= 2 : step === 1 ? draft.business_description.trim().length >= 20 : step === 3 ? draft.requested_channels.length > 0 && draft.requested_channels.length <= workspace.maxConnectedChannels : true, [step, draft, workspace.maxConnectedChannels]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -229,6 +238,7 @@ export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, 
   }
 
   async function save() {
+    if (preview) { setError('La vista previa no guarda asistentes. Inicia sesión en la app publicada para crear uno.'); return; }
     if (saveInProgress.current) return;
     saveInProgress.current = true;
     setSaving(true); setError('');
@@ -256,7 +266,7 @@ export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, 
             {step === 0 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Bot} title="Dale una identidad clara" text="Este nombre identifica al agente dentro de Stage. El nombre de la empresa se usa al responder a tus clientes." /><Field label="Nombre del agente" required value={draft.name} onChange={value => setField('name', value)} placeholder="Ej. Atlas Atención" /><Field label="Nombre de la empresa" required value={draft.business_name} onChange={value => setField('business_name', value)} placeholder="Stage AI Labs" /><div className="grid gap-4 sm:grid-cols-2"><Field label="Sitio web" value={draft.website_url ?? ''} onChange={value => setField('website_url', value)} placeholder="Opcional" type="url" /><Field label="Teléfono" value={draft.phone ?? ''} onChange={value => setField('phone', value)} placeholder="Opcional" type="tel" /></div></div>}
             {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="Cuéntale cómo funciona tu negocio. El PDF es opcional, privado y se revisa antes de ponerlo a trabajar." /><TextArea label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> Documento de apoyo <span className="font-normal text-ink/40">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/50 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
             {step === 2 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Sparkles} title="Define cómo debe atender" text="Tus instrucciones personalizan la operación. Las reglas de privacidad, veracidad y aislamiento siempre tienen prioridad." /><Select label="Objetivo principal" value={draft.goal} onChange={value => setField('goal', value)} options={[['customer_service','Servicio al cliente'],['sales_and_service','Ventas y servicio'],['lead_qualification','Calificación de prospectos']]} /><Select label="Estilo de conversación" value={draft.tone} onChange={value => setField('tone', value)} options={[['clear_and_warm','Claro y cercano'],['professional','Profesional'],['concise','Breve y directo'],['friendly','Amigable']]} /><TextArea label="Instrucciones operativas" value={draft.operating_instructions ?? ''} onChange={value => setField('operating_instructions', value)} placeholder="Ej. Primero comprende la necesidad; después recomienda solo opciones disponibles." /><TextArea label="Cuándo escalar a una persona" value={draft.handoff_instructions ?? ''} onChange={value => setField('handoff_instructions', value)} placeholder="Ej. Reclamos de pago, cancelaciones o cuando el cliente lo solicite." /><div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm leading-6 text-ink/60"><span className="font-bold text-ink">Protección fija:</span> responde en el idioma del cliente, no revela datos de otros negocios, no inventa y pide ayuda cuando falta información.</div></div>}
-            {step === 3 && <div className="mx-auto max-w-3xl"><Intro icon={Globe2} title="Elige dónde atenderá" text={`Selecciona hasta ${workspace.maxConnectedChannels} canales incluidos en tu plan. La autorización y activación se revisan desde Canales; elegirlos aquí no los conecta.`} /><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(channelMeta) as AgentChannel[]).map(channel => { const meta = channelMeta[channel]; const Icon = meta.icon; const allowed = workspace.allowedChannels.includes(channel); const selected = draft.requested_channels.includes(channel); return <button key={channel} type="button" disabled={!allowed} onClick={() => toggleChannel(channel)} className={`channel-card group flex min-h-[82px] items-center gap-4 rounded-2xl border p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-teal-500 bg-teal-500/8' : 'border-ink/10 bg-panel hover:border-ink/25'}`}><span className={`channel-brand-icon channel-brand-icon--${channel} grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/65`}><Icon size={20} /></span><span className="min-w-0 flex-1"><strong className="block text-sm">{meta.label}</strong><span className="mt-1 block text-xs text-ink/45">{allowed ? meta.note : 'Disponible en otro plan'}</span></span>{selected && <CheckCircle2 size={18} className="text-teal-500" />}</button>; })}</div></div>}
+            {step === 3 && <div className="mx-auto max-w-3xl"><Intro icon={Globe2} title="Elige dónde atenderá" text={`Selecciona hasta ${workspace.maxConnectedChannels} ${workspace.maxConnectedChannels === 1 ? 'canal incluido' : 'canales incluidos'} en tu plan. La autorización y activación se revisan desde Canales; elegirlos aquí no los conecta.`} /><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(channelMeta) as AgentChannel[]).map(channel => { const meta = channelMeta[channel]; const Icon = meta.icon; const allowed = workspace.allowedChannels.includes(channel); const selected = draft.requested_channels.includes(channel); return <button key={channel} type="button" aria-pressed={selected} disabled={!allowed} onClick={() => toggleChannel(channel)} className={`channel-card group flex min-h-[82px] items-center gap-4 rounded-2xl border p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-teal-500 bg-teal-500/8' : 'border-ink/10 bg-panel hover:border-ink/25'}`}><span className={`channel-brand-icon channel-brand-icon--${channel} grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/65`}><Icon size={20} /></span><span className="min-w-0 flex-1"><strong className="block text-sm">{meta.label}</strong><span className="mt-1 block text-xs text-ink/45">{allowed ? meta.note : 'Disponible en otro plan'}</span></span>{selected && <CheckCircle2 size={18} className="text-teal-500" />}</button>; })}</div></div>}
             {step === 4 && <div className="mx-auto max-w-2xl"><Intro icon={ShieldCheck} title="Todo listo para revisar" text="Guardaremos tu asistente para que puedas revisarlo. Solo empezará a responder cuando tú conectes un canal y lo actives." /><dl className="mt-7 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-panel px-5"><ReviewRow label="Asistente" value={draft.name} /><ReviewRow label="Empresa" value={draft.business_name} /><ReviewRow label="Idiomas" value="Todos: responderá en el idioma del cliente" /><ReviewRow label="Información" value={pdf ? `Datos ingresados + ${pdf.name}` : 'Datos ingresados'} /><ReviewRow label="Lugares" value={draft.requested_channels.map(channel => channelMeta[channel].label).join(', ')} /><ReviewRow label="Inicio" value="Lo activas cuando quieras" /></dl></div>}
             {error && <p role="alert" className="mx-auto mt-5 max-w-2xl rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200">{error}</p>}
             </div>
