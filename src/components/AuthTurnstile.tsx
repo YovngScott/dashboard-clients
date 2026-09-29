@@ -8,7 +8,7 @@ type TurnstileWidgetOptions = {
   'error-callback': () => void;
   theme: 'light' | 'dark';
   size: 'flexible' | 'compact';
-  appearance: 'interaction-only';
+  appearance: 'always' | 'interaction-only';
   language: 'auto';
 };
 
@@ -56,9 +56,10 @@ interface AuthTurnstileProps {
   checkingLabel: string;
   verifiedLabel: string;
   loadError: string;
+  appearance?: TurnstileWidgetOptions['appearance'];
 }
 
-export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingLabel, verifiedLabel, loadError }: AuthTurnstileProps) {
+export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingLabel, verifiedLabel, loadError, appearance = 'interaction-only' }: AuthTurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string>();
   const [hasError, setHasError] = useState(false);
@@ -86,7 +87,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
         widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: siteKey,
           size: layout === 'mobile' ? 'compact' : 'flexible',
-          appearance: 'interaction-only',
+          appearance,
           callback: (token) => {
             if (active) {
               setHasError(false);
@@ -121,7 +122,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
       if (api && widgetIdRef.current) api.remove(widgetIdRef.current);
       widgetIdRef.current = undefined;
     };
-  }, [isActive, layout, siteKey, onTokenChange]);
+  }, [appearance, isActive, layout, siteKey, onTokenChange]);
 
   return (
     <div

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft, ArrowRight, Bot, Check, CheckCircle2, ChevronRight, CircleAlert,
   FileText, Globe2, Instagram, Loader2, LockKeyhole, Mail, MessageCircle,
   Phone, Plus, Radio, Send, ShieldCheck, Sparkles, Upload, X,
 } from 'lucide-react';
 import {
-  createAgent, ensureWorkspace, listAgents, uploadContextPdf,
+  createAgent, ensureWorkspace, listAgents, uploadContextPdf, validateContextPdf,
   type AgentChannel, type AgentDraft, type AgentRecord, type Workspace,
 } from './agent-service';
 
@@ -171,25 +172,52 @@ function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loadi
   ); })}</div>;
 }
 
-function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated }: { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void> }) {
+export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated }: { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void> }) {
   const [step, setStep] = useState<BuilderStep>(0);
   const [draft, setDraft] = useState<AgentDraft>({ ...emptyDraft, business_name: initialBusinessName });
   const [pdf, setPdf] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const steps = ['Identidad', 'Contexto', 'Comportamiento', 'Canales', 'Revisar'];
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const saveInProgress = useRef(false);
+  const savedAgent = useRef<AgentRecord | null>(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
   const canContinue = useMemo(() => step === 0 ? draft.name.trim().length >= 2 && draft.business_name.trim().length >= 2 : step === 1 ? draft.business_description.trim().length >= 20 : true, [step, draft]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const appRoot = document.getElementById('root');
+    const wasInert = appRoot?.hasAttribute('inert');
+    appRoot?.setAttribute('inert', '');
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !saveInProgress.current) closeRef.current();
+      if (event.key !== 'Tab') return;
+      const fields = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])') ?? [])
+        .filter(field => field.getClientRects().length > 0);
+      const first = fields[0]; const last = fields[fields.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
     window.addEventListener('keydown', closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
+      if (!wasInert) appRoot?.removeAttribute('inert');
+      previousFocus?.focus();
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [onClose]);
+  }, []);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+    const heading = dialogRef.current?.querySelector<HTMLElement>('#builder-title');
+    heading?.setAttribute('tabindex', '-1');
+    heading?.focus();
+  }, [step]);
 
   function setField<K extends keyof AgentDraft>(key: K, value: AgentDraft[K]) { setDraft(current => ({ ...current, [key]: value })); }
   function toggleChannel(channel: AgentChannel) {
@@ -201,25 +229,29 @@ function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreat
   }
 
   async function save() {
+    if (saveInProgress.current) return;
+    saveInProgress.current = true;
     setSaving(true); setError('');
     try {
-      const agent = await createAgent(workspace.organizationId, userId, draft);
+      if (pdf) await validateContextPdf(pdf);
+      const agent = savedAgent.current ?? await createAgent(workspace.organizationId, userId, draft);
+      savedAgent.current = agent;
       if (pdf) await uploadContextPdf(workspace.organizationId, agent.id, userId, pdf);
       await onCreated();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No pudimos guardar el agente.');
-    } finally { setSaving(false); }
+      setError(savedAgent.current ? 'El asistente está guardado, pero el documento no pudo subirse. Reintenta para adjuntarlo sin crear otro asistente.' : caught instanceof Error ? caught.message : 'No pudimos guardar el agente.');
+    } finally { saveInProgress.current = false; setSaving(false); }
   }
 
-  return (
-      <div className="agent-dialog-backdrop fixed inset-0 z-50 overflow-hidden bg-canvas" role="dialog" aria-modal="true" aria-labelledby="builder-title">
+  return createPortal(
+      <div ref={dialogRef} className="agent-dialog-backdrop fixed inset-0 z-[100] overflow-hidden bg-canvas" role="dialog" aria-modal="true" aria-labelledby="builder-title" aria-busy={saving} onClickCapture={event => { if (saveInProgress.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <div className="agent-builder-panel mx-auto flex h-[100dvh] min-h-0 max-w-7xl flex-col bg-canvas">
           <header className="shrink-0 border-b border-ink/10 bg-panel px-5 py-4 sm:px-8">
             <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4"><div className="min-w-0"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg text-xs font-bold text-ink/50 hover:text-ink"><ArrowLeft size={15} /> {step === 0 ? 'Volver a automatizaciones' : 'Paso anterior'}</button><p className="text-xs font-bold uppercase tracking-[.16em] text-teal-700 dark:text-teal-300">Crear asistente</p><div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><h2 id="builder-title" className="font-display text-xl font-extrabold sm:text-2xl">{steps[step]}</h2><span className="text-xs font-semibold text-ink/40" aria-live="polite">Paso {step + 1} de {steps.length}</span></div></div><button autoFocus type="button" onClick={onClose} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/45 hover:bg-ink/5 hover:text-ink"><X size={20} /></button></div>
             <div className="mt-4 grid grid-cols-5 gap-2" aria-label={`Paso ${step + 1} de 5`}>{steps.map((label, index) => <div key={label} className="min-w-0"><div className={`h-1 rounded-full ${index <= step ? 'bg-violet-500' : 'bg-ink/10'}`} /><span className="mt-2 hidden truncate text-xs text-ink/45 sm:block">{label}</span></div>)}</div>
           </header>
 
-          <div className="agent-builder-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-5 pb-10 sm:px-8 sm:pb-14">
+          <div ref={scrollRef} className="agent-builder-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-5 pb-10 sm:px-8 sm:pb-14">
             <div key={step} className="agent-step-enter mx-auto min-h-[500px] w-full max-w-5xl py-8 sm:py-12">
             {step === 0 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Bot} title="Dale una identidad clara" text="Este nombre identifica al agente dentro de Stage. El nombre de la empresa se usa al responder a tus clientes." /><Field label="Nombre del agente" required value={draft.name} onChange={value => setField('name', value)} placeholder="Ej. Atlas Atención" /><Field label="Nombre de la empresa" required value={draft.business_name} onChange={value => setField('business_name', value)} placeholder="Stage AI Labs" /><div className="grid gap-4 sm:grid-cols-2"><Field label="Sitio web" value={draft.website_url ?? ''} onChange={value => setField('website_url', value)} placeholder="Opcional" type="url" /><Field label="Teléfono" value={draft.phone ?? ''} onChange={value => setField('phone', value)} placeholder="Opcional" type="tel" /></div></div>}
             {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="Cuéntale cómo funciona tu negocio. El PDF es opcional, privado y se revisa antes de ponerlo a trabajar." /><TextArea label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> Documento de apoyo <span className="font-normal text-ink/40">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/50 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
@@ -232,7 +264,7 @@ function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreat
 
           <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-ink/10 bg-panel px-5 py-4 sm:px-7"><div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink/55 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={17} /> {step === 0 ? 'Cancelar' : 'Atrás'}</button>{step < 4 ? <button type="button" disabled={!canContinue} onClick={() => setStep((step + 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:cursor-not-allowed disabled:opacity-40">Continuar <ArrowRight size={17} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:opacity-50">{saving ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar asistente</button>}</div></footer>
         </div>
-    </div>
+    </div>, document.body
   );
 }
 

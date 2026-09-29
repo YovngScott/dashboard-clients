@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, animate, useReducedMotion } from 'motion/react';
 import { Image as ImageIcon, PlusCircle, Phone, Video, ChevronLeft, Mic } from 'lucide-react';
 
 interface Message {
@@ -40,28 +40,39 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
   const [visibleMessages, setVisibleMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   const messages = chatTranslations[lang];
 
-  const scrollToBottom = () => {
-    if (containerRef.current) {
-      setTimeout(() => {
-        containerRef.current?.scrollTo({
-          top: containerRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 50);
-    }
-  };
-
   useEffect(() => {
-    scrollToBottom();
-  }, [visibleMessages, isTyping]);
+    const viewport = containerRef.current;
+    const content = contentRef.current;
+    if (!viewport || !content) return;
+    let movement: ReturnType<typeof animate> | undefined;
+    const followConversation = () => {
+      const offset = Math.max(0, content.scrollHeight - viewport.clientHeight);
+      movement?.stop();
+      movement = animate(content, { transform: `translate3d(0, -${offset}px, 0)` }, {
+        duration: reduceMotion ? 0 : 0.5, ease: [0.23, 1, 0.32, 1],
+      });
+    };
+    const observer = new ResizeObserver(followConversation);
+    observer.observe(viewport);
+    observer.observe(content);
+    followConversation();
+    return () => { observer.disconnect(); movement?.stop(); };
+  }, [reduceMotion]);
 
   useEffect(() => {
     const timeouts: ReturnType<typeof setTimeout>[] = [];
     
     const runAnimation = () => {
+      if (reduceMotion) {
+        setVisibleMessages([...messages]);
+        setIsTyping(false);
+        return;
+      }
       setVisibleMessages([]);
       setIsTyping(false);
       
@@ -87,7 +98,7 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
     return () => {
       timeouts.forEach(clearTimeout);
     };
-  }, [lang, messages]); // Re-run animation if language changes
+  }, [lang, messages, reduceMotion]);
 
   return (
     <div className="flex h-full w-full flex-col bg-white overflow-hidden rounded-[2rem] shadow-inner relative z-10">
@@ -124,12 +135,12 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
       {/* Added a subtle chat wallpaper background to make it look alive */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-smooth bg-[#fafafa] relative pb-4 pointer-events-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="min-h-0 flex-1 overflow-hidden bg-[#fafafa] relative pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle at 100% 100%, rgba(13, 92, 88, 0.03) 0%, transparent 50%), radial-gradient(circle at 0% 0%, rgba(13, 92, 88, 0.02) 0%, transparent 50%)`
         }}
       >
-        <div className="flex min-h-full flex-col justify-end px-4 pt-8">
+        <div ref={contentRef} className="flex flex-col px-4 pb-4 pt-8">
           
           {/* Instagram Chat Profile Header */}
           <div className="flex flex-col items-center justify-center pb-6 pt-2">
@@ -160,11 +171,10 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
                 const isLast = index === visibleMessages.length - 1;
                 return (
                   <motion.div
-                    layout
                     key={msg.id}
-                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25, mass: 0.8 }}
+                    initial={reduceMotion ? false : { opacity: 0, transform: 'translate3d(0, 12px, 0)' }}
+                    animate={{ opacity: 1, transform: 'translate3d(0, 0, 0)' }}
+                    transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     {msg.sender === 'bot' && (
@@ -201,12 +211,11 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
               {/* Typing Indicator */}
               {isTyping && (
                 <motion.div
-                  layout
                   key="typing-indicator"
-                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  initial={{ opacity: 0, transform: 'translate3d(0, 8px, 0)' }}
+                  animate={{ opacity: 1, transform: 'translate3d(0, 0, 0)' }}
+                  exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                  transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
                   className="flex justify-start items-end mt-3"
                 >
                   <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#0d5c58] flex items-center justify-center mr-1.5 mb-0.5 shadow-sm">

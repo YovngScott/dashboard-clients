@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Mail, X, ArrowRight, Sparkles, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -40,10 +40,13 @@ const translations = {
       submitSignin: 'Entrar a mi espacio',
       processing: 'Procesando...',
       captchaLabel: 'Verificación de seguridad de Cloudflare',
-      captchaChecking: 'La comprobación se ejecuta en segundo plano; solo verás un reto si hace falta.',
+      captchaGateTitle: 'Antes de continuar',
+      captchaGateDescription: 'Completa la verificación para abrir el acceso con correo.',
+      captchaUnavailable: 'La verificación no está disponible. Inténtalo más tarde.',
+      captchaChecking: 'Comprobando que la solicitud es legítima…',
       captchaVerified: 'Verificación completada. Ya puedes continuar.',
       captchaError: 'No se pudo cargar la verificación. Recarga la página e inténtalo de nuevo.',
-      captchaRequired: 'Completa la verificación de seguridad para continuar.',
+      captchaRequired: 'Completa de nuevo la verificación de seguridad para continuar.',
       errorInvalid: 'El correo o la contraseña no son correctos.',
       noticeEmail: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.'
     }
@@ -74,10 +77,13 @@ const translations = {
       submitSignin: 'Enter my space',
       processing: 'Processing...',
       captchaLabel: 'Cloudflare security verification',
-      captchaChecking: 'Verification runs in the background; you will only see a challenge if needed.',
+      captchaGateTitle: 'Before you continue',
+      captchaGateDescription: 'Complete the security check to open email sign-in.',
+      captchaUnavailable: 'Security verification is unavailable. Please try again later.',
+      captchaChecking: 'Checking that this request is legitimate…',
       captchaVerified: 'Verification complete. You can continue.',
       captchaError: 'Security verification could not load. Reload the page and try again.',
-      captchaRequired: 'Complete the security verification to continue.',
+      captchaRequired: 'Complete the security check again to continue.',
       errorInvalid: 'Invalid email or password.',
       noticeEmail: 'Account created. We sent you a confirmation link. Also check spam or promotions.'
     }
@@ -108,10 +114,13 @@ const translations = {
       submitSignin: 'Entrar no meu espaço',
       processing: 'Processando...',
       captchaLabel: 'Verificação de segurança da Cloudflare',
-      captchaChecking: 'A verificação acontece em segundo plano; um desafio só aparecerá se necessário.',
+      captchaGateTitle: 'Antes de continuar',
+      captchaGateDescription: 'Conclua a verificação para abrir o acesso por e-mail.',
+      captchaUnavailable: 'A verificação não está disponível. Tente novamente mais tarde.',
+      captchaChecking: 'Verificando se a solicitação é legítima…',
       captchaVerified: 'Verificação concluída. Você já pode continuar.',
       captchaError: 'Não foi possível carregar a verificação. Atualize a página e tente novamente.',
-      captchaRequired: 'Conclua a verificação de segurança para continuar.',
+      captchaRequired: 'Conclua novamente a verificação de segurança para continuar.',
       errorInvalid: 'O e-mail ou a senha estão incorretos.',
       noticeEmail: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.'
     }
@@ -132,10 +141,86 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaAttempt, setCaptchaAttempt] = useState(0);
+  const [emailStage, setEmailStage] = useState<'captcha' | 'form'>('captcha');
+  const emailTriggerRef = useRef<HTMLButtonElement>(null);
+  const emailCloseRef = useRef<HTMLButtonElement>(null);
+  const emailDialogRef = useRef<HTMLDivElement>(null);
+  const captchaContainerRef = useRef<HTMLDivElement>(null);
+  const emailFieldRef = useRef<HTMLInputElement>(null);
+  const captchaHeadingRef = useRef<HTMLHeadingElement>(null);
+  const previousEmailStageRef = useRef(emailStage);
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
 
   const t = translations[lang];
-  const updateCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
+  useEffect(() => {
+    document.documentElement.classList.add('mobile-auth-active');
+    return () => document.documentElement.classList.remove('mobile-auth-active');
+  }, []);
+  const updateCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token);
+    setEmailStage((stage) => token ? 'form' : stage === 'form' ? 'captcha' : stage);
+  }, []);
+
+  function openEmailSheet() {
+    setError('');
+    setNotice('');
+    setCaptchaToken('');
+    setEmailStage('captcha');
+    previousEmailStageRef.current = 'captcha';
+    setShowEmailSheet(true);
+  }
+
+  function closeEmailSheet() {
+    setShowEmailSheet(false);
+  }
+
+  useEffect(() => {
+    if (!showEmailSheet) return;
+    const emailTrigger = emailTriggerRef.current;
+    emailCloseRef.current?.focus();
+
+    function keepFocusInside(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        closeEmailSheet();
+        return;
+      }
+      if (event.key !== 'Tab' || !emailDialogRef.current) return;
+
+      const focusable = Array.from(emailDialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])'
+      )).filter((element) => !element.closest('[inert]') && element.getClientRects().length > 0);
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const focusIsOutside = !emailDialogRef.current.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || focusIsOutside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || focusIsOutside)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    window.addEventListener('keydown', keepFocusInside);
+    return () => {
+      window.removeEventListener('keydown', keepFocusInside);
+      emailTrigger?.focus();
+    };
+  }, [showEmailSheet]);
+
+  useEffect(() => {
+    if (showEmailSheet && emailStage !== previousEmailStageRef.current) {
+      if (emailStage === 'form') emailFieldRef.current?.focus();
+      else captchaHeadingRef.current?.focus();
+    }
+    previousEmailStageRef.current = emailStage;
+  }, [emailStage, showEmailSheet]);
+
+  useEffect(() => {
+    captchaContainerRef.current?.toggleAttribute('inert', emailStage === 'form');
+  }, [emailStage]);
 
   const languages = [
     { code: 'ES', label: 'Español' },
@@ -178,8 +263,9 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
       return;
     }
-    if (turnstileSiteKey && !captchaToken) {
+    if (!turnstileSiteKey || !captchaToken) {
       setError(t.form.captchaRequired);
+      setEmailStage('captcha');
       return;
     }
     setLoading(true);
@@ -232,7 +318,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   }
 
   return (
-    <div className="relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-[#0f2331] font-sans text-white select-none">
+    <div className="mobile-auth-screen relative flex w-full flex-col overflow-hidden bg-[#0f2331] font-sans text-white">
       {/* 1. Full-screen background photography */}
       <div className="absolute inset-0 z-0">
         <img
@@ -251,7 +337,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       </div>
 
       {/* 2. Top Navigation Bar */}
-      <header className="relative z-50 flex items-center justify-between px-6 pt-6 sm:px-8">
+      <header className="mobile-auth-header relative z-50 flex shrink-0 items-center justify-between px-6 pt-6 sm:px-8">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-[#0d5c58] shadow-sm shadow-[#0d5c58]/80 ring-2 ring-white/30 animate-pulse" />
           <div className="flex items-center gap-1.5">
@@ -302,7 +388,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       </header>
 
       {/* 3. Center Display Typography */}
-      <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col justify-end px-6 pb-6 text-left">
+      <div className="mobile-auth-headline relative z-10 mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col justify-end px-6 pb-6 text-left">
         <h1 className="font-display text-[2.5rem] font-black leading-[1.06] tracking-[-0.035em] text-white drop-shadow-xl sm:text-5xl">
           {t.headline}
         </h1>
@@ -315,7 +401,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       {/* 4. Apple Liquid Glass Bottom Card */}
       <div
         id="mobile-auth-liquid-card"
-        className="relative z-20 mx-auto flex w-full max-w-md flex-col rounded-t-[2.4rem] border-x border-t border-white/25 bg-white/[0.14] px-6 pb-10 pt-4 shadow-[0_-12px_45px_rgba(0,0,0,0.45)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
+        className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[2.4rem] border-x border-t border-white/25 bg-white/[0.14] px-6 pb-10 pt-4 shadow-[0_-12px_45px_rgba(0,0,0,0.45)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
       >
         {/* Apple-style Drag indicator */}
         <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-white/30 backdrop-blur-md" />
@@ -365,7 +451,8 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
           <button
             type="button"
             id="mobile-auth-email-button"
-            onClick={() => setShowEmailSheet(true)}
+            ref={emailTriggerRef}
+            onClick={openEmailSheet}
             className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#0d5c58] py-4 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/35 transition hover:bg-[#094542] active:scale-[0.98] border border-teal-400/30"
           >
             <Mail size={18} strokeWidth={2.4} />
@@ -448,14 +535,18 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md"
-            onClick={() => setShowEmailSheet(false)}
+            onClick={closeEmailSheet}
           >
             <motion.div
+              ref={emailDialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="email-auth-heading"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[2.6rem] border-t border-x border-white/30 bg-[#0f2331]/80 p-6 text-white shadow-[0_-16px_50px_rgba(0,0,0,0.6)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
+              className="relative max-h-[92dvh] w-full max-w-md touch-pan-y overflow-y-auto overscroll-contain rounded-t-[2.6rem] border-t border-x border-white/30 bg-[#0f2331]/95 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-16px_50px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Apple-style pill indicator & Close button */}
@@ -464,7 +555,8 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <button
                   type="button"
                   id="email-sheet-close-btn"
-                  onClick={() => setShowEmailSheet(false)}
+                  ref={emailCloseRef}
+                  onClick={closeEmailSheet}
                   className="grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-white/10 text-white/80 transition hover:bg-white/25 hover:text-white"
                   aria-label="Cerrar"
                 >
@@ -485,24 +577,67 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 </div>
               </div>
 
-              {/* Title & Subtitle with Animated text */}
+              {/* The email form stays gated until Turnstile returns a usable token. */}
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={tab}
-                  initial={{ opacity: 0, x: tab === 'signup' ? -10 : 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: tab === 'signup' ? 10 : -10 }}
-                  transition={{ duration: 0.15 }}
+                  key={emailStage === 'captcha' ? 'captcha' : `form-${tab}`}
+                  initial={{ opacity: 0, transform: 'translateY(4px)' }}
+                  animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                  exit={{ opacity: 0, transform: 'translateY(-4px)' }}
+                  transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
                   className="mt-4"
                 >
-                  <h2 className="font-display text-2xl font-black tracking-tight text-white">
-                    {tab === 'signup' ? t.form.titleSignup : t.form.titleSignin}
+                  <h2 id="email-auth-heading" ref={captchaHeadingRef} tabIndex={-1} className="font-display text-2xl font-black tracking-tight text-white">
+                    {emailStage === 'captcha'
+                      ? t.form.captchaGateTitle
+                      : tab === 'signup' ? t.form.titleSignup : t.form.titleSignin}
                   </h2>
+                  {emailStage === 'captcha' && (
+                    <p className="mt-2 max-w-sm text-sm leading-5 text-white/75">
+                      {t.form.captchaGateDescription}
+                    </p>
+                  )}
                 </motion.div>
               </AnimatePresence>
 
-              {/* Form */}
-              <form onSubmit={handleEmailSubmit} className="mt-5 space-y-3.5">
+              {turnstileSiteKey ? (
+                <div
+                  ref={captchaContainerRef}
+                  aria-hidden={emailStage === 'form'}
+                  className={`relative mt-5 ${emailStage === 'form' ? 'pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0' : ''}`}
+                >
+                  <AuthTurnstile
+                    key={captchaAttempt}
+                    layout="mobile"
+                    siteKey={turnstileSiteKey}
+                    appearance="always"
+                    onTokenChange={updateCaptchaToken}
+                    label={t.form.captchaLabel}
+                    checkingLabel={t.form.captchaChecking}
+                    verifiedLabel={t.form.captchaVerified}
+                    loadError={t.form.captchaError}
+                  />
+                </div>
+              ) : (
+                <p role="alert" className="mt-5 rounded-xl border border-red-400/30 bg-red-500/15 p-3 text-sm text-red-100">
+                  {t.form.captchaUnavailable}
+                </p>
+              )}
+
+              {error && (
+                <div role="alert" aria-live="assertive" className="mt-4 rounded-xl border border-red-400/30 bg-red-500/20 p-3 text-xs text-red-200">
+                  {error}
+                </div>
+              )}
+
+              {notice && (
+                <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-500/20 p-3 text-xs text-emerald-200">
+                  {notice}
+                </div>
+              )}
+
+              {emailStage === 'form' && (
+                <form onSubmit={handleEmailSubmit} className="mt-5 space-y-3.5">
                 <AnimatePresence>
                   {tab === 'signup' && (
                     <motion.div
@@ -534,6 +669,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   </label>
                   <input
                     type="email"
+                    ref={emailFieldRef}
                     autoComplete="email"
                     required
                     value={email}
@@ -570,46 +706,20 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   </div>
                 </div>
 
-                {turnstileSiteKey && (
-                  <div className="space-y-1">
-                    <AuthTurnstile
-                      key={captchaAttempt}
-                      layout="mobile"
-                      siteKey={turnstileSiteKey}
-                      onTokenChange={updateCaptchaToken}
-                      label={t.form.captchaLabel}
-                      checkingLabel={t.form.captchaChecking}
-                      verifiedLabel={t.form.captchaVerified}
-                      loadError={t.form.captchaError}
-                    />
-                  </div>
-                )}
-
-                {error && (
-                  <div role="alert" aria-live="assertive" className="rounded-xl border border-red-400/30 bg-red-500/20 p-3 text-xs text-red-200">
-                    {error}
-                  </div>
-                )}
-
-                {notice && (
-                  <div role="status" aria-live="polite" className="rounded-xl border border-emerald-400/30 bg-emerald-500/20 p-3 text-xs text-emerald-200">
-                    {notice}
-                  </div>
-                )}
-
                 {/* Submit button */}
                 <button
                   type="submit"
-                  disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)}
+                  disabled={loading || !captchaToken}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0d5c58] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#0d5c58]/35 transition hover:bg-[#094542] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
                 >
                   {loading ? t.form.processing : tab === 'signup' ? t.form.submitSignup : t.form.submitSignin}
                   <ArrowRight size={16} />
                 </button>
-              </form>
+                </form>
+              )}
 
               {/* Switch tab in sheet */}
-              <div className="mt-4 text-center">
+              {emailStage === 'form' && <div className="mt-4 text-center">
                 <button
                   type="button"
                   onClick={() => setTab(tab === 'signup' ? 'signin' : 'signup')}
@@ -619,7 +729,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                     ? '¿Ya tienes una cuenta? Iniciar sesión'
                     : '¿No tienes cuenta? Crear una'}
                 </button>
-              </div>
+              </div>}
             </motion.div>
           </motion.div>
         )}

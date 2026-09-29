@@ -643,7 +643,7 @@ function App() {
     </main>
   );
 
-  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="grid min-h-screen place-items-center bg-canvas"><div className="h-10 w-10 animate-spin rounded-full border-2 border-ink/10 border-t-teal-500" /></div>;
+  if (loading) return <div role="status" aria-label="Cargando tu espacio" className="fixed inset-0 grid place-items-center bg-[#20394a] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-teal-300" /></div>;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
