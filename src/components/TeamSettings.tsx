@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Copy, MailPlus, RotateCw, UserMinus, Users, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Copy, Link2, RotateCw, UserMinus, Users, X } from 'lucide-react';
 import type { WorkspaceContext } from '@/lib/workspace';
 import { canManageWorkspace, roleLabel } from '@/lib/workspace';
 import {
@@ -18,7 +18,6 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [email, setEmail] = useState('');
   const [role, setRole] = useState<TeamInvitation['role']>('editor');
   const [lastLink, setLastLink] = useState('');
   const [removeTarget, setRemoveTarget] = useState<string | null>(null);
@@ -48,14 +47,18 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
     finally { setBusy(false); }
   }
 
-  async function submitInvite(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function createInviteLink() {
     setBusy(true); setError(''); setNotice(''); setLastLink('');
     try {
-      const result = await inviteTeamMember(workspace.organizationId, email.trim(), role);
-      setEmail(''); setLastLink(result.link);
+      const result = await inviteTeamMember(workspace.organizationId, role);
+      setLastLink(result.link);
       await refresh();
-      setNotice(result.sent ? 'Invitación enviada. También puedes copiar el enlace.' : 'No se pudo enviar el correo. Copia y comparte el enlace de invitación.');
+      try {
+        await navigator.clipboard.writeText(result.link);
+        setNotice('Enlace copiado. Compártelo por el canal que prefieras.');
+      } catch {
+        setNotice('Enlace creado. Cópialo y compártelo por el canal que prefieras.');
+      }
     } catch (cause) { setError(teamErrorMessage(cause)); }
     finally { setBusy(false); }
   }
@@ -107,19 +110,18 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
       </div>}
 
       {canManage && team && <>
-        {team.invitations.length > 0 && <div className="border-t border-ink/10 px-5 py-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/55">Invitaciones pendientes</h3><div className="divide-y divide-ink/10">{team.invitations.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 py-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-ink">{invitation.email}</p><p className="text-xs text-ink/60">{roleLabel(invitation.role)} · vence el {new Date(invitation.expires_at).toLocaleDateString('es')}</p></div><button type="button" disabled={busy} onClick={() => void perform(() => revokeInvitation(invitation.id), 'Invitación cancelada.')} className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-xs font-semibold text-ink/65 hover:bg-red-500/10 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"><X size={15} /> Cancelar</button></div>)}</div></div>}
-        <form onSubmit={(event) => void submitInvite(event)} className="border-t border-ink/10 p-5">
-          <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><MailPlus size={18} className="text-teal-500" /> Invitar a alguien</h3>
-          <p className="mt-1 text-xs leading-5 text-ink/60">La invitación vence en 7 días y reserva un puesto mientras está pendiente.</p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <label className="min-w-0 flex-1 text-xs font-semibold text-ink/75">Correo electrónico<input type="email" required value={email} disabled={!allowInvite || busy} onChange={(event) => setEmail(event.target.value)} placeholder="nombre@empresa.com" className="mt-1.5 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink placeholder:text-ink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50" /></label>
+        {team.invitations.length > 0 && <div className="border-t border-ink/10 px-5 py-4"><h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-ink/55">Invitaciones pendientes</h3><div className="divide-y divide-ink/10">{team.invitations.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 py-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-ink">{invitation.email || 'Enlace compartible'}</p><p className="text-xs text-ink/60">{roleLabel(invitation.role)} · vence el {new Date(invitation.expires_at).toLocaleDateString('es')}</p></div><button type="button" disabled={busy} onClick={() => void perform(() => revokeInvitation(invitation.id), 'Invitación cancelada.')} className="inline-flex min-h-11 items-center gap-1 rounded-lg px-3 text-xs font-semibold text-ink/65 hover:bg-red-500/10 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"><X size={15} /> Cancelar</button></div>)}</div></div>}
+        <div className="border-t border-ink/10 p-5">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-ink"><Link2 size={18} className="text-teal-500" /> Crear enlace de invitación</h3>
+          <p className="mt-1 text-xs leading-5 text-ink/60">Elige el rol y comparte el enlace por donde quieras. Vence en 7 días, se usa una vez y reserva un puesto. Cualquiera que tenga el enlace podrá aceptarlo.</p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className="text-xs font-semibold text-ink/75">Rol<select value={role} disabled={!allowInvite || busy} onChange={(event) => setRole(event.target.value as TeamInvitation['role'])} className="mt-1.5 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50 sm:w-40">{workspace.role === 'owner' && <option value="admin">Administrador</option>}<option value="editor">Operador</option><option value="viewer">Lector</option></select></label>
-            <button type="submit" disabled={!allowInvite || busy} className="mt-auto inline-flex min-h-11 items-center justify-center rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50">{busy ? 'Procesando...' : 'Enviar invitación'}</button>
+            <button type="button" onClick={() => void createInviteLink()} disabled={!allowInvite || busy} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50"><Link2 size={16} />{busy ? 'Creando enlace...' : 'Crear y copiar enlace'}</button>
           </div>
-          {team.seat_limit == null && <p className="mt-3 text-xs text-ink/60">La gestión de miembros está disponible. Para enviar invitaciones, el plan debe tener un cupo de puestos confirmado.</p>}
+          {team.seat_limit == null && <p className="mt-3 text-xs text-ink/60">La gestión de miembros está disponible. Para crear invitaciones, el plan debe tener un cupo de puestos confirmado.</p>}
           {team.seat_limit != null && !seatsAvailable && <p className="mt-3 text-xs text-ink/60">No quedan puestos disponibles. Cancela una invitación pendiente o ajusta tu plan.</p>}
-          {lastLink && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-ink/5 p-3"><span className="min-w-0 flex-1 break-all text-xs text-ink/75">{lastLink}</span><button type="button" onClick={() => void navigator.clipboard.writeText(lastLink).then(() => setNotice('Enlace copiado.')).catch(() => setError('No se pudo copiar. Selecciona el enlace manualmente.'))} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-ink/15 px-3 text-xs font-semibold text-ink"><Copy size={14} /> Copiar enlace</button></div>}
-        </form>
+          {lastLink && <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-ink/5 p-3"><label htmlFor="team-invite-link" className="sr-only">Enlace de invitación</label><input id="team-invite-link" readOnly value={lastLink} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/10 bg-panel px-3 text-xs text-ink/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500" /><button type="button" onClick={() => void navigator.clipboard.writeText(lastLink).then(() => setNotice('Enlace copiado.')).catch(() => setError('No se pudo copiar. Selecciona y copia el enlace manualmente.'))} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-ink/15 px-3 text-xs font-semibold text-ink"><Copy size={14} /> Copiar enlace</button></div>}
+        </div>
       </>}
     </div>
   </section>;

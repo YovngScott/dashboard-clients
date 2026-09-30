@@ -7,6 +7,7 @@ import { AuthTurnstile } from './AuthTurnstile';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
+import { pendingTeamInvite } from '@/lib/team-invite-link';
 import type { Profile } from '../types';
 
 interface DesktopLandingProps {
@@ -18,6 +19,8 @@ const copy = {
     title: 'Tu espacio para operar con claridad.',
     description: 'Configura tus agentes, canales y reglas desde un solo lugar.',
     signup: 'Crear cuenta', signin: 'Iniciar sesión',
+    invitationContext: 'Te invitaron a colaborar en un espacio de Stage. Crea tu cuenta o inicia sesión y entrarás al panel compartido.',
+    invitationSubmit: 'Crear cuenta y entrar',
     name: 'Nombre o marca', namePlaceholder: 'Ej. Estudio Norte',
     email: 'Correo electrónico', emailPlaceholder: 'tu@correo.com',
     password: 'Contraseña', passwordPlaceholder: 'Mínimo 12 caracteres',
@@ -37,6 +40,8 @@ const copy = {
     title: 'Your space to operate with clarity.',
     description: 'Set up your agents, channels, and rules in one place.',
     signup: 'Create account', signin: 'Sign in',
+    invitationContext: 'You were invited to a Stage workspace. Create an account or sign in to open the shared dashboard.',
+    invitationSubmit: 'Create account and join',
     name: 'Name or brand', namePlaceholder: 'e.g. North Studio',
     email: 'Email address', emailPlaceholder: 'you@email.com',
     password: 'Password', passwordPlaceholder: 'At least 12 characters',
@@ -56,6 +61,8 @@ const copy = {
     title: 'Seu espaço para operar com clareza.',
     description: 'Configure agentes, canais e regras em um só lugar.',
     signup: 'Criar conta', signin: 'Entrar',
+    invitationContext: 'Você foi convidado para um espaço Stage. Crie uma conta ou entre para acessar o painel compartilhado.',
+    invitationSubmit: 'Criar conta e entrar',
     name: 'Nome ou marca', namePlaceholder: 'Ex. Estúdio Norte',
     email: 'E-mail', emailPlaceholder: 'seu@email.com',
     password: 'Senha', passwordPlaceholder: 'Mínimo 12 caracteres',
@@ -74,6 +81,7 @@ const copy = {
 } as const;
 
 export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
+  const invitationPending = Boolean(pendingTeamInvite());
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -116,7 +124,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
     setError('');
     setNotice('');
     const normalizedEmail = normalizeEmail(email);
-    const nameError = tab === 'signup' ? validateDisplayName(name) : null;
+    const nameError = tab === 'signup' && !invitationPending ? validateDisplayName(name) : null;
     const passwordError = tab === 'signup' ? validatePassword(password) : null;
     if (nameError || passwordError) {
       setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
@@ -134,7 +142,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
             email: normalizedEmail,
             password,
             options: {
-              data: { display_name: name.trim() },
+              data: { display_name: name.trim() || null },
               emailRedirectTo: getAuthRedirectUrl(),
               captchaToken: turnstileSiteKey ? captchaToken : undefined,
             },
@@ -218,8 +226,9 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               </button>
             ))}
           </div>
+          {invitationPending && <p role="status" className="stage-auth__notice">{t.invitationContext}</p>}
           <form onSubmit={submit} className="stage-auth__form">
-            {tab === 'signup' && (
+            {tab === 'signup' && !invitationPending && (
               <div className="stage-auth__field">
                 <label htmlFor="desktop-auth-name">{t.name}</label>
                 <input id="desktop-auth-name" type="text" autoComplete="name" maxLength={80} value={name} onChange={(event) => setName(event.target.value)} required placeholder={t.namePlaceholder} />
@@ -244,7 +253,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
             {error && <p role="alert" className="stage-auth__error">{error}</p>}
             {notice && <p role="status" className="stage-auth__notice">{notice}</p>}
             <button type="submit" disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)} className="stage-auth__submit">
-              <span>{loading ? t.processing : tab === 'signup' ? t.submitSignup : t.submitSignin}</span><ArrowRight size={18} aria-hidden="true" />
+              <span>{loading ? t.processing : tab === 'signup' ? invitationPending ? t.invitationSubmit : t.submitSignup : t.submitSignin}</span><ArrowRight size={18} aria-hidden="true" />
             </button>
           </form>
           <div className="stage-auth__divider"><span>{t.other}</span></div>

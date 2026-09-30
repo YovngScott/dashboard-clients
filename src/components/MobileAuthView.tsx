@@ -6,6 +6,7 @@ import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
+import { pendingTeamInvite } from '@/lib/team-invite-link';
 import { Profile } from '../types';
 import { AuthTurnstile } from './AuthTurnstile';
 
@@ -20,6 +21,7 @@ const translations = {
     subtitlePart1: 'Configura tus agentes, canales y reglas',
     subtitlePart2: 'desde un solo lugar.',
     tabs: { signup: 'Crear cuenta', signin: 'Iniciar sesión' },
+    invitationContext: 'Te invitaron a colaborar en un espacio de Stage. Crea tu cuenta o inicia sesión y entrarás al panel compartido.',
     continueEmail: 'Continuar con correo',
     separator: 'Consulta la ',
     terms: 'Política de Privacidad',
@@ -28,6 +30,7 @@ const translations = {
     of: ' de Stage AI Labs.',
     form: {
       titleSignup: 'Crear tu espacio',
+      invitationTitle: 'Completa tu acceso',
       titleSignin: 'Inicia sesión',
       nameLabel: 'Nombre o marca',
       namePlaceholder: 'Ej. Estudio Norte',
@@ -38,6 +41,7 @@ const translations = {
       showPassword: 'Mostrar contraseña',
       hidePassword: 'Ocultar contraseña',
       submitSignup: 'Crear mi espacio',
+      invitationSubmit: 'Crear cuenta y entrar',
       submitSignin: 'Entrar a mi espacio',
       processing: 'Procesando...',
       captchaLabel: 'Verificación de seguridad de Cloudflare',
@@ -57,6 +61,7 @@ const translations = {
     subtitlePart1: 'Set up your agents, channels, and rules',
     subtitlePart2: 'in one place.',
     tabs: { signup: 'Create account', signin: 'Sign in' },
+    invitationContext: 'You were invited to a Stage workspace. Create an account or sign in to open the shared dashboard.',
     continueEmail: 'Continue with email',
     separator: 'See the Stage AI Labs ',
     terms: 'Privacy Policy',
@@ -65,6 +70,7 @@ const translations = {
     of: '.',
     form: {
       titleSignup: 'Create your space',
+      invitationTitle: 'Complete your invitation',
       titleSignin: 'Sign in',
       nameLabel: 'Name or brand',
       namePlaceholder: 'e.g. North Studio',
@@ -75,6 +81,7 @@ const translations = {
       showPassword: 'Show password',
       hidePassword: 'Hide password',
       submitSignup: 'Create my space',
+      invitationSubmit: 'Create account and join',
       submitSignin: 'Enter my space',
       processing: 'Processing...',
       captchaLabel: 'Cloudflare security verification',
@@ -94,6 +101,7 @@ const translations = {
     subtitlePart1: 'Configure agentes, canais e regras',
     subtitlePart2: 'em um só lugar.',
     tabs: { signup: 'Criar conta', signin: 'Entrar' },
+    invitationContext: 'Você foi convidado para um espaço Stage. Crie uma conta ou entre para acessar o painel compartilhado.',
     continueEmail: 'Continuar com e-mail',
     separator: 'Consulte a ',
     terms: 'Política de Privacidade',
@@ -102,6 +110,7 @@ const translations = {
     of: ' da Stage AI Labs.',
     form: {
       titleSignup: 'Criar seu espaço',
+      invitationTitle: 'Conclua seu acesso',
       titleSignin: 'Entrar',
       nameLabel: 'Nome ou marca',
       namePlaceholder: 'Ex. Estúdio Norte',
@@ -112,6 +121,7 @@ const translations = {
       showPassword: 'Mostrar senha',
       hidePassword: 'Ocultar senha',
       submitSignup: 'Criar meu espaço',
+      invitationSubmit: 'Criar conta e entrar',
       submitSignin: 'Entrar no meu espaço',
       processing: 'Processando...',
       captchaLabel: 'Verificação de segurança da Cloudflare',
@@ -129,6 +139,7 @@ const translations = {
 };
 
 export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
+  const invitationPending = Boolean(pendingTeamInvite());
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [showEmailSheet, setShowEmailSheet] = useState<boolean>(false);
   const [email, setEmail] = useState('');
@@ -261,7 +272,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
     setError('');
     setNotice('');
     const normalizedEmail = normalizeEmail(email);
-    const nameError = tab === 'signup' ? validateDisplayName(name) : null;
+    const nameError = tab === 'signup' && !invitationPending ? validateDisplayName(name) : null;
     const passwordError = tab === 'signup' ? validatePassword(password) : null;
     if (nameError || passwordError) {
       setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
@@ -282,7 +293,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               email: normalizedEmail,
               password,
               options: {
-                data: { display_name: name.trim() },
+                data: { display_name: name.trim() || null },
                 emailRedirectTo: getAuthRedirectUrl(),
                 captchaToken: turnstileSiteKey ? captchaToken : undefined,
               },
@@ -401,6 +412,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         id="mobile-auth-liquid-card"
         className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[1.5rem] border-x border-t border-white/20 bg-[#102b3d] px-6 pb-10 pt-5 shadow-[0_-12px_45px_rgba(0,0,0,0.25)]"
       >
+        {invitationPending && <p role="status" className="mb-5 rounded-xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm leading-5 text-teal-50">{t.invitationContext}</p>}
         <div className="relative mb-6 flex rounded-xl border border-white/20 bg-black/20 p-1.5">
           <button
             type="button"
@@ -584,7 +596,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   <h2 id="email-auth-heading" ref={captchaHeadingRef} tabIndex={-1} className="font-display text-2xl font-black tracking-tight text-white">
                     {emailStage === 'captcha'
                       ? t.form.captchaGateTitle
-                      : tab === 'signup' ? t.form.titleSignup : t.form.titleSignin}
+                      : tab === 'signup' ? invitationPending ? t.form.invitationTitle : t.form.titleSignup : t.form.titleSignin}
                   </h2>
                   {emailStage === 'captcha' && (
                     <p className="mt-2 max-w-sm text-sm leading-5 text-white/75">
@@ -633,7 +645,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               {emailStage === 'form' && (
                 <form onSubmit={handleEmailSubmit} className="mt-5 space-y-3.5">
                 <AnimatePresence>
-                  {tab === 'signup' && (
+                  {tab === 'signup' && !invitationPending && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
@@ -709,7 +721,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   disabled={loading || !captchaToken}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
                 >
-                  {loading ? t.form.processing : tab === 'signup' ? t.form.submitSignup : t.form.submitSignin}
+                  {loading ? t.form.processing : tab === 'signup' ? invitationPending ? t.form.invitationSubmit : t.form.submitSignup : t.form.submitSignin}
                   <ArrowRight size={16} />
                 </button>
                 </form>

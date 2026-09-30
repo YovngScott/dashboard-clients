@@ -11,7 +11,7 @@ export type TeamMember = {
 };
 export type TeamInvitation = {
   id: string;
-  email: string;
+  email: string | null;
   role: Exclude<OrganizationRole, 'owner'>;
   created_at: string;
   expires_at: string;
@@ -28,9 +28,9 @@ export async function loadTeam(organizationId: string): Promise<TeamSnapshot> {
   return data as TeamSnapshot;
 }
 
-export async function inviteTeamMember(organizationId: string, email: string, role: TeamInvitation['role']) {
+export async function inviteTeamMember(organizationId: string, role: TeamInvitation['role']) {
   const { data, error } = await supabase.functions.invoke('team-invite', {
-    body: { organizationId, email, role },
+    body: { organizationId, role },
   });
   if (error instanceof FunctionsHttpError) {
     const details = await error.context.json().catch(() => null);
@@ -38,7 +38,7 @@ export async function inviteTeamMember(organizationId: string, email: string, ro
   }
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  return data as { id: string; sent: boolean; link: string };
+  return data as { id: string; link: string; expiresAt: string };
 }
 
 export async function revokeInvitation(invitationId: string) {
@@ -67,6 +67,5 @@ export function teamErrorMessage(error: unknown): string {
   if (message.includes('already_a_member')) return 'Esta persona ya pertenece al equipo.';
   if (message.includes('invitation_already_pending')) return 'Ya hay una invitación pendiente para este correo.';
   if (message.includes('insufficient_role')) return 'Tu rol no permite realizar esta acción.';
-  if (message.includes('invalid_email')) return 'Introduce un correo electrónico válido.';
   return 'No pudimos completar la acción. Inténtalo de nuevo.';
 }
