@@ -145,13 +145,13 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
           <span className="text-xs font-semibold">{label}</span>
         </div>
       )}
-      <div className="flex min-h-10 w-full justify-center overflow-hidden">
+      <div className={`flex w-full justify-center overflow-hidden ${layout === 'desktop' ? 'min-h-[65px]' : 'min-h-10'}`}>
         <div ref={containerRef} className="w-full max-w-full" />
       </div>
       <p
         role="status"
         aria-live="polite"
-        className={`mt-1 flex items-start gap-1.5 text-xs leading-4 ${hasError
+        className={`mt-1 flex items-start gap-1.5 text-xs leading-4 ${layout === 'desktop' ? 'min-h-8' : ''} ${hasError
           ? 'text-red-200'
           : isVerified
             ? 'text-teal-200'

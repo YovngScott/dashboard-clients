@@ -78,7 +78,7 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 :focus-visible { outline-color: rgb(var(--c-brand)); }
 * { scrollbar-color: rgb(var(--c-ink) / 0.2) transparent; scrollbar-width: thin; }
 
-/* Stage sign-in: the large forms stay still while the brand sculpture moves slowly behind them. */
+/* Stage sign-in: keep the brand sculpture static so authentication stays visually stable. */
 .stage-auth {
   position: relative;
   isolation: isolate;
@@ -141,44 +141,6 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 .stage-auth__legal { margin: 1.2rem 0 0; color: #b8cdd0; text-align: center; font-size: .72rem; line-height: 1.5; }
 .stage-auth__legal a { color: #e8f1ee; text-underline-offset: 3px; }
 .stage-auth button:focus-visible, .stage-auth a:focus-visible { outline: 2px solid #a9e6df; outline-offset: 3px; }
-@media (prefers-reduced-motion: no-preference) {
-  .stage-auth__bar--one { animation: stage-enter-bar-one 800ms cubic-bezier(0.23, 1, 0.32, 1) both, stage-settle-bar-one 2400ms cubic-bezier(0.77, 0, 0.175, 1) 800ms 2 alternate forwards; }
-  .stage-auth__bar--two { animation: stage-enter-bar-two 800ms cubic-bezier(0.23, 1, 0.32, 1) 70ms both, stage-settle-bar-two 2400ms cubic-bezier(0.77, 0, 0.175, 1) 870ms 2 alternate forwards; }
-  .stage-auth__orbit--one { animation: stage-enter-orbit-one 800ms cubic-bezier(0.23, 1, 0.32, 1) 140ms both, stage-settle-orbit-one 2400ms cubic-bezier(0.77, 0, 0.175, 1) 940ms 2 alternate forwards; }
-  .stage-auth__orbit--two { animation: stage-enter-orbit-two 800ms cubic-bezier(0.23, 1, 0.32, 1) 210ms both, stage-settle-orbit-two 2400ms cubic-bezier(0.77, 0, 0.175, 1) 1010ms 2 alternate forwards; }
-  .stage-auth__emblem { animation: stage-enter-emblem 800ms cubic-bezier(0.23, 1, 0.32, 1) 140ms both, stage-settle-emblem 2400ms cubic-bezier(0.77, 0, 0.175, 1) 940ms 2 alternate forwards; }
-}
-@keyframes stage-enter-bar-one {
-  from { opacity: .4; transform: translate3d(-36px,22px,0) rotate(-39deg); }
-  to { opacity: 1; transform: translate3d(0,0,0) rotate(-34deg); }
-}
-@keyframes stage-enter-bar-two {
-  from { opacity: .35; transform: translate3d(34px,-18px,0) rotate(34deg); }
-  to { opacity: .7; transform: translate3d(0,0,0) rotate(29deg); }
-}
-@keyframes stage-enter-orbit-one {
-  from { opacity: .2; transform: translate3d(14px,-24px,0) scale(.97); }
-  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
-}
-@keyframes stage-enter-orbit-two {
-  from { opacity: .2; transform: translate3d(-18px,24px,0) scale(.97); }
-  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
-}
-@keyframes stage-enter-emblem {
-  from { opacity: .55; transform: translate3d(-18px,20px,0) rotate(-11deg) scale(.94); }
-  to { opacity: 1; transform: translate3d(0,0,0) rotate(-7deg) scale(1); }
-}
-@keyframes stage-settle-bar-one { from { transform: translate3d(0,0,0) rotate(-34deg); } to { transform: translate3d(12px,-8px,0) rotate(-32deg); } }
-@keyframes stage-settle-bar-two { from { transform: translate3d(0,0,0) rotate(29deg); } to { transform: translate3d(-11px,7px,0) rotate(27deg); } }
-@keyframes stage-settle-orbit-one { from { transform: translate3d(0,0,0); } to { transform: translate3d(-10px,7px,0); } }
-@keyframes stage-settle-orbit-two { from { transform: translate3d(0,0,0); } to { transform: translate3d(9px,-7px,0); } }
-@keyframes stage-settle-emblem { from { transform: translate3d(0,0,0) rotate(-7deg); } to { transform: translate3d(0,-7px,0) rotate(-5deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .stage-auth__bar--one, .stage-auth__orbit, .stage-auth__emblem { animation: stage-enter-fade 200ms ease-out both; }
-  .stage-auth__bar--two { animation: stage-enter-fade-muted 200ms ease-out both; }
-}
-@keyframes stage-enter-fade { from { opacity: .5; } to { opacity: 1; } }
-@keyframes stage-enter-fade-muted { from { opacity: .35; } to { opacity: .7; } }
 @media (max-width: 1023px) {
   .stage-auth__main { width: min(100% - 2rem, 34rem); min-height: auto; display: block; padding: 2rem 0 3rem; }
   .stage-auth__header { width: min(100% - 2rem, 34rem); }
@@ -259,7 +221,6 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
   .agent-builder-panel, .agent-step-enter { animation: none !important; transform: none !important; }
   .empty-state-mark { animation: none !important; }
   .feature-card, .channel-card { transition: none !important; }
-  .stage-auth__bar, .stage-auth__orbit, .stage-auth__emblem { animation-duration: 200ms !important; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
