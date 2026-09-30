@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
-import { ArrowRight, Check, ChevronDown, Eye, EyeOff, Globe } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, Eye, EyeOff, Globe, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { AuthTurnstile } from './AuthTurnstile';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
-import { pendingTeamInvite } from '@/lib/team-invite-link';
+import { clearPendingTeamInvite, pendingTeamInvite } from '@/lib/team-invite-link';
 import type { Profile } from '../types';
 
 interface DesktopLandingProps {
@@ -21,6 +21,7 @@ const copy = {
     signup: 'Crear cuenta', signin: 'Iniciar sesión',
     invitationContext: 'Te invitaron a colaborar en un espacio de Stage. Crea tu cuenta o inicia sesión y entrarás al panel compartido.',
     invitationSubmit: 'Crear cuenta y entrar',
+    dismissInvitation: 'Descartar invitación y continuar por separado',
     name: 'Nombre o marca', namePlaceholder: 'Ej. Estudio Norte',
     email: 'Correo electrónico', emailPlaceholder: 'tu@correo.com',
     password: 'Contraseña', passwordPlaceholder: 'Mínimo 12 caracteres',
@@ -42,6 +43,7 @@ const copy = {
     signup: 'Create account', signin: 'Sign in',
     invitationContext: 'You were invited to a Stage workspace. Create an account or sign in to open the shared dashboard.',
     invitationSubmit: 'Create account and join',
+    dismissInvitation: 'Dismiss invitation and continue separately',
     name: 'Name or brand', namePlaceholder: 'e.g. North Studio',
     email: 'Email address', emailPlaceholder: 'you@email.com',
     password: 'Password', passwordPlaceholder: 'At least 12 characters',
@@ -63,6 +65,7 @@ const copy = {
     signup: 'Criar conta', signin: 'Entrar',
     invitationContext: 'Você foi convidado para um espaço Stage. Crie uma conta ou entre para acessar o painel compartilhado.',
     invitationSubmit: 'Criar conta e entrar',
+    dismissInvitation: 'Dispensar convite e continuar separadamente',
     name: 'Nome ou marca', namePlaceholder: 'Ex. Estúdio Norte',
     email: 'E-mail', emailPlaceholder: 'seu@email.com',
     password: 'Senha', passwordPlaceholder: 'Mínimo 12 caracteres',
@@ -81,7 +84,7 @@ const copy = {
 } as const;
 
 export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
-  const invitationPending = Boolean(pendingTeamInvite());
+  const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -226,7 +229,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               </button>
             ))}
           </div>
-          {invitationPending && <p role="status" className="stage-auth__notice">{t.invitationContext}</p>}
+          {invitationPending && <div role="status" className="stage-auth__notice stage-auth__notice--invitation"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-current/75 hover:bg-white/10 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"><X size={16} /></button></div>}
           <form onSubmit={submit} className="stage-auth__form">
             {tab === 'signup' && !invitationPending && (
               <div className="stage-auth__field">

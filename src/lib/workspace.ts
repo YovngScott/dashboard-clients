@@ -6,6 +6,8 @@ export type WorkspaceChannel = 'instagram' | 'whatsapp' | 'facebook' | 'tiktok' 
 export type WorkspaceContext = {
   organizationId: string;
   name: string;
+  logoPath: string | null;
+  logoUrl: string | null;
   role: OrganizationRole;
   planCode: string;
   maxConnectedChannels: number;
@@ -53,7 +55,7 @@ export async function loadWorkspaceContext(userId: string, onboardingBusinessNam
   }
 
   const [{ data: organization, error: organizationError }, { data: entitlement, error: entitlementError }] = await Promise.all([
-    supabase.from('organizations').select('name').eq('id', membership.organization_id).single(),
+    supabase.from('organizations').select('name,logo_path').eq('id', membership.organization_id).single(),
     supabase.from('organization_entitlements').select('plan_code,max_connected_channels,allowed_channels').eq('organization_id', membership.organization_id).single(),
   ]);
   if (organizationError || !organization) throw organizationError ?? new Error('No se pudo cargar el espacio.');
@@ -62,6 +64,10 @@ export async function loadWorkspaceContext(userId: string, onboardingBusinessNam
   return {
     organizationId: membership.organization_id,
     name: organization.name,
+    logoPath: organization.logo_path,
+    logoUrl: organization.logo_path
+      ? supabase.storage.from('organization-logos').getPublicUrl(organization.logo_path).data.publicUrl
+      : null,
     role: membership.role,
     planCode: entitlement.plan_code,
     maxConnectedChannels: entitlement.plan_code === 'launch'

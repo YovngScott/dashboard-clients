@@ -78,6 +78,15 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
         <RotateCw size={16} /> Actualizar
       </button>
     </div>
+    <details className="mb-4 rounded-xl border border-ink/10 bg-panel px-4 py-3">
+      <summary className="min-h-8 cursor-pointer text-sm font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Qué puede hacer cada rol</summary>
+      <dl className="mt-3 grid gap-x-6 gap-y-3 border-t border-ink/10 pt-3 sm:grid-cols-2">
+        <div><dt className="text-sm font-semibold">Propietario</dt><dd className="mt-0.5 text-xs leading-5 text-ink/65">Controla la identidad del espacio, el equipo y la configuración.</dd></div>
+        <div><dt className="text-sm font-semibold">Administrador</dt><dd className="mt-0.5 text-xs leading-5 text-ink/65">Gestiona miembros, invitaciones y ajustes del espacio.</dd></div>
+        <div><dt className="text-sm font-semibold">Operador</dt><dd className="mt-0.5 text-xs leading-5 text-ink/65">Crea y mantiene agentes del espacio.</dd></div>
+        <div><dt className="text-sm font-semibold">Lector</dt><dd className="mt-0.5 text-xs leading-5 text-ink/65">Consulta la información del espacio sin editarla.</dd></div>
+      </dl>
+    </details>
     <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink/10 px-5 py-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-ink"><Users size={18} className="text-teal-500" /> Miembros y acceso</div>

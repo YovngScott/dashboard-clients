@@ -130,6 +130,8 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 .stage-auth__error, .stage-auth__notice { margin: 0; padding: .65rem .8rem; border-radius: .65rem; font-size: .82rem; line-height: 1.45; }
 .stage-auth__error { background: #63343d; color: #fff0f1; }
 .stage-auth__notice { background: #164f4c; color: #e8f1ee; }
+.stage-auth__notice--invitation { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.stage-auth__notice--invitation button { margin: -.35rem -.4rem 0 0; }
 .stage-auth__divider { position: relative; display: flex; align-items: center; justify-content: center; margin: 1.3rem 0 .85rem; color: #bfd1d3; font-size: .75rem; }
 .stage-auth__divider::before { content: ''; position: absolute; inset: 50% 0 auto; height: 1px; background: rgba(232,241,238,.2); }
 .stage-auth__divider span { position: relative; padding: 0 .7rem; background: #0f2839; }

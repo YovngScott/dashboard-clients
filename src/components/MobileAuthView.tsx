@@ -6,7 +6,7 @@ import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
-import { pendingTeamInvite } from '@/lib/team-invite-link';
+import { clearPendingTeamInvite, pendingTeamInvite } from '@/lib/team-invite-link';
 import { Profile } from '../types';
 import { AuthTurnstile } from './AuthTurnstile';
 
@@ -22,6 +22,7 @@ const translations = {
     subtitlePart2: 'desde un solo lugar.',
     tabs: { signup: 'Crear cuenta', signin: 'Iniciar sesión' },
     invitationContext: 'Te invitaron a colaborar en un espacio de Stage. Crea tu cuenta o inicia sesión y entrarás al panel compartido.',
+    dismissInvitation: 'Descartar invitación y continuar por separado',
     continueEmail: 'Continuar con correo',
     separator: 'Consulta la ',
     terms: 'Política de Privacidad',
@@ -62,6 +63,7 @@ const translations = {
     subtitlePart2: 'in one place.',
     tabs: { signup: 'Create account', signin: 'Sign in' },
     invitationContext: 'You were invited to a Stage workspace. Create an account or sign in to open the shared dashboard.',
+    dismissInvitation: 'Dismiss invitation and continue separately',
     continueEmail: 'Continue with email',
     separator: 'See the Stage AI Labs ',
     terms: 'Privacy Policy',
@@ -102,6 +104,7 @@ const translations = {
     subtitlePart2: 'em um só lugar.',
     tabs: { signup: 'Criar conta', signin: 'Entrar' },
     invitationContext: 'Você foi convidado para um espaço Stage. Crie uma conta ou entre para acessar o painel compartilhado.',
+    dismissInvitation: 'Dispensar convite e continuar separadamente',
     continueEmail: 'Continuar com e-mail',
     separator: 'Consulte a ',
     terms: 'Política de Privacidade',
@@ -139,7 +142,7 @@ const translations = {
 };
 
 export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
-  const invitationPending = Boolean(pendingTeamInvite());
+  const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [showEmailSheet, setShowEmailSheet] = useState<boolean>(false);
   const [email, setEmail] = useState('');
@@ -412,7 +415,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         id="mobile-auth-liquid-card"
         className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[1.5rem] border-x border-t border-white/20 bg-[#102b3d] px-6 pb-10 pt-5 shadow-[0_-12px_45px_rgba(0,0,0,0.25)]"
       >
-        {invitationPending && <p role="status" className="mb-5 rounded-xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm leading-5 text-teal-50">{t.invitationContext}</p>}
+        {invitationPending && <div role="status" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm leading-5 text-teal-50"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-teal-50/75 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200"><X size={16} /></button></div>}
         <div className="relative mb-6 flex rounded-xl border border-white/20 bg-black/20 p-1.5">
           <button
             type="button"

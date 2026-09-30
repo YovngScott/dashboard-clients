@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import {
   ArrowLeft, Bell, FileText, LifeBuoy, LogOut, MessageSquare, Monitor,
-  Shield, ShieldCheck, Sparkles, Sun, Users,
+  Shield, ShieldCheck, Sparkles, Users,
 } from 'lucide-react';
 import { Profile, ThemePref } from '../types';
 import type { AccountIdentity } from '@/lib/account-identity';
 import { providerLabel } from '@/lib/account-identity';
 import type { WorkspaceContext } from '@/lib/workspace';
-import { roleLabel } from '@/lib/workspace';
 import { STAGE_PLANS } from '@/lib/product-data';
 import { AccountAvatar } from './AccountAvatar';
 import { TeamSettings } from './TeamSettings';
 import { NotificationSettings } from './NotificationSettings';
+import { InboxBehaviorSettings } from './InboxBehaviorSettings';
+import { WorkspaceBrandSettings } from './WorkspaceBrandSettings';
 
 interface SettingsScreenProps {
   profile: Profile;
@@ -22,9 +23,10 @@ interface SettingsScreenProps {
   onLogout: () => void;
   onBack: () => void;
   onOpenUpgrade: () => void;
+  onWorkspaceUpdate: (name: string, logoPath: string | null, logoUrl: string | null) => void;
 }
 
-type SettingKey = 'general' | 'plan' | 'notifications' | 'team' | 'display' | 'inbox' | 'assignment' | 'privacy';
+type SettingKey = 'general' | 'plan' | 'notifications' | 'team' | 'inbox' | 'assignment' | 'privacy';
 
 const planLabel = (code: string) => STAGE_PLANS.find((plan) => plan.id === code)?.name ?? code;
 
@@ -34,7 +36,6 @@ const navGroups: { label: string; items: { key: SettingKey; label: string; icon:
     { key: 'plan', label: 'Plan', icon: Sparkles },
     { key: 'notifications', label: 'Notificaciones', icon: Bell },
     { key: 'team', label: 'Miembros del equipo', icon: Users },
-    { key: 'display', label: 'Mostrar', icon: Sun },
     { key: 'privacy', label: 'Privacidad', icon: Shield },
   ] },
   { label: 'Bandeja de entrada', items: [
@@ -58,7 +59,7 @@ function DraftRow({ title, description }: { title: string; description: string }
 }
 
 export function SettingsScreen({
-  profile, workspace, identity, themePref, updateTheme, onLogout, onBack, onOpenUpgrade,
+  profile, workspace, identity, themePref, updateTheme, onLogout, onBack, onOpenUpgrade, onWorkspaceUpdate,
 }: SettingsScreenProps) {
   const [active, setActive] = useState<SettingKey>('general');
   const themeLabel = themePref === 'dark' ? 'Oscuro' : themePref === 'light' ? 'Claro' : 'Sistema';
@@ -89,21 +90,7 @@ export function SettingsScreen({
         </header>
 
         {active === 'general' && <div className="space-y-5">
-          <section aria-labelledby="workspace-identity-title" className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div><h3 id="workspace-identity-title" className="text-base font-bold">Espacio de trabajo</h3><p className="mt-1 text-sm text-ink/60">Identidad de la empresa y acceso.</p></div>
-              <span className="rounded-lg border border-ink/15 px-3 py-2 text-xs font-semibold text-ink/70">{roleLabel(workspace.role)}</span>
-            </div>
-            <div className="mt-5 flex items-center gap-3 border-t border-ink/10 pt-5">
-              <span aria-hidden="true" className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 bg-white p-1"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
-              <div className="min-w-0"><p className="text-xs text-ink/55">Nombre guardado</p><p className="truncate text-base font-semibold">{workspace.name}</p></div>
-            </div>
-            {workspace.role === 'owner' && <div className="mt-5 rounded-xl border border-ink/10 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold">Nombre de la organización</p><span className="rounded-md bg-amber-500/10 px-2 py-1 text-[11px] font-semibold text-amber-800 dark:text-amber-200">Borrador</span></div>
-              <p className="mt-1 text-sm text-ink/60">Propuesta de nombre: <strong className="font-semibold text-ink">Stage AI Labs</strong></p>
-              <p className="mt-2 text-xs text-ink/55">El cambio de nombre aún no guarda en la organización. El nombre actual sigue siendo “{workspace.name}”.</p>
-            </div>}
-          </section>
+          <WorkspaceBrandSettings workspace={workspace} canEdit={workspace.role === 'owner'} onUpdated={onWorkspaceUpdate} />
 
           <section aria-labelledby="personal-identity-title" className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
             <h3 id="personal-identity-title" className="text-base font-bold">Perfil personal</h3>
@@ -112,6 +99,14 @@ export function SettingsScreen({
               <div className="min-w-0"><p className="truncate text-sm font-semibold">{identity.name}</p>{identity.email && <p className="truncate text-sm text-ink/60">{identity.email}</p>}<p className="text-xs text-ink/55">Inicio de sesión con {providerLabel(identity.provider)}</p></div>
             </div>
             <button id="settings-logout-row" type="button" onClick={onLogout} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink/80 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><LogOut size={16} />Cerrar sesión</button>
+          </section>
+          <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
+            <h3 className="text-base font-bold">Apariencia</h3><p className="mt-1 text-sm text-ink/60">Esta preferencia se aplica solo a tu sesión.</p>
+            <label htmlFor="settings-theme" className="mt-5 block text-sm font-semibold">Tema</label>
+            <select id="settings-theme" value={themePref} onChange={(event) => updateTheme(event.target.value as ThemePref)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:max-w-sm">
+              <option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Oscuro</option>
+            </select>
+            <p className="mt-2 text-xs text-ink/55">Tema actual: {themeLabel}</p>
           </section>
         </div>}
 
@@ -136,20 +131,7 @@ export function SettingsScreen({
 
         {active === 'team' && <TeamSettings workspace={workspace} userId={profile.id} />}
 
-        {active === 'display' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-          <h3 className="text-base font-bold">Apariencia</h3><p className="mt-1 text-sm text-ink/60">Esta preferencia sí se aplica a tu sesión.</p>
-          <label htmlFor="settings-theme" className="mt-5 block text-sm font-semibold">Tema</label>
-          <select id="settings-theme" value={themePref} onChange={(event) => updateTheme(event.target.value as ThemePref)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:max-w-sm">
-            <option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Oscuro</option>
-          </select>
-          <p className="mt-2 text-xs text-ink/55">Tema actual: {themeLabel}</p>
-        </section>}
-
-        {active === 'inbox' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-          <h3 className="text-base font-bold">Comportamiento de Inbox</h3><p className="mt-1 text-sm text-ink/60">Definirá cómo se abren y cierran las conversaciones entrantes.</p>
-          <div className="mt-4"><DraftRow title="Apertura de conversaciones" description="Elegir si cada mensaje nuevo abre una conversación o solo los que requieren atención." /><DraftRow title="Visibilidad del equipo" description="Definir si los operadores ven todas las conversaciones o solo las asignadas." /><DraftRow title="Pausar automatizaciones" description="Configurar si la atención humana pausa temporalmente las respuestas automáticas." /></div>
-          <DraftNotice>Estas opciones son una propuesta. Los controles de Inbox no guardan cambios.</DraftNotice>
-        </section>}
+        {active === 'inbox' && <div className="space-y-4"><p className="text-sm text-ink/60">Ajusta el flujo esperado de atención. Puedes guardar un borrador local mientras terminamos la conexión con Inbox.</p><InboxBehaviorSettings organizationId={workspace.organizationId} /></div>}
 
         {active === 'assignment' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
           <h3 className="text-base font-bold">Asignación automática</h3><p className="mt-1 text-sm text-ink/60">La bandeja todavía no distribuye conversaciones automáticamente.</p>

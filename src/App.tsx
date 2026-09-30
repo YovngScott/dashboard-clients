@@ -66,6 +66,8 @@ const previewIdentity: AccountIdentity = {
 const previewWorkspace: WorkspaceContext = {
   organizationId: 'preview',
   name: 'Juan Dadid',
+  logoPath: null,
+  logoUrl: null,
   role: 'owner',
   planCode: 'infinity',
   maxConnectedChannels: 7,
@@ -555,6 +557,7 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
               onLogout={onLogout}
               onBack={() => setShowSettings(false)}
               onOpenUpgrade={() => setShowUpgrade(true)}
+              onWorkspaceUpdate={(name, logoPath, logoUrl) => setWorkspace((current) => current ? { ...current, name, logoPath, logoUrl } : current)}
             />
           ) : (
             <>
