@@ -7,12 +7,16 @@ import {
   Settings,
   SlidersHorizontal,
 } from 'lucide-react';
-import type { DashboardTab, Profile } from '../types';
+import type { DashboardTab } from '../types';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import type { AccountIdentity } from '@/lib/account-identity';
+import type { WorkspaceContext } from '@/lib/workspace';
+import { AccountAvatar } from './AccountAvatar';
 
 interface DashboardSidebarProps {
   currentTab: DashboardTab;
-  profile: Profile;
+  workspace: WorkspaceContext;
+  identity: AccountIdentity;
   onSelectTab: (tab: DashboardTab) => void;
   onOpenChannels: () => void;
   onOpenSettings: () => void;
@@ -34,7 +38,8 @@ const navigation: Array<{
 
 export function DashboardSidebar({
   currentTab,
-  profile,
+  workspace,
+  identity,
   onSelectTab,
   onOpenChannels,
   onOpenSettings,
@@ -46,14 +51,6 @@ export function DashboardSidebar({
   const labelMotion = reduceMotion
     ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0 } }
     : { initial: { opacity: 0, transform: 'translateX(-8px)' }, animate: { opacity: 1, transform: 'translateX(0px)' }, exit: { opacity: 0, transform: 'translateX(-8px)' }, transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } };
-  const displayName = profile.display_name?.trim() || 'Mi espacio';
-  const initials = displayName
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
-
   return (
     <motion.aside layout="size" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className={`sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-ink/10 bg-[#172c43] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
       <div className="flex h-20 items-center px-[14px]">
@@ -111,12 +108,10 @@ export function DashboardSidebar({
 
       <div className="border-t border-white/10 p-2">
         <div className={`flex items-center rounded-xl py-3 ${collapsed ? 'flex-col gap-2' : 'gap-3 px-2'}`}>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-500 text-xs font-extrabold text-white">
-            {initials}
-          </span>
+          <AccountAvatar identity={identity} className="h-10 w-10" />
           <AnimatePresence initial={false}>{!collapsed && <motion.div {...labelMotion} className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold">{displayName}</p>
-            <p className="mt-0.5 text-xs text-white/42">Espacio de trabajo</p>
+            <p className="truncate text-sm font-bold" title={identity.name}>{identity.name}</p>
+            <p className="mt-0.5 truncate text-xs text-white/65" title={workspace.name}>{workspace.name}</p>
           </motion.div>}</AnimatePresence>
           <button
             type="button"

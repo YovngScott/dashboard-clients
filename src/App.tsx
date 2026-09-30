@@ -21,6 +21,9 @@ import { STAGE_PLANS, type StagePlan } from './lib/product-data';
 import { AgentWorkspace } from './features/agents/AgentWorkspace';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardOverview } from './components/DashboardOverview';
+import { consumeRememberedAuthProvider, resolveAccountIdentity, type AccountIdentity } from './lib/account-identity';
+import { canManageAgents, loadWorkspaceContext, type WorkspaceContext } from './lib/workspace';
+import { clearPendingTeamInvite, pendingTeamInvite } from './lib/team-invite-link';
 
 type Screen = 'landing' | 'auth' | 'channel' | 'questions' | 'dashboard';
 type DashboardTab = 'Inicio' | 'Bandeja' | 'Contactos' | 'Automatizaciones' | 'Configuración';
@@ -50,6 +53,23 @@ const previewProfile: Profile = {
   discovery_source: 'ia',
   onboarding_complete: true,
   theme_preference: 'light',
+};
+
+const previewIdentity: AccountIdentity = {
+  userId: previewProfile.id,
+  name: 'Vista previa',
+  email: null,
+  avatarUrl: null,
+  provider: 'email',
+};
+
+const previewWorkspace: WorkspaceContext = {
+  organizationId: 'preview',
+  name: 'Stage AI Labs',
+  role: 'owner',
+  planCode: 'launch',
+  maxConnectedChannels: 1,
+  allowedChannels: ['instagram'],
 };
 
 type Option = { label: string; value: string; icon: ReactNode };
@@ -410,7 +430,7 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
 
 /* ── Dashboard ─────────────────────────────────────────────── */
 
-function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => void }) {
+function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity: AccountIdentity; onLogout: () => void }) {
   const reduceMotion = useReducedMotion();
   const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
   const hasCheckoutRequest = STAGE_PLANS.some((plan) => plan.id === requestedPlan);
@@ -424,7 +444,26 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
   const [checkoutPlan] = useState<PlanId>(initialCheckoutPlan);
   const [showChannels, setShowChannels] = useState(false);
   const [createAgentRequest, setCreateAgentRequest] = useState(0);
+  const [workspace, setWorkspace] = useState<WorkspaceContext | null>(previewMode ? previewWorkspace : null);
+  const [workspaceError, setWorkspaceError] = useState('');
+  const [workspaceRetry, setWorkspaceRetry] = useState(0);
   const { themePref, updateTheme } = useTheme(profile);
+
+  useEffect(() => {
+    if (previewMode) return;
+    let cancelled = false;
+    loadWorkspaceContext(profile.id, profile.display_name)
+      .then((nextWorkspace) => {
+        if (cancelled) return;
+        setWorkspace(nextWorkspace);
+        setWorkspaceError('');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setWorkspaceError('No pudimos cargar tu espacio de trabajo. Comprueba la conexión y vuelve a intentarlo.');
+      });
+    return () => { cancelled = true; };
+  }, [profile.id, profile.display_name, workspaceRetry]);
 
   const activeTab: DashboardTab = showSettings ? 'Configuración' : tab;
   const pageTitle = showSettings
@@ -434,9 +473,10 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
       : tab;
 
   function openAgentBuilder() {
+    if (!workspace) return;
     setShowSettings(false);
     setTab('Automatizaciones');
-    setCreateAgentRequest((request) => request + 1);
+    if (canManageAgents(workspace.role)) setCreateAgentRequest((request) => request + 1);
   }
 
   function toggleSidebar() {
@@ -447,6 +487,23 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
     });
   }
 
+  if (!workspace) return (
+    <main className="grid min-h-[100dvh] place-items-center bg-canvas px-5 text-ink">
+      <div className="w-full max-w-md rounded-2xl bg-panel p-7 text-center shadow-sm">
+        <h1 className="font-display text-2xl font-bold">Tu espacio de trabajo</h1>
+        {workspaceError ? (
+          <>
+            <p role="alert" className="mt-3 text-sm leading-6 text-ink/65">{workspaceError}</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <button type="button" onClick={() => { setWorkspaceError(''); setWorkspaceRetry((retry) => retry + 1); }} className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
+              <button type="button" onClick={onLogout} className="min-h-11 rounded-xl border border-ink/15 px-5 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Cerrar sesión</button>
+            </div>
+          </>
+        ) : <p role="status" className="mt-3 text-sm text-ink/65">Cargando los datos de tu empresa...</p>}
+      </div>
+    </main>
+  );
+
   return (
     <div className="min-h-screen bg-canvas text-ink lg:flex">
       <a href="#dashboard-main" className="sr-only z-[70] rounded-lg bg-panel px-4 py-3 font-bold text-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
@@ -454,7 +511,8 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
       </a>
       <DashboardSidebar
         currentTab={activeTab}
-        profile={profile}
+        workspace={workspace}
+        identity={identity}
         onSelectTab={(nextTab) => { setShowSettings(false); setTab(nextTab); }}
         onOpenChannels={() => setShowChannels(true)}
         onOpenSettings={() => setShowSettings(true)}
@@ -464,11 +522,11 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
       />
 
       <motion.div layout="position" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className="min-w-0 flex-1 pb-24 lg:pb-0">
-        <DashboardTopBar profile={profile} onOpenSettings={() => setShowSettings(true)} />
+        <DashboardTopBar workspace={workspace} identity={identity} onOpenSettings={() => setShowSettings(true)} />
 
         <header className="hidden h-20 items-center justify-between border-b border-ink/8 bg-panel/70 px-8 lg:flex xl:px-10">
           <div>
-            <p className="text-xs font-semibold text-ink/42">Espacio de trabajo</p>
+            <p className="text-xs font-semibold text-ink/55">{workspace.name}</p>
             <h1 className="mt-1 font-display text-xl font-extrabold tracking-[-.02em]">{pageTitle}</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -490,6 +548,8 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
           {showSettings ? (
             <SettingsScreen
               profile={profile}
+              workspace={workspace}
+              identity={identity}
               themePref={themePref}
               updateTheme={updateTheme}
               onLogout={onLogout}
@@ -501,6 +561,8 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
               {tab === 'Inicio' && (
                 <DashboardOverview
                   profile={profile}
+                  workspace={workspace}
+                  canCreateAgent={canManageAgents(workspace.role)}
                   onCreateAgent={openAgentBuilder}
                   onOpenChannels={() => setShowChannels(true)}
                   onOpenInbox={() => setTab('Bandeja')}
@@ -516,7 +578,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
                 <AgentWorkspace
                   key={`agents-${createAgentRequest}`}
                   userId={profile.id}
-                  profileName={profile.display_name}
+                  workspace={workspace}
                   createRequest={createAgentRequest}
                   preview={Boolean(previewMode)}
                 />
@@ -541,16 +603,19 @@ function App() {
   const [lang, setLang] = useState<"ES" | "EN" | "PT">("ES");
   const [screen, setScreen] = useState<Screen>(previewMode === 'dashboard' ? 'dashboard' : previewMode === 'onboarding' ? 'channel' : previewMode === 'questions' ? 'questions' : 'landing');
   const [profile, setProfile] = useState<Profile | null>(previewMode ? previewProfile : null);
+  const [identity, setIdentity] = useState<AccountIdentity | null>(previewMode ? previewIdentity : null);
   const [channel, setChannel] = useState(previewMode ? 'Instagram' : '');
   const [loading, setLoading] = useState(previewMode ? false : isSupabaseConfigured);
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (previewMode || !isSupabaseConfigured) return;
+    pendingTeamInvite();
     let mounted = true;
     let bootTimedOut = false;
     let bootFinished = false;
     let hydrationVersion = 0;
+    let invitationAttempt: PromiseLike<boolean> | null = null;
     const bootTimer = window.setTimeout(() => {
       if (!mounted || bootFinished) return;
       bootTimedOut = true;
@@ -571,9 +636,37 @@ function App() {
       setAuthError('');
       if (!session?.user) {
         setProfile(null);
+        setIdentity(null);
         setScreen('landing');
         finishLoading();
         return;
+      }
+
+      const preferredProvider = consumeRememberedAuthProvider();
+      setIdentity((current) => resolveAccountIdentity(
+        session.user,
+        preferredProvider ?? (current?.userId === session.user.id ? current.provider : null),
+      ));
+
+      const inviteToken = pendingTeamInvite();
+      if (inviteToken) {
+        invitationAttempt ??= supabase.rpc('accept_team_invitation', { invite_token: inviteToken }).then(({ error }) => {
+          if (error) throw error;
+          clearPendingTeamInvite();
+          return true;
+        });
+        try { await invitationAttempt; }
+        catch (cause) {
+          if (!mounted || bootTimedOut || version !== hydrationVersion) return;
+          const detail = cause instanceof Error ? cause.message : '';
+          setAuthError(detail.includes('invitation_email_mismatch')
+            ? 'Esta invitación pertenece a otro correo. Cierra sesión e inicia con la cuenta invitada.'
+            : detail.includes('already_in_workspace')
+              ? 'Esta cuenta ya pertenece a otro espacio. Usa el correo invitado o pide ayuda al propietario.'
+              : 'No pudimos aceptar la invitación. Puede haber vencido o haberse cancelado. Pide una nueva al propietario.');
+          finishLoading();
+          return;
+        }
       }
 
       const { data: current, error: profileError } = await supabase
@@ -588,8 +681,8 @@ function App() {
         return;
       }
       if (!current) {
-        const profile = defaultProfile(session.user.id);
-        const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
+        const profile = { ...defaultProfile(session.user.id), onboarding_complete: Boolean(inviteToken) };
+        const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: profile.onboarding_complete, theme_preference: 'system' });
         if (!mounted || bootTimedOut || version !== hydrationVersion) return;
         if (createError) {
           setAuthError('Tu cuenta fue creada, pero no pudimos preparar tu espacio. Inténtalo nuevamente.');
@@ -598,9 +691,13 @@ function App() {
         }
         setProfile(profile);
         setChannel('');
-        setScreen('channel');
+        setScreen(profile.onboarding_complete ? 'dashboard' : 'channel');
       } else {
-        const profile = current as Profile;
+        const profile = inviteToken && !current.onboarding_complete ? { ...current, onboarding_complete: true } as Profile : current as Profile;
+        if (inviteToken && !current.onboarding_complete) {
+          const { error: updateError } = await supabase.from('onboarding_profiles').update({ onboarding_complete: true }).eq('id', session.user.id);
+          if (updateError) throw updateError;
+        }
         setProfile(profile);
         setChannel(profile.channel ?? '');
         setScreen(profile.onboarding_complete ? 'dashboard' : 'channel');
@@ -635,6 +732,7 @@ function App() {
   }, []);
 
   async function handleAuthSuccess(nextProfile: Profile | null) {
+    if (pendingTeamInvite()) return;
     if (nextProfile?.onboarding_complete) {
       setProfile(nextProfile);
       setChannel(nextProfile.channel ?? '');
@@ -646,6 +744,7 @@ function App() {
     } else {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setIdentity(resolveAccountIdentity(user, consumeRememberedAuthProvider()));
         const newProfile: Profile = {
           id: user.id,
           display_name: null,
@@ -683,6 +782,7 @@ function App() {
         <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">No pudimos abrir tu espacio.</h1>
         <p role="alert" className="mt-3 leading-7 text-ink/60">{authError}</p>
         <button type="button" onClick={() => window.location.reload()} className="mt-7 min-h-12 rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
+        <button type="button" onClick={async () => { await supabase.auth.signOut(); setAuthError(''); setScreen('landing'); }} className="ml-3 mt-7 min-h-12 rounded-xl border border-ink/20 px-5 font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Cambiar de cuenta</button>
       </section>
     </main>
   );
@@ -729,7 +829,7 @@ function App() {
 
   if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} lang={lang} setLang={setLang} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
 
-  if (profile) return <Dashboard profile={profile} onLogout={async () => { await supabase.auth.signOut(); setScreen('landing'); }} />;
+  if (profile && identity) return <Dashboard profile={profile} identity={identity} onLogout={async () => { await supabase.auth.signOut(); setIdentity(null); setScreen('landing'); }} />;
 
   return null;
 }

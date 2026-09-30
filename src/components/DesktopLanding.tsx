@@ -6,6 +6,7 @@ import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { AuthTurnstile } from './AuthTurnstile';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
+import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
 import type { Profile } from '../types';
 
 interface DesktopLandingProps {
@@ -96,12 +97,14 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
     setError('');
     setNotice('');
     try {
+      rememberAuthProvider(provider);
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: getAuthRedirectUrl() },
       });
-      if (authError) setError(authErrorMessage(authError.message));
+      if (authError) { clearRememberedAuthProvider(); setError(authErrorMessage(authError.message)); }
     } catch {
+      clearRememberedAuthProvider();
       setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -125,6 +128,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
     }
     setLoading(true);
     try {
+      rememberAuthProvider('email');
       const result = tab === 'signup'
         ? await supabase.auth.signUp({
             email: normalizedEmail,
@@ -141,6 +145,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
             options: { captchaToken: turnstileSiteKey ? captchaToken : undefined },
           });
       if (result.error) {
+        clearRememberedAuthProvider();
         setError(authErrorMessage(result.error.message));
         return;
       }
@@ -157,6 +162,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
         onSuccess(data as Profile | null);
       }
     } catch {
+      clearRememberedAuthProvider();
       setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       if (turnstileSiteKey) {

@@ -9,7 +9,6 @@ import {
   LifeBuoy,
   ShieldCheck,
   FileText,
-  User,
   Trash2,
   ChevronRight,
   ChevronDown,
@@ -21,13 +20,21 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Profile, ThemePref } from '../types';
+import type { AccountIdentity } from '@/lib/account-identity';
+import { providerLabel } from '@/lib/account-identity';
+import type { WorkspaceContext } from '@/lib/workspace';
+import { roleLabel } from '@/lib/workspace';
+import { AccountAvatar } from './AccountAvatar';
 import { ChannelsModal } from './ChannelsModal';
 import { NotificationsModal } from './NotificationsModal';
 import { InboxSettingsModal } from './InboxSettingsModal';
 import { PrivacyPreferencesModal } from './PrivacyPreferencesModal';
+import { TeamSettings } from './TeamSettings';
 
 interface SettingsScreenProps {
   profile: Profile;
+  workspace: WorkspaceContext;
+  identity: AccountIdentity;
   themePref: ThemePref;
   updateTheme: (pref: ThemePref) => void;
   onLogout: () => void;
@@ -37,6 +44,8 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({
   profile,
+  workspace,
+  identity,
   themePref,
   updateTheme,
   onLogout,
@@ -51,10 +60,6 @@ export function SettingsScreen({
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showInboxModal, setShowInboxModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-
-  const displayName = profile.display_name?.trim() || 'Mi espacio';
-  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-  const username = displayName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '') || 'mi.espacio';
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -90,56 +95,47 @@ export function SettingsScreen({
         {/* ACCOUNT SECTION */}
         <div>
           <h2 className="mb-2 px-1 text-xs font-bold tracking-wider text-ink/40 uppercase">
-            Cuenta
+            Espacio de trabajo
           </h2>
           <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
-            {/* User Profile Item */}
-            <div
-              onClick={() => triggerToast('Perfil de cuenta: ' + displayName)}
-              className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
-            >
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-100 p-4 dark:border-zinc-800/60">
               <div className="flex items-center gap-3">
-                <div aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500 text-xs font-extrabold text-white">
-                  {initials}
-                </div>
-                <span className="text-base font-bold text-ink">{displayName}</span>
+                <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-ink/10 bg-white p-1"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
+                <span className="min-w-0 truncate text-base font-bold text-ink">{workspace.name}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-md border border-zinc-300 px-2 py-0.5 text-[11px] font-bold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-                  FREE
-                </span>
-                <ChevronRight size={17} className="text-ink/30" />
-              </div>
+              <span className="shrink-0 rounded-md border border-ink/15 px-2 py-1 text-xs font-semibold text-ink/70">{roleLabel(workspace.role)}</span>
             </div>
 
             {/* Upgrade Plan */}
-            <div
+            {workspace.role === 'owner' && <button
               id="settings-upgrade-plan-row"
+              type="button"
               onClick={onOpenUpgrade}
-              className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
+              className="flex w-full min-h-12 items-center justify-between border-b border-zinc-100 p-4 text-left transition-colors hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-500 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <Sparkles size={19} className="text-teal-500" />
                 <span className="text-sm font-medium text-ink">Mejorar plan</span>
               </div>
               <ChevronRight size={17} className="text-ink/30" />
-            </div>
+            </button>}
 
             {/* Channels */}
-            <div
+            <button
               id="settings-channels-row"
+              type="button"
               onClick={() => setShowChannelsModal(true)}
-              className="flex cursor-pointer items-center justify-between border-b border-zinc-100 p-4 transition hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
+              className="flex w-full min-h-12 items-center justify-between border-b border-zinc-100 p-4 text-left transition-colors hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-500 dark:border-zinc-800/60 dark:hover:bg-zinc-800/30"
             >
               <div className="flex items-center gap-3.5 text-ink/90">
                 <AtSign size={19} className="text-ink/60" />
                 <span className="text-sm font-medium text-ink">Canales</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-ink/40">{profile.channel || 'Instagram'}</span>
+                <span className="text-xs text-ink/60">{profile.channel ? `Preferido: ${profile.channel}` : 'Sin elegir'}</span>
                 <ChevronRight size={17} className="text-ink/30" />
               </div>
-            </div>
+            </button>
 
             {/* Notifications */}
             <div
@@ -181,6 +177,8 @@ export function SettingsScreen({
             </div>
           </div>
         </div>
+
+        <TeamSettings workspace={workspace} userId={profile.id} />
 
         {/* LEGAL & SUPPORT SECTION (formerly Useful Resources) */}
         <div>
@@ -235,16 +233,15 @@ export function SettingsScreen({
         {/* PROFILE SECTION */}
         <div>
           <h2 className="mb-2 px-1 text-xs font-bold tracking-wider text-ink/40 uppercase">
-            Perfil
+            Perfil personal
           </h2>
           <div className="overflow-hidden rounded-2xl border border-zinc-200/70 bg-panel shadow-sm dark:border-zinc-800/80">
-            {/* User row */}
-            <div className="flex items-center justify-between border-b border-zinc-100 p-4 dark:border-zinc-800/60">
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                  <User size={18} />
-                </div>
-                <span className="text-sm font-semibold text-ink">{username}</span>
+            <div className="flex items-center gap-3.5 border-b border-zinc-100 p-4 dark:border-zinc-800/60">
+              <AccountAvatar identity={identity} className="h-10 w-10" />
+              <div className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-ink">{identity.name}</span>
+                {identity.email && <span className="block truncate text-xs text-ink/60">{identity.email}</span>}
+                <span className="block text-xs text-ink/60">Acceso con {providerLabel(identity.provider)}</span>
               </div>
             </div>
 
@@ -325,20 +322,22 @@ export function SettingsScreen({
             </div>
 
             {/* Log out */}
-            <div
+            <button
               id="settings-logout-row"
+              type="button"
               onClick={onLogout}
-              className="flex cursor-pointer items-center justify-between p-4 transition hover:bg-red-50/50 dark:hover:bg-red-950/20"
+              className="flex w-full min-h-12 items-center justify-between p-4 text-left transition-colors hover:bg-red-50/50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-red-500 dark:hover:bg-red-950/20"
             >
               <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400">
                 <LogOut size={19} />
                 <span className="text-sm font-medium">Cerrar sesión</span>
               </div>
               <ChevronRight size={17} className="text-red-400/40" />
-            </div>
+            </button>
           </div>
         </div>
 
+        {/* Footer Build info */}
         {/* Footer Build info */}
         <div className="pt-4 text-center text-xs font-medium text-ink/40 lg:col-span-2">
           Stage AI Labs

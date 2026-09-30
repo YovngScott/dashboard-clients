@@ -13,9 +13,12 @@ import {
   UsersRound,
 } from 'lucide-react';
 import type { Profile } from '../types';
+import type { WorkspaceContext } from '@/lib/workspace';
 
 interface DashboardOverviewProps {
   profile: Profile;
+  workspace: WorkspaceContext;
+  canCreateAgent: boolean;
   onCreateAgent: () => void;
   onOpenChannels: () => void;
   onOpenInbox: () => void;
@@ -62,11 +65,13 @@ const starters = [
 
 export function DashboardOverview({
   profile,
+  workspace,
+  canCreateAgent,
   onCreateAgent,
   onOpenChannels,
   onOpenInbox,
 }: DashboardOverviewProps) {
-  const displayName = profile.display_name?.trim() || 'tu equipo';
+  const displayName = workspace.name;
   const preferredChannel = profile.channel?.trim() || 'Sin elegir';
 
   return (
@@ -92,7 +97,7 @@ export function DashboardOverview({
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-[#172c43] transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-300"
               >
                 <Sparkles size={17} />
-                Crear mi agente
+                {canCreateAgent ? 'Crear mi agente' : 'Ver agentes'}
               </button>
               <button
                 type="button"
@@ -126,13 +131,13 @@ export function DashboardOverview({
             onClick={onCreateAgent}
             className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
           >
-            Continuar preparación
+            {canCreateAgent ? 'Continuar preparación' : 'Ver preparación'}
             <ArrowRight size={16} />
           </button>
         </aside>
       </section>
 
-      <section aria-labelledby="quick-actions-title">
+      {canCreateAgent && <section aria-labelledby="quick-actions-title">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div>
             <h2 id="quick-actions-title" className="font-display text-2xl font-extrabold tracking-[-.025em]">Automatizaciones que puedes preparar</h2>
@@ -171,7 +176,7 @@ export function DashboardOverview({
             </button>
           ))}
         </div>
-      </section>
+      </section>}
 
       <section className="grid gap-4 rounded-2xl bg-panel p-5 shadow-[0_16px_42px_-38px_rgba(15,23,42,.5)] sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
         <div className="flex items-start gap-4">

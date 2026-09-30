@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import type { WorkspaceContext } from '@/lib/workspace';
 
 export const supportedChannels = [
   'instagram',
@@ -35,36 +36,7 @@ export type AgentRecord = {
 
 export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' | 'status_detail' | 'updated_at'>;
 
-export type Workspace = {
-  organizationId: string;
-  planCode: string;
-  maxConnectedChannels: number;
-  allowedChannels: AgentChannel[];
-};
-
-export async function ensureWorkspace(profileName: string | null): Promise<Workspace> {
-  const fallbackName = profileName?.trim() || 'Mi empresa';
-  const { data: organizationId, error: bootstrapError } = await supabase.rpc('bootstrap_my_organization', {
-    organization_name: fallbackName,
-  });
-  if (bootstrapError || !organizationId) throw bootstrapError ?? new Error('No se pudo preparar la organización.');
-
-  const { data: entitlement, error: entitlementError } = await supabase
-    .from('organization_entitlements')
-    .select('plan_code,max_connected_channels,allowed_channels')
-    .eq('organization_id', organizationId)
-    .single();
-  if (entitlementError) throw entitlementError;
-
-  return {
-    organizationId,
-    planCode: entitlement.plan_code,
-    maxConnectedChannels: entitlement.plan_code === 'launch'
-      ? Math.min(entitlement.max_connected_channels, 3)
-      : entitlement.max_connected_channels,
-    allowedChannels: entitlement.allowed_channels as AgentChannel[],
-  };
-}
+export type Workspace = WorkspaceContext;
 
 export async function listAgents(organizationId: string): Promise<AgentRecord[]> {
   const { data, error } = await supabase

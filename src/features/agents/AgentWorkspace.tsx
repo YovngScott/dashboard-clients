@@ -6,11 +6,12 @@ import {
   Phone, Plus, Radio, Send, ShieldCheck, Sparkles, Upload, X,
 } from 'lucide-react';
 import {
-  createAgent, ensureWorkspace, listAgents, uploadContextPdf, validateContextPdf,
+  createAgent, listAgents, uploadContextPdf, validateContextPdf,
   type AgentChannel, type AgentDraft, type AgentRecord, type Workspace,
 } from './agent-service';
+import { canManageAgents } from '@/lib/workspace';
 
-type Props = { userId: string; profileName: string | null; createRequest?: number; preview?: boolean };
+type Props = { userId: string; workspace: Workspace; createRequest?: number; preview?: boolean };
 type BuilderStep = 0 | 1 | 2 | 3 | 4;
 
 const channelMeta: Record<AgentChannel, { label: string; icon: typeof Instagram; note: string }> = {
@@ -40,21 +41,19 @@ const emptyDraft: AgentDraft = {
   handoff_instructions: '', requested_channels: ['instagram'],
 };
 
-export function AgentWorkspace({ userId, profileName, createRequest = 0, preview = false }: Props) {
-  const [tab, setTab] = useState<'ideas' | 'agents'>('ideas');
-  const [workspace, setWorkspace] = useState<Workspace | null>(preview ? { organizationId: 'preview', planCode: 'launch', maxConnectedChannels: 1, allowedChannels: ['instagram'] } : null);
+export function AgentWorkspace({ userId, workspace, createRequest = 0, preview = false }: Props) {
+  const editable = canManageAgents(workspace.role);
+  const [tab, setTab] = useState<'ideas' | 'agents'>(editable ? 'ideas' : 'agents');
   const [agents, setAgents] = useState<AgentRecord[]>([]);
   const [loading, setLoading] = useState(!preview);
   const [error, setError] = useState('');
-  const [builderOpen, setBuilderOpen] = useState(createRequest > 0);
+  const [builderOpen, setBuilderOpen] = useState(editable && createRequest > 0);
 
   async function refresh() {
     if (preview) { setError(''); setLoading(false); return; }
     setLoading(true); setError('');
     try {
-      const nextWorkspace = await ensureWorkspace(profileName);
-      setWorkspace(nextWorkspace);
-      setAgents(await listAgents(nextWorkspace.organizationId));
+      setAgents(await listAgents(workspace.organizationId));
     } catch {
       setError('No pudimos cargar tus asistentes. Inténtalo de nuevo en unos segundos.');
     } finally { setLoading(false); }
@@ -63,11 +62,9 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0, preview
   useEffect(() => {
     if (preview) return;
     let cancelled = false;
-    ensureWorkspace(profileName)
-      .then(async nextWorkspace => ({ nextWorkspace, nextAgents: await listAgents(nextWorkspace.organizationId) }))
-      .then(({ nextWorkspace, nextAgents }) => {
+    listAgents(workspace.organizationId)
+      .then((nextAgents) => {
         if (cancelled) return;
-        setWorkspace(nextWorkspace);
         setAgents(nextAgents);
         setLoading(false);
       })
@@ -77,11 +74,11 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0, preview
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [profileName, preview]);
+  }, [workspace.organizationId, preview]);
 
   function openBuilder() {
+    if (!editable) return;
     setBuilderOpen(true);
-    if (!workspace && !loading) void refresh();
   }
 
   return (
@@ -97,7 +94,7 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0, preview
       </div>
 
       <div className="mb-7 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Automatizaciones">
-        <TabButton active={tab === 'ideas'} onClick={() => setTab('ideas')}>Para empezar</TabButton>
+        {editable && <TabButton active={tab === 'ideas'} onClick={() => setTab('ideas')}>Para empezar</TabButton>}
         <TabButton active={tab === 'agents'} onClick={() => setTab('agents')}>Mis agentes <span className="ml-1 opacity-60">{agents.length}</span></TabButton>
       </div>
 
@@ -137,20 +134,19 @@ export function AgentWorkspace({ userId, profileName, createRequest = 0, preview
           </div>
         </div>
       ) : (
-        <AgentList agents={agents} loading={loading} onCreate={openBuilder} />
+        <AgentList agents={agents} loading={loading} onCreate={editable ? openBuilder : undefined} />
       )}
 
-      {builderOpen && workspace && (
+      {builderOpen && editable && (
         <AgentBuilder
           workspace={workspace}
           userId={userId}
           preview={preview}
-          initialBusinessName={profileName ?? ''}
+          initialBusinessName={workspace.name}
           onClose={() => setBuilderOpen(false)}
           onCreated={async () => { setBuilderOpen(false); setTab('agents'); await refresh(); }}
         />
       )}
-      {builderOpen && !workspace && loading && <p role="status" className="mt-5 text-sm text-ink/60">Preparando tu espacio para crear el asistente...</p>}
     </section>
   );
 }
@@ -163,14 +159,14 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   return <button type="button" role="tab" aria-selected={active} onClick={onClick} className={`min-h-11 rounded-xl px-4 text-sm font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${active ? 'bg-brand text-brand-ink' : 'border border-ink/10 bg-panel text-ink/55 hover:text-ink'}`}>{children}</button>;
 }
 
-function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loading: boolean; onCreate: () => void }) {
+function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loading: boolean; onCreate?: () => void }) {
   if (loading) return <div className="grid min-h-64 place-items-center rounded-[28px] border border-ink/10 bg-panel"><Loader2 className="animate-spin text-teal-500" aria-label="Cargando agentes" /></div>;
   if (!agents.length) return (
     <div className="rounded-[28px] border border-dashed border-ink/15 bg-panel px-6 py-14 text-center">
       <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-500/10 text-teal-500"><Bot size={24} /></span>
-      <h2 className="mt-5 font-display text-2xl font-bold">Tu primer agente empieza aquí</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/50">Primero lo guardaremos para que puedas revisarlo. Tú decides cuándo conectarlo y ponerlo a trabajar.</p>
-      <button type="button" onClick={onCreate} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 font-bold text-brand-ink"><Plus size={18} /> Crear asistente</button>
+      <h2 className="mt-5 font-display text-2xl font-bold">{onCreate ? 'Tu primer agente empieza aquí' : 'Aún no hay agentes en este espacio'}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/50">{onCreate ? 'Primero lo guardaremos para que puedas revisarlo. Tú decides cuándo conectarlo y ponerlo a trabajar.' : 'Un propietario, administrador u operador puede preparar el primer agente.'}</p>
+      {onCreate && <button type="button" onClick={onCreate} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-brand px-5 font-bold text-brand-ink"><Plus size={18} /> Crear asistente</button>}
     </div>
   );
   return <div className="space-y-3">{agents.map(agent => { const state = statusMeta[agent.status]; return (

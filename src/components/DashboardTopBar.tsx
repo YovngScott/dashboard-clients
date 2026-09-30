@@ -1,38 +1,35 @@
 import { Menu } from 'lucide-react';
-import { Profile } from '../types';
+import type { AccountIdentity } from '@/lib/account-identity';
+import type { WorkspaceContext } from '@/lib/workspace';
+import { AccountAvatar } from './AccountAvatar';
 
 interface DashboardTopBarProps {
-  profile: Profile;
+  workspace: WorkspaceContext;
+  identity: AccountIdentity;
   onOpenSettings: () => void;
 }
 
-export function DashboardTopBar({ profile, onOpenSettings }: DashboardTopBarProps) {
-  const displayName = profile.display_name?.trim() || 'Mi espacio';
-  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-
+export function DashboardTopBar({ workspace, identity, onOpenSettings }: DashboardTopBarProps) {
   return (
     <header
       id="dashboard-top-bar"
       className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-zinc-200/60 bg-canvas/95 px-4 sm:px-6 dark:border-zinc-800/80 lg:hidden"
     >
-      {/* Top Left: User Avatar & Name */}
       <div id="topbar-user-profile" className="flex items-center gap-3">
-        <div aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand text-sm font-extrabold text-brand-ink shadow-sm">
-          {initials}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="max-w-[13rem] truncate font-display text-base font-extrabold tracking-[-.02em] text-ink sm:text-lg">
-            {displayName}
-          </span>
+        <AccountAvatar identity={identity} className="h-10 w-10" />
+        <div className="min-w-0">
+          <span className="block max-w-[13rem] truncate font-display text-sm font-extrabold tracking-[-.02em] text-ink sm:text-base">{identity.name}</span>
+          <span className="block max-w-[13rem] truncate text-xs text-ink/60">{workspace.name}</span>
         </div>
       </div>
 
       {/* Top Right: 3 lines (Hamburger icon / 3 rallas) for Configuration */}
       <button
         id="topbar-settings-button"
+        type="button"
         onClick={onOpenSettings}
         aria-label="Configuración"
-        className="grid h-10 w-10 place-items-center rounded-xl text-ink transition hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
+        className="grid h-11 w-11 place-items-center rounded-xl text-ink transition-colors duration-150 hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 dark:hover:bg-zinc-800/60"
       >
         <Menu size={26} strokeWidth={2.2} />
       </button>

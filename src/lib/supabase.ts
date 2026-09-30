@@ -1,16 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 import { resolveAuthRedirectUrl } from './auth-redirect';
+import { pendingTeamInvite } from './team-invite-link';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
+
+// Preserve the invitation before Supabase Auth consumes and cleans OAuth/OTP URL parameters.
+if (typeof window !== 'undefined') pendingTeamInvite();
 
 /**
  * Keeps OAuth and confirmation links on the canonical Stage app instead of a
  * temporary preview URL or a stale Supabase Site URL.
  */
 export function getAuthRedirectUrl() {
-  return resolveAuthRedirectUrl(window.location.origin, configuredAppUrl);
+  const redirect = new URL(resolveAuthRedirectUrl(window.location.origin, configuredAppUrl));
+  const invite = pendingTeamInvite();
+  if (invite) redirect.searchParams.set('invite', invite);
+  return redirect.toString();
 }
 
 export const isSupabaseConfigured = Boolean(

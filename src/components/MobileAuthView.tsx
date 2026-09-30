@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
+import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
 import { Profile } from '../types';
 import { AuthTurnstile } from './AuthTurnstile';
 
@@ -235,6 +236,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
     setError('');
     setNotice('');
     try {
+      rememberAuthProvider(provider);
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -243,9 +245,11 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
       });
 
       if (authError) {
+        clearRememberedAuthProvider();
         setError(authErrorMessage(authError.message));
       }
     } catch {
+      clearRememberedAuthProvider();
       setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       setLoading(false);
@@ -271,6 +275,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
     setLoading(true);
 
     try {
+      rememberAuthProvider('email');
       const result =
         tab === 'signup'
           ? await supabase.auth.signUp({
@@ -289,6 +294,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             });
 
       if (result.error) {
+        clearRememberedAuthProvider();
         setError(authErrorMessage(result.error.message));
         return;
       }
@@ -307,6 +313,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         onSuccess(data as Profile | null);
       }
     } catch {
+      clearRememberedAuthProvider();
       setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
       if (turnstileSiteKey) {
