@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, ImagePlus, Save, X } from 'lucide-react';
+import { Building2, Check, Pencil, X } from 'lucide-react';
 import type { WorkspaceContext } from '@/lib/workspace';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +15,7 @@ export function WorkspaceBrandSettings({ workspace, canEdit, onUpdated }: {
   const [name, setName] = useState(() => preview ? localStorage.getItem('stage-preview-organization-name') || workspace.name : workspace.name);
   const [file, setFile] = useState<File | null>(null);
   const [removeLogo, setRemoveLogo] = useState(false);
+  const [editingName, setEditingName] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -50,7 +51,7 @@ export function WorkspaceBrandSettings({ workspace, canEdit, onUpdated }: {
       const nextUrl = data.logo_path ? supabase.storage.from('organization-logos').getPublicUrl(data.logo_path).data.publicUrl : null;
       onUpdated(data.name, data.logo_path, nextUrl);
       if (file && workspace.logoPath) await supabase.storage.from('organization-logos').remove([workspace.logoPath]);
-      setFile(null); setRemoveLogo(false); setNotice('Identidad del espacio actualizada.');
+      setName(data.name); setFile(null); setRemoveLogo(false); setEditingName(false); setNotice('Identidad del espacio actualizada.');
     } catch {
       if (uploadedPath) await supabase.storage.from('organization-logos').remove([uploadedPath]);
       setError('No se pudo guardar. Comprueba tu conexión y que tengas el rol de propietario; vuelve a intentarlo.');
@@ -58,32 +59,37 @@ export function WorkspaceBrandSettings({ workspace, canEdit, onUpdated }: {
   }
 
   const logo = previewUrl ?? (removeLogo ? null : workspace.logoUrl);
+  const hasChanges = name.trim() !== workspace.name || Boolean(file) || removeLogo;
   return <section aria-labelledby="workspace-identity-title" className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><h3 id="workspace-identity-title" className="text-base font-bold">Espacio de trabajo</h3><p className="mt-1 text-sm text-ink/60">Nombre y logo que identifican a tu organización.</p></div>
       <span className="rounded-lg border border-ink/15 px-3 py-2 text-xs font-semibold text-ink/70">{canEdit ? 'Propietario' : 'Solo lectura'}</span>
     </div>
-    <div className="mt-5 flex items-center gap-3 border-t border-ink/10 pt-5">
-      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-ink/10 bg-white p-1">{logo ? <img src={logo} alt="Logo de la organización" className="h-full w-full object-contain" /> : <Building2 aria-hidden="true" className="text-ink/50" />}</span>
-      <div className="min-w-0"><p className="text-xs text-ink/55">Nombre guardado</p><p className="truncate text-base font-semibold">{workspace.name}</p></div>
-    </div>
-    <form onSubmit={save} className="mt-5 space-y-4 border-t border-ink/10 pt-5">
-      <div>
-        <label htmlFor="organization-name" className="block text-sm font-semibold">Nombre de la organización</label>
-        <input id="organization-name" value={name} disabled={!canEdit || busy} maxLength={120} onChange={(event) => setName(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-canvas px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-65 sm:max-w-xl" />
+    <form onSubmit={save} className="mt-5 border-t border-ink/10 pt-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="group relative h-12 w-12 shrink-0 rounded-xl border border-ink/10 bg-white p-1">
+          <span className="grid h-full w-full place-items-center overflow-hidden rounded-lg">{logo ? <img src={logo} alt="Logo de la organización" className="h-full w-full object-contain" /> : <Building2 aria-hidden="true" className="text-ink/50" />}</span>
+          {canEdit && <label aria-label="Cambiar logo de la organización" title="Cambiar logo" className="workspace-logo-edit absolute -bottom-2 -right-2 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-ink/15 bg-panel text-ink shadow-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal-600">
+            <Pencil size={15} aria-hidden="true" /><input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setRemoveLogo(false); setError(''); }} />
+          </label>}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-ink/55">Nombre del espacio</p>
+          {editingName && canEdit ? <label className="sr-only" htmlFor="organization-name">Nombre de la organización</label> : null}
+          {editingName && canEdit
+            ? <input autoFocus id="organization-name" value={name} disabled={busy} maxLength={120} onChange={(event) => setName(event.target.value)} className="mt-1 min-h-10 w-full rounded-lg border border-ink/15 bg-canvas px-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:max-w-sm" />
+            : <p className="flex min-w-0 items-center gap-1.5 text-base font-semibold"><span className="truncate">{workspace.name}</span>{canEdit && <button type="button" aria-label="Editar nombre de la organización" title="Editar nombre" onClick={() => { setName(workspace.name); setEditingName(true); setError(''); setNotice(''); }} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink/55 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><Pencil size={15} /></button>}</p>}
+        </div>
       </div>
-      <div>
-        <span className="block text-sm font-semibold">Logo de la organización</span>
-        <p className="mt-1 text-xs text-ink/60">PNG, JPG o WebP. Máximo 2 MB. Visible para el equipo.</p>
-        {canEdit && <div className="mt-2 flex flex-wrap items-center gap-2">
-          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-ink/15 px-3 text-sm font-semibold hover:bg-ink/5 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal-600"><ImagePlus size={16} />Elegir imagen<input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(''); }} /></label>
-          {(file || workspace.logoPath) && <button type="button" onClick={() => { setFile(null); setRemoveLogo(true); setError(''); }} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm text-ink/65 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"><X size={15} />Quitar logo</button>}
-          {file && <p className="max-w-full truncate text-xs text-ink/60">{file.name}</p>}
-        </div>}
-      </div>
+      {canEdit && <p className="mt-3 text-xs text-ink/55">Logo PNG, JPG o WebP de hasta 2 MB. Visible para el equipo.</p>}
+      {canEdit && (file || removeLogo || editingName) && <div className="mt-3 flex flex-wrap items-center gap-2">
+        {file && <span className="max-w-full truncate text-xs text-ink/60">{file.name}</span>}
+        {workspace.logoPath && !removeLogo && <button type="button" onClick={() => { setFile(null); setRemoveLogo(true); setError(''); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs text-ink/65 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><X size={14} />Quitar logo</button>}
+        {editingName && <button type="button" disabled={busy} onClick={() => { setName(workspace.name); setEditingName(false); }} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-ink/70 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><X size={14} />Cancelar</button>}
+        <button type="submit" disabled={busy || !hasChanges} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50"><Check size={15} />{busy ? 'Guardando…' : 'Guardar cambios'}</button>
+      </div>}
       {error && <p role="alert" className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-800 dark:text-red-200">{error}</p>}
       {notice && <p role="status" className="rounded-xl bg-teal-500/10 px-3 py-2 text-sm text-teal-800 dark:text-teal-200">{notice}</p>}
-      {canEdit && <button type="submit" disabled={busy || (!preview && name.trim() === workspace.name && !file && !removeLogo)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50"><Save size={16} />{busy ? 'Guardando…' : 'Guardar identidad'}</button>}
       {!canEdit && <p className="text-xs text-ink/55">Solo el propietario puede cambiar el nombre o el logo.</p>}
       {preview && canEdit && <p className="text-xs text-amber-800 dark:text-amber-200">Vista previa: los cambios no se envían a la organización.</p>}
     </form>

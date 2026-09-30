@@ -175,6 +175,15 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 
 .feature-card, .channel-card { transition: transform 170ms cubic-bezier(0.2, 0.75, 0.25, 1); }
 .channel-brand-icon { transition: color 150ms ease-out; }
+
+@media (hover: hover) and (pointer: fine) {
+  .workspace-logo-edit {
+    opacity: 0;
+    transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .group:hover .workspace-logo-edit,
+  .group:focus-within .workspace-logo-edit { opacity: 1; }
+}
 .empty-state-mark { animation: empty-state-in 360ms cubic-bezier(0.23, 1, 0.32, 1) both; }
 @keyframes empty-state-in {
   from { opacity: 0; transform: translateY(6px) scale(.97); }

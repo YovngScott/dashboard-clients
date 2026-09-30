@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ArrowLeft, Bell, FileText, LifeBuoy, LogOut, MessageSquare, Monitor,
-  Shield, ShieldCheck, Sparkles, Users,
+  ShieldCheck, Sparkles, Users,
 } from 'lucide-react';
 import { Profile, ThemePref } from '../types';
 import type { AccountIdentity } from '@/lib/account-identity';
@@ -26,7 +26,7 @@ interface SettingsScreenProps {
   onWorkspaceUpdate: (name: string, logoPath: string | null, logoUrl: string | null) => void;
 }
 
-type SettingKey = 'general' | 'plan' | 'notifications' | 'team' | 'inbox' | 'assignment' | 'privacy';
+type SettingKey = 'general' | 'plan' | 'notifications' | 'team' | 'inbox' | 'assignment';
 
 const planLabel = (code: string) => STAGE_PLANS.find((plan) => plan.id === code)?.name ?? code;
 
@@ -36,7 +36,6 @@ const navGroups: { label: string; items: { key: SettingKey; label: string; icon:
     { key: 'plan', label: 'Plan', icon: Sparkles },
     { key: 'notifications', label: 'Notificaciones', icon: Bell },
     { key: 'team', label: 'Miembros del equipo', icon: Users },
-    { key: 'privacy', label: 'Privacidad', icon: Shield },
   ] },
   { label: 'Bandeja de entrada', items: [
     { key: 'inbox', label: 'Comportamiento de Inbox', icon: MessageSquare },
@@ -137,12 +136,6 @@ export function SettingsScreen({
           <h3 className="text-base font-bold">Asignación automática</h3><p className="mt-1 text-sm text-ink/60">La bandeja todavía no distribuye conversaciones automáticamente.</p>
           <div className="mt-4"><DraftRow title="Asignación manual" description="El equipo toma conversaciones pendientes manualmente." /><DraftRow title="Distribución equilibrada" description="Reparto automático entre miembros disponibles." /><DraftRow title="Reglas de asignación" description="Asignar por canal, horario o disponibilidad del equipo." /></div>
           <DraftNotice>Se muestra para planificar el producto; todavía no hay reglas configurables ni guardado.</DraftNotice>
-        </section>}
-
-        {active === 'privacy' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-          <h3 className="text-base font-bold">Privacidad y datos</h3><p className="mt-1 text-sm text-ink/60">Controles de privacidad por organización y derechos sobre los datos.</p>
-          <div className="mt-4"><DraftRow title="Preferencias de analítica" description="Elegir qué datos opcionales de uso compartir." /><DraftRow title="Exportar datos del espacio" description="Solicitar una copia de los datos de la organización." /><DraftRow title="Eliminar espacio" description="Flujo protegido para cerrar la organización y borrar sus datos." /></div>
-          <DraftNotice>La pantalla anterior solo cambiaba valores temporales y no persistía las preferencias. Por eso se presenta aquí como pendiente, sin controles que simulen un guardado.</DraftNotice>
         </section>}
 
         <section className="mt-6 border-t border-ink/10 pt-4">
