@@ -65,11 +65,11 @@ const previewIdentity: AccountIdentity = {
 
 const previewWorkspace: WorkspaceContext = {
   organizationId: 'preview',
-  name: 'Stage AI Labs',
+  name: 'Juan Dadid',
   role: 'owner',
-  planCode: 'launch',
-  maxConnectedChannels: 1,
-  allowedChannels: ['instagram'],
+  planCode: 'infinity',
+  maxConnectedChannels: 7,
+  allowedChannels: ['instagram', 'whatsapp', 'facebook', 'tiktok', 'email', 'telegram', 'sms'],
 };
 
 type Option = { label: string; value: string; icon: ReactNode };
