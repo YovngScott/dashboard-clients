@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
+import { motion, useReducedMotion } from 'motion/react';
 import { DashboardTopBar } from './components/DashboardTopBar';
 import { SettingsScreen } from './components/SettingsScreen';
 import { UpgradeModal } from './components/UpgradeModal';
@@ -410,6 +411,7 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
 /* ── Dashboard ─────────────────────────────────────────────── */
 
 function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => void }) {
+  const reduceMotion = useReducedMotion();
   const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
   const hasCheckoutRequest = STAGE_PLANS.some((plan) => plan.id === requestedPlan);
   const initialCheckoutPlan: PlanId = hasCheckoutRequest
@@ -461,7 +463,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
         onToggleCollapsed={toggleSidebar}
       />
 
-      <div className="min-w-0 flex-1 pb-24 lg:pb-0">
+      <motion.div layout="position" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className="min-w-0 flex-1 pb-24 lg:pb-0">
         <DashboardTopBar profile={profile} onOpenSettings={() => setShowSettings(true)} />
 
         <header className="hidden h-20 items-center justify-between border-b border-ink/8 bg-panel/70 px-8 lg:flex xl:px-10">
@@ -524,7 +526,7 @@ function Dashboard({ profile, onLogout }: { profile: Profile; onLogout: () => vo
         </main>
 
         <BottomNavBar currentTab={tab} onSelectTab={(nextTab) => { setShowSettings(false); setTab(nextTab); }} />
-      </div>
+      </motion.div>
 
       {/* Global Modals */}
       <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />

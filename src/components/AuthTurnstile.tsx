@@ -108,7 +108,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
               setHasError(true);
             }
           },
-          theme: layout === 'mobile' ? 'dark' : 'light',
+          theme: 'dark',
           language: 'auto',
         });
       })
@@ -126,14 +126,12 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
 
   return (
     <div
-      className={layout === 'mobile'
-        ? 'px-1 py-1 text-white'
-        : 'px-1 py-1 text-zinc-700'}
+      className="px-1 py-1 text-white"
       role="group"
       aria-label={label}
     >
       <div className="mb-2 flex items-center gap-2">
-        <ShieldCheck aria-hidden="true" size={15} className={layout === 'mobile' ? 'text-teal-300' : 'text-teal-700'} />
+        <ShieldCheck aria-hidden="true" size={15} className="text-teal-300" />
         <span className="text-xs font-semibold">{label}</span>
       </div>
       <div className="flex min-h-10 w-full justify-center overflow-hidden">
@@ -143,10 +141,10 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
         role="status"
         aria-live="polite"
         className={`mt-1 flex items-start gap-1.5 text-xs leading-4 ${hasError
-          ? layout === 'mobile' ? 'text-red-200' : 'text-red-700'
+          ? 'text-red-200'
           : isVerified
-            ? layout === 'mobile' ? 'text-teal-200' : 'text-teal-800'
-            : layout === 'mobile' ? 'text-white/70' : 'text-zinc-500'
+            ? 'text-teal-200'
+            : 'text-white/70'
         }`}
       >
         {isVerified && !hasError && <CheckCircle2 aria-hidden="true" size={13} className="mt-0.5 shrink-0" />}

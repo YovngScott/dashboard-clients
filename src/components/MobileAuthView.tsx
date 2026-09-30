@@ -15,9 +15,9 @@ interface MobileAuthViewProps {
 
 const translations = {
   ES: {
-    headline: 'Make the most out of every conversation',
-    subtitlePart1: 'Tu negocio crece.',
-    subtitlePart2: 'Tu tiempo vuelve.',
+    headline: 'Tu espacio para operar con claridad.',
+    subtitlePart1: 'Configura tus agentes, canales y reglas',
+    subtitlePart2: 'desde un solo lugar.',
     tabs: { signup: 'Crear cuenta', signin: 'Iniciar sesión' },
     continueEmail: 'Continuar con correo',
     separator: 'Consulta la ',
@@ -52,9 +52,9 @@ const translations = {
     }
   },
   EN: {
-    headline: 'Make the most out of every conversation',
-    subtitlePart1: 'Your business grows.',
-    subtitlePart2: 'Your time returns.',
+    headline: 'Your space to operate with clarity.',
+    subtitlePart1: 'Set up your agents, channels, and rules',
+    subtitlePart2: 'in one place.',
     tabs: { signup: 'Create account', signin: 'Sign in' },
     continueEmail: 'Continue with email',
     separator: 'See the Stage AI Labs ',
@@ -89,9 +89,9 @@ const translations = {
     }
   },
   PT: {
-    headline: 'Make the most out of every conversation',
-    subtitlePart1: 'Seu negócio cresce.',
-    subtitlePart2: 'Seu tempo volta.',
+    headline: 'Seu espaço para operar com clareza.',
+    subtitlePart1: 'Configure agentes, canais e regras',
+    subtitlePart2: 'em um só lugar.',
     tabs: { signup: 'Criar conta', signin: 'Entrar' },
     continueEmail: 'Continuar com e-mail',
     separator: 'Consulte a ',
@@ -318,22 +318,12 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   }
 
   return (
-    <div className="mobile-auth-screen relative flex w-full flex-col overflow-hidden bg-[#172c43] font-sans text-white">
-      {/* 1. Full-screen background photography */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1000&auto=format&fit=crop&q=85"
-          alt="Creator holding lemons"
-          className="h-full w-full object-cover object-center brightness-[0.7]"
-          referrerPolicy="no-referrer"
-        />
-        {/* Soft atmospheric gradient layers */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#172c43] via-[#172c43]/35 to-[#172c43]" />
-        
-        {/* Animated Glowing Orbs for Liquid Glass effect */}
-        <div className="absolute left-[-20%] top-[10%] h-[300px] w-[300px] rounded-full bg-[#126769]/40 mix-blend-screen blur-[80px]" />
-        <div className="absolute right-[-10%] top-[40%] h-[250px] w-[250px] rounded-full bg-emerald-500/30 mix-blend-screen blur-[60px] animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-[-10%] left-[20%] h-[400px] w-[400px] rounded-full bg-teal-600/30 mix-blend-screen blur-[100px] animate-pulse" style={{ animationDuration: '10s' }} />
+    <div className="mobile-auth-screen stage-auth relative flex w-full flex-col overflow-hidden font-sans text-white">
+      <div className="stage-auth__ambient" aria-hidden="true">
+        <span className="stage-auth__orbit stage-auth__orbit--one" />
+        <span className="stage-auth__orbit stage-auth__orbit--two" />
+        <span className="stage-auth__bar stage-auth__bar--one" />
+        <span className="stage-auth__bar stage-auth__bar--two" />
       </div>
 
       {/* 2. Top Navigation Bar */}
@@ -389,25 +379,22 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
       {/* 3. Center Display Typography */}
       <div className="mobile-auth-headline relative z-10 mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col justify-end px-6 pb-6 text-left">
-        <h1 className="font-display text-[2.5rem] font-black leading-[1.06] tracking-[-0.035em] text-white drop-shadow-xl sm:text-5xl">
+        <div aria-hidden="true" className="mobile-auth-emblem mb-5 grid h-16 w-16 place-items-center rounded-xl bg-[#f7f6f1] p-3 shadow-xl"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></div>
+        <h1 className="font-display text-[2.5rem] font-black leading-[1.1] tracking-[-0.035em] text-white sm:text-5xl">
           {t.headline}
         </h1>
-        <p className="mt-2.5 text-sm font-medium text-white/85 drop-shadow-md">
+        <p className="mt-3 text-sm font-medium leading-6 text-[#c6dcde]">
           <span className="text-white">{t.subtitlePart1}</span>{' '}
-          <span className="font-bold text-teal-300">{t.subtitlePart2}</span>
+          <span className="font-bold text-[#a9e6df]">{t.subtitlePart2}</span>
         </p>
       </div>
 
-      {/* 4. Apple Liquid Glass Bottom Card */}
+      {/* Sign-in choices remain distinct from the background and the verification sheet. */}
       <div
         id="mobile-auth-liquid-card"
-        className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[2.4rem] border-x border-t border-white/25 bg-[linear-gradient(to_bottom,rgba(255,255,255,.16),rgba(23,44,67,.8))] px-6 pb-10 pt-4 shadow-[0_-12px_45px_rgba(0,0,0,0.35)] backdrop-blur-3xl ring-1 ring-inset ring-white/20"
+        className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[1.5rem] border-x border-t border-white/20 bg-[#102b3d] px-6 pb-10 pt-5 shadow-[0_-12px_45px_rgba(0,0,0,0.25)]"
       >
-        {/* Apple-style Drag indicator */}
-        <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-white/30 backdrop-blur-md" />
-
-        {/* Apple-style Segmented Tab Switcher with fluid slider animation */}
-        <div className="relative mb-6 flex rounded-2xl border border-white/20 bg-black/20 p-1.5 backdrop-blur-xl shadow-inner">
+        <div className="relative mb-6 flex rounded-xl border border-white/20 bg-black/20 p-1.5">
           <button
             type="button"
             id="mobile-tab-create-account"

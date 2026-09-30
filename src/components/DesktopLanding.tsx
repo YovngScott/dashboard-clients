@@ -1,194 +1,94 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
-import {
-  ArrowRight,
-  Sparkles,
-  Bot,
-  ChevronDown,
-  Globe,
-  Check,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { AnimatedChat } from './AnimatedChat';
+import { ArrowRight, Check, ChevronDown, Eye, EyeOff, Globe } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
+import { AuthTurnstile } from './AuthTurnstile';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
-import { Profile } from '../types';
-import { AuthTurnstile } from './AuthTurnstile';
+import type { Profile } from '../types';
 
 interface DesktopLandingProps {
   onSuccess: (profile: Profile | null) => void;
 }
 
-const translations = {
+const copy = {
   ES: {
-    nav: { product: 'Producto', solutions: 'Soluciones', pricing: 'Planes' },
-    tagline: 'CEO Copilot & Automatización',
-    headline: { part1: 'Tu negocio crece.', part2: 'Tu tiempo vuelve.' },
-    subtitle: 'Un CEO Copilot que convierte conversaciones en trabajo resuelto. Conecta tus canales, consulta tus datos y actúa con las reglas de tu negocio.',
-    tabs: { signup: 'Crear cuenta', signin: 'Iniciar sesión' },
-    separator: 'o con tu correo',
-    form: {
-      nameLabel: 'Nombre o marca',
-      namePlaceholder: 'Ej. Estudio Norte',
-      emailLabel: 'Correo electrónico',
-      emailPlaceholder: 'tu@correo.com',
-      passwordLabel: 'Contraseña',
-      passwordPlaceholder: 'Mínimo 12 caracteres',
-      showPassword: 'Mostrar contraseña',
-      hidePassword: 'Ocultar contraseña',
-      submitSignup: 'Crear mi espacio',
-      submitSignin: 'Entrar a mi espacio',
-      processing: 'Procesando...',
-      captchaLabel: 'Verificación de seguridad de Cloudflare',
-      captchaChecking: 'La comprobación se ejecuta en segundo plano; solo verás un reto si hace falta.',
-      captchaVerified: 'Verificación completada. Ya puedes continuar.',
-      captchaError: 'No se pudo cargar la verificación. Recarga la página e inténtalo de nuevo.',
-      captchaRequired: 'Completa la verificación de seguridad para continuar.',
-      errorInvalid: 'El correo o la contraseña no son correctos.',
-      noticeEmail: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.'
-    },
-    footer: {
-      text1: 'Consulta la ',
-      terms: 'Política de Privacidad',
-      text2: ' y el centro de ',
-      privacy: 'Seguridad',
-      text3: '.'
-    },
-    bottomTagline1: 'Tú marcas el rumbo. Stage se ocupa del siguiente paso.',
-    bottomTagline2: 'Infraestructura autónoma con control humano',
-    chat: {
-      title: 'De una pregunta a una oportunidad.',
-      customer: '"¿Tienen disponible la colección nueva?"',
-      bot: 'Inventario consultado. Respuesta lista.'
-    }
+    title: 'Tu espacio para operar con claridad.',
+    description: 'Configura tus agentes, canales y reglas desde un solo lugar.',
+    signup: 'Crear cuenta', signin: 'Iniciar sesión',
+    name: 'Nombre o marca', namePlaceholder: 'Ej. Estudio Norte',
+    email: 'Correo electrónico', emailPlaceholder: 'tu@correo.com',
+    password: 'Contraseña', passwordPlaceholder: 'Mínimo 12 caracteres',
+    show: 'Mostrar contraseña', hide: 'Ocultar contraseña',
+    submitSignup: 'Crear mi espacio', submitSignin: 'Entrar a mi espacio',
+    processing: 'Procesando...', other: 'O continúa con',
+    captcha: 'Verificación de seguridad de Cloudflare',
+    checking: 'La comprobación se ejecuta en segundo plano; solo verás un reto si hace falta.',
+    verified: 'Verificación completada. Ya puedes continuar.',
+    captchaError: 'No se pudo cargar la verificación. Recarga la página e inténtalo de nuevo.',
+    captchaRequired: 'Completa la verificación de seguridad para continuar.',
+    notice: 'Cuenta creada. Te enviamos un enlace de confirmación. Revisa también spam o promociones.',
+    privacy: 'Política de Privacidad', security: 'Seguridad',
+    legalStart: 'Consulta la ', legalMiddle: ' y el centro de ', legalEnd: '.',
   },
   EN: {
-    nav: { product: 'Product', solutions: 'Solutions', pricing: 'Pricing' },
-    tagline: 'CEO Copilot & Automation',
-    headline: { part1: 'Your business grows.', part2: 'Your time returns.' },
-    subtitle: 'A CEO Copilot that turns conversations into resolved work. Connect your channels, query your data, and act based on your business rules.',
-    tabs: { signup: 'Create account', signin: 'Sign in' },
-    separator: 'or with your email',
-    form: {
-      nameLabel: 'Name or brand',
-      namePlaceholder: 'e.g. North Studio',
-      emailLabel: 'Email address',
-      emailPlaceholder: 'you@email.com',
-      passwordLabel: 'Password',
-      passwordPlaceholder: 'At least 12 characters',
-      showPassword: 'Show password',
-      hidePassword: 'Hide password',
-      submitSignup: 'Create my space',
-      submitSignin: 'Enter my space',
-      processing: 'Processing...',
-      captchaLabel: 'Cloudflare security verification',
-      captchaChecking: 'Verification runs in the background; you will only see a challenge if needed.',
-      captchaVerified: 'Verification complete. You can continue.',
-      captchaError: 'Security verification could not load. Reload the page and try again.',
-      captchaRequired: 'Complete the security verification to continue.',
-      errorInvalid: 'Invalid email or password.',
-      noticeEmail: 'Account created. We sent you a confirmation link. Also check spam or promotions.'
-    },
-    footer: {
-      text1: 'See the Stage AI Labs ',
-      terms: 'Privacy Policy',
-      text2: ' and ',
-      privacy: 'Security Center',
-      text3: '.'
-    },
-    bottomTagline1: 'You set the course. Stage takes the next step.',
-    bottomTagline2: 'Autonomous infrastructure with human control',
-    chat: {
-      title: 'From a question to an opportunity.',
-      customer: '"Is the new collection available?"',
-      bot: 'Inventory checked. Response ready.'
-    }
+    title: 'Your space to operate with clarity.',
+    description: 'Set up your agents, channels, and rules in one place.',
+    signup: 'Create account', signin: 'Sign in',
+    name: 'Name or brand', namePlaceholder: 'e.g. North Studio',
+    email: 'Email address', emailPlaceholder: 'you@email.com',
+    password: 'Password', passwordPlaceholder: 'At least 12 characters',
+    show: 'Show password', hide: 'Hide password',
+    submitSignup: 'Create my space', submitSignin: 'Enter my space',
+    processing: 'Processing...', other: 'Or continue with',
+    captcha: 'Cloudflare security verification',
+    checking: 'Verification runs in the background; you will only see a challenge if needed.',
+    verified: 'Verification complete. You can continue.',
+    captchaError: 'Security verification could not load. Reload the page and try again.',
+    captchaRequired: 'Complete the security verification to continue.',
+    notice: 'Account created. We sent you a confirmation link. Also check spam or promotions.',
+    privacy: 'Privacy Policy', security: 'Security Center',
+    legalStart: 'See the Stage AI Labs ', legalMiddle: ' and ', legalEnd: '.',
   },
   PT: {
-    nav: { product: 'Produto', solutions: 'Soluções', pricing: 'Planos' },
-    tagline: 'CEO Copilot & Automação',
-    headline: { part1: 'Seu negócio cresce.', part2: 'Seu tempo volta.' },
-    subtitle: 'Um CEO Copilot que transforma conversas em trabalho resolvido. Conecte seus canais, consulte seus dados e aja com as regras do seu negócio.',
-    tabs: { signup: 'Criar conta', signin: 'Entrar' },
-    separator: 'ou com seu e-mail',
-    form: {
-      nameLabel: 'Nome ou marca',
-      namePlaceholder: 'Ex. Estúdio Norte',
-      emailLabel: 'E-mail',
-      emailPlaceholder: 'seu@email.com',
-      passwordLabel: 'Senha',
-      passwordPlaceholder: 'Mínimo 12 caracteres',
-      showPassword: 'Mostrar senha',
-      hidePassword: 'Ocultar senha',
-      submitSignup: 'Criar meu espaço',
-      submitSignin: 'Entrar no meu espaço',
-      processing: 'Processando...',
-      captchaLabel: 'Verificação de segurança da Cloudflare',
-      captchaChecking: 'A verificação acontece em segundo plano; um desafio só aparecerá se necessário.',
-      captchaVerified: 'Verificação concluída. Você já pode continuar.',
-      captchaError: 'Não foi possível carregar a verificação. Atualize a página e tente novamente.',
-      captchaRequired: 'Conclua a verificação de segurança para continuar.',
-      errorInvalid: 'O e-mail ou a senha estão incorretos.',
-      noticeEmail: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.'
-    },
-    footer: {
-      text1: 'Consulte a ',
-      terms: 'Política de Privacidade',
-      text2: ' e o centro de ',
-      privacy: 'Segurança',
-      text3: '.'
-    },
-    bottomTagline1: 'Você define o rumo. Stage cuida do próximo passo.',
-    bottomTagline2: 'Infraestrutura autônoma com controle humano',
-    chat: {
-      title: 'De uma pergunta a uma oportunidade.',
-      customer: '"A nova coleção está disponível?"',
-      bot: 'Estoque consultado. Resposta pronta.'
-    }
-  }
-};
+    title: 'Seu espaço para operar com clareza.',
+    description: 'Configure agentes, canais e regras em um só lugar.',
+    signup: 'Criar conta', signin: 'Entrar',
+    name: 'Nome ou marca', namePlaceholder: 'Ex. Estúdio Norte',
+    email: 'E-mail', emailPlaceholder: 'seu@email.com',
+    password: 'Senha', passwordPlaceholder: 'Mínimo 12 caracteres',
+    show: 'Mostrar senha', hide: 'Ocultar senha',
+    submitSignup: 'Criar meu espaço', submitSignin: 'Entrar no meu espaço',
+    processing: 'Processando...', other: 'Ou continue com',
+    captcha: 'Verificação de segurança da Cloudflare',
+    checking: 'A verificação acontece em segundo plano; um desafio só aparecerá se necessário.',
+    verified: 'Verificação concluída. Você já pode continuar.',
+    captchaError: 'Não foi possível carregar a verificação. Atualize a página e tente novamente.',
+    captchaRequired: 'Conclua a verificação de segurança para continuar.',
+    notice: 'Conta criada. Enviamos um link de confirmação. Verifique também spam ou promoções.',
+    privacy: 'Política de Privacidade', security: 'Segurança',
+    legalStart: 'Consulte a ', legalMiddle: ' e o centro de ', legalEnd: '.',
+  },
+} as const;
 
 export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
-  const [chatStep, setChatStep] = useState(0);
-
-  // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
-
-  const t = translations[lang];
+  const reduceMotion = useReducedMotion();
+  const t = copy[lang];
   const updateCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
-
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-    if (chatStep === 0) {
-      timeout = setTimeout(() => setChatStep(1), 1000); // Show customer msg after 1s
-    } else if (chatStep === 1) {
-      timeout = setTimeout(() => setChatStep(2), 2000); // Show bot reply after 2s
-    } else if (chatStep === 2) {
-      timeout = setTimeout(() => setChatStep(0), 4000); // Reset after 4s
-    }
-    return () => clearTimeout(timeout);
-  }, [chatStep]);
-
-  const languages = [
-    { code: 'ES', label: 'Español' },
-    { code: 'EN', label: 'English' },
-    { code: 'PT', label: 'Português' },
-  ] as const;
 
   async function handleSocial(provider: 'google' | 'facebook') {
     if (loading) return;
@@ -200,9 +100,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
         provider,
         options: { redirectTo: getAuthRedirectUrl() },
       });
-      if (authError) {
-        setError(authErrorMessage(authError.message));
-      }
+      if (authError) setError(authErrorMessage(authError.message));
     } catch {
       setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
@@ -222,38 +120,34 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       return;
     }
     if (turnstileSiteKey && !captchaToken) {
-      setError(t.form.captchaRequired);
+      setError(t.captchaRequired);
       return;
     }
     setLoading(true);
     try {
-      const result =
-        tab === 'signup'
-          ? await supabase.auth.signUp({
-              email: normalizedEmail,
-              password,
-              options: {
-                data: { display_name: name.trim() },
-                emailRedirectTo: getAuthRedirectUrl(),
-                captchaToken: turnstileSiteKey ? captchaToken : undefined,
-              },
-            })
-          : await supabase.auth.signInWithPassword({
-              email: normalizedEmail,
-              password,
-              options: { captchaToken: turnstileSiteKey ? captchaToken : undefined },
-            });
-
+      const result = tab === 'signup'
+        ? await supabase.auth.signUp({
+            email: normalizedEmail,
+            password,
+            options: {
+              data: { display_name: name.trim() },
+              emailRedirectTo: getAuthRedirectUrl(),
+              captchaToken: turnstileSiteKey ? captchaToken : undefined,
+            },
+          })
+        : await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+            options: { captchaToken: turnstileSiteKey ? captchaToken : undefined },
+          });
       if (result.error) {
         setError(authErrorMessage(result.error.message));
         return;
       }
-
       if (tab === 'signup' && !result.data.session) {
-        setNotice(t.form.noticeEmail);
+        setNotice(t.notice);
         return;
       }
-
       if (result.data.user) {
         const { data } = await supabase
           .from('onboarding_profiles')
@@ -274,406 +168,93 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#f7f6f1] text-[#172c43] antialiased selection:bg-[#126769] selection:text-white">
-      {/* 1. Header matching Image 2 with exact links */}
-      <header className="sticky top-0 z-40 border-b border-[#e9e7e1] bg-[#f7f6f1]/90 px-6 py-4 backdrop-blur-md sm:px-10 lg:px-16">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          {/* Brand Logo */}
-          <a href="https://stagelaboratories.com/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <img src="/stage-logo.png" alt="" className="h-8 w-8 shrink-0 object-contain" />
-            <div className="flex items-center gap-1.5">
-              <span className="font-display text-xl font-black tracking-tight text-[#172c43]">
-                Stage AI Labs
-              </span>
-              <span className="rounded-md border border-zinc-300/80 bg-zinc-100/90 px-1.5 py-0.5 text-[10px] font-bold text-zinc-600">
-                LLC
-              </span>
+    <div className="stage-auth min-h-[100dvh] text-[#e8f1ee]">
+      <div className="stage-auth__ambient" aria-hidden="true">
+        <span className="stage-auth__orbit stage-auth__orbit--one" />
+        <span className="stage-auth__orbit stage-auth__orbit--two" />
+        <span className="stage-auth__bar stage-auth__bar--one" />
+        <span className="stage-auth__bar stage-auth__bar--two" />
+      </div>
+      <header className="stage-auth__header">
+        <a href="https://stagelaboratories.com/" className="stage-auth__brand" aria-label="Stage AI Labs, ir al sitio principal">
+          <span className="stage-auth__logo"><img src="/stage-logo.png" alt="" /></span>
+          <span>Stage AI Labs</span>
+        </a>
+        <div className="relative">
+          <button type="button" onClick={() => setShowLangMenu((open) => !open)} aria-expanded={showLangMenu} aria-haspopup="true" className="stage-auth__language">
+            <Globe size={16} aria-hidden="true" /><span>{lang}</span><ChevronDown size={14} aria-hidden="true" />
+          </button>
+          {showLangMenu && (
+            <div className="stage-auth__languages">
+              {(['ES', 'EN', 'PT'] as const).map((language) => (
+                <button key={language} type="button" onClick={() => { setLang(language); setShowLangMenu(false); }}>
+                  {language === 'ES' ? 'Español' : language === 'EN' ? 'English' : 'Português'}
+                  {language === lang && <Check size={14} aria-hidden="true" />}
+                </button>
+              ))}
             </div>
-          </a>
-
-          {/* Navigation links matching requested URLs */}
-          <nav className="flex items-center gap-8 text-sm font-semibold text-[#3b4c58]">
-            <a
-              href="https://stagelaboratories.com/#product"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition hover:text-[#126769]"
-            >
-              {t.nav.product}
-            </a>
-            <a
-              href="https://stagelaboratories.com/#solutions"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition hover:text-[#126769]"
-            >
-              {t.nav.solutions}
-            </a>
-            <a
-              href="https://stagelaboratories.com/pricing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition hover:text-[#126769]"
-            >
-              {t.nav.pricing}
-            </a>
-          </nav>
-
-          {/* Top Right: Language Dropdown ONLY (Removed Iniciar sesión & Agendar una demo) */}
-          <div className="relative">
-            <button
-              type="button"
-              id="desktop-lang-selector-btn"
-              onClick={() => setShowLangMenu(!showLangMenu)}
-              className="flex items-center gap-1.5 rounded-xl border border-zinc-200/90 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 active:scale-95"
-            >
-              <Globe size={14} className="text-[#126769]" />
-              <span>{lang}</span>
-              <ChevronDown size={12} className="text-zinc-400" />
-            </button>
-
-            {/* Language Menu */}
-            {showLangMenu && (
-              <div className="absolute right-0 mt-2 w-36 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1.5 shadow-xl z-50">
-                {languages.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    onClick={() => {
-                      setLang(l.code as 'ES' | 'EN' | 'PT');
-                      setShowLangMenu(false);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                      lang === l.code
-                        ? 'bg-[#126769]/10 text-[#126769]'
-                        : 'text-zinc-600 hover:bg-zinc-50'
-                    }`}
-                  >
-                    <span>{l.label}</span>
-                    {lang === l.code && <Check size={13} className="text-[#126769]" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </header>
-
-      {/* 2. Main Hero Section matching Image 2 */}
-      <main className="relative mx-auto max-w-7xl px-6 pt-8 pb-16 sm:px-10 lg:px-16 lg:pt-12">
-        {/* Soft background ambient gradients */}
-        <div className="pointer-events-none absolute -left-20 top-16 h-[420px] w-[420px] rounded-full bg-[#126769]/8 blur-[130px]" />
-        <div className="pointer-events-none absolute -right-20 top-32 h-[450px] w-[450px] rounded-full bg-[#0f766e]/8 blur-[140px]" />
-
-        <div className="grid items-stretch gap-12 lg:grid-cols-12 lg:gap-14">
-          {/* Left Column: Headline & Direct Liquid Glass Auth Card */}
-          <div className="flex flex-col lg:col-span-6 animate-rise">
-            {/* Tagline */}
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#126769]/20 bg-[#126769]/8 px-3.5 py-1 text-xs font-bold text-[#126769]">
-              <Sparkles size={14} className="text-[#126769]" />
-              <span>{t.tagline}</span>
-            </div>
-
-            {/* Headline matching Image 2 */}
-            <h1 className="font-display text-4xl font-black tracking-[-0.035em] sm:text-5xl lg:text-[3.5rem] lg:leading-[1.08]">
-              <span className="block text-[#172c43]">{t.headline.part1}</span>
-              <span className="block text-[#126769]">{t.headline.part2}</span>
-            </h1>
-
-            {/* Subtitle matching Image 2 */}
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-[#4a5b68]">
-              {t.subtitle}
-            </p>
-
-            {/* Integrated Apple Liquid Glass Auth Card (Direct Registration / Sign-in) */}
-            <div className="relative mt-8 max-w-md overflow-hidden rounded-[2rem] border border-white/60 bg-white/40 p-6 shadow-[0_8px_32px_rgba(15,35,49,0.05)] backdrop-blur-3xl ring-1 ring-inset ring-white/60">
-              {/* Subtle background glow for glass effect */}
-              <div className="absolute inset-0 z-0 bg-gradient-to-b from-white/60 to-white/20 pointer-events-none" />
-
-              <div className="relative z-10">
-                <div className="mb-5 flex items-center gap-2 text-xs font-bold tracking-wide text-[#172c43]">
-                  <img src="/stage-logo.png" alt="" className="h-7 w-7 object-contain" />
-                  <span>Stage AI Labs</span>
-                </div>
-                {/* Apple Segmented Switcher */}
-                <div className="relative mb-6 flex rounded-2xl border border-white/60 bg-white/40 p-1.5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl">
-                  <button
-                    type="button"
-                    id="desktop-tab-signup"
-                    onClick={() => setTab('signup')}
-                    className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-colors duration-200"
-                  >
-                    {tab === 'signup' && (
-                      <motion.div
-                        layoutId="desktop-auth-active-tab"
-                        className="absolute inset-0 rounded-xl bg-white shadow-sm border border-white/80"
-                        transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                      />
-                    )}
-                    <span className={`relative z-20 ${tab === 'signup' ? 'text-[#172c43] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
-                      {t.tabs.signup}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="desktop-tab-signin"
-                    onClick={() => setTab('signin')}
-                    className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-colors duration-200"
-                  >
-                    {tab === 'signin' && (
-                      <motion.div
-                        layoutId="desktop-auth-active-tab"
-                        className="absolute inset-0 rounded-xl bg-white shadow-sm border border-white/80"
-                        transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-                      />
-                    )}
-                    <span className={`relative z-20 ${tab === 'signin' ? 'text-[#172c43] font-black' : 'text-zinc-500 hover:text-zinc-800'}`}>
-                      {t.tabs.signin}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Social Login Buttons (Google & Facebook ONLY) */}
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    id="desktop-google-login-btn"
-                    onClick={() => handleSocial('google')}
-                    className="flex h-12 items-center justify-center gap-3 rounded-xl border border-white/80 bg-white/70 px-4 shadow-sm backdrop-blur-md transition hover:bg-white hover:border-zinc-200 active:scale-95"
-                  >
-                    <GoogleIcon className="h-5 w-5" />
-                    <span className="text-xs font-bold text-zinc-700">Google</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="desktop-facebook-login-btn"
-                    onClick={() => handleSocial('facebook')}
-                    className="flex h-12 items-center justify-center gap-3 rounded-xl border border-white/80 bg-white/70 px-4 shadow-sm backdrop-blur-md transition hover:bg-white hover:border-zinc-200 active:scale-95"
-                  >
-                    <FacebookIcon className="h-5 w-5" />
-                    <span className="text-xs font-bold text-zinc-700">Facebook</span>
-                  </button>
-                </div>
-
-                {/* Divider */}
-                <div className="relative my-6 flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-zinc-200/60" />
-                  </div>
-                  <span className="relative bg-transparent px-3 text-[11px] font-medium uppercase tracking-wider text-zinc-500 backdrop-blur-md">
-                    {t.separator}
-                  </span>
-                </div>
-
-                {/* Email Form with smooth transition */}
-                <form onSubmit={submit} className="space-y-4">
-                  <AnimatePresence>
-                    {tab === 'signup' && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.18 }}
-                      >
-                        <label htmlFor="desktop-auth-name" className="mb-1.5 block text-xs font-semibold text-zinc-600">
-                          {t.form.nameLabel}
-                        </label>
-                        <input
-                        id="desktop-auth-name"
-                        type="text"
-                        autoComplete="name"
-                        maxLength={80}
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                          placeholder={t.form.namePlaceholder}
-                          className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div>
-                    <label htmlFor="desktop-auth-email" className="mb-1.5 block text-xs font-semibold text-zinc-600">
-                      {t.form.emailLabel}
-                    </label>
-                    <input
-                    id="desktop-auth-email"
-                    type="email"
-                    autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t.form.emailPlaceholder}
-                      className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="desktop-auth-password" className="mb-1.5 block text-xs font-semibold text-zinc-600">
-                      {t.form.passwordLabel}
-                    </label>
-                    <div className="relative">
-                      <input
-                      id="desktop-auth-password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
-                        required
-                        minLength={tab === 'signup' ? 12 : undefined}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder={t.form.passwordPlaceholder}
-                        className="w-full rounded-xl border border-white/60 bg-white/50 px-4 py-3 pr-10 text-sm text-zinc-900 shadow-sm backdrop-blur-md outline-none transition placeholder:text-zinc-400 focus:border-[#126769]/40 focus:bg-white focus:ring-4 focus:ring-[#126769]/10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? t.form.hidePassword : t.form.showPassword}
-                      aria-pressed={showPassword}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-600"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {turnstileSiteKey && (
-                    <div className="space-y-1">
-                      <AuthTurnstile
-                        key={captchaAttempt}
-                        layout="desktop"
-                        siteKey={turnstileSiteKey}
-                        onTokenChange={updateCaptchaToken}
-                        label={t.form.captchaLabel}
-                        checkingLabel={t.form.captchaChecking}
-                        verifiedLabel={t.form.captchaVerified}
-                        loadError={t.form.captchaError}
-                      />
-                    </div>
-                  )}
-
-                  {error && (
-                    <div role="alert" aria-live="assertive" className="rounded-xl border border-red-200/80 bg-red-50/80 p-3 text-xs text-red-600 backdrop-blur-md">
-                      {error}
-                    </div>
-                  )}
-
-                  {notice && (
-                    <div role="status" aria-live="polite" className="rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-3 text-xs text-emerald-700 backdrop-blur-md">
-                      {notice}
-                    </div>
-                  )}
-
-                  {/* Submit Action Button matching #126769 */}
-                  <button
-                    type="submit"
-                    disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)}
-                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-4 text-sm font-bold text-white shadow-lg shadow-[#126769]/25 transition hover:bg-[#0d5052] active:scale-[0.99] disabled:opacity-50"
-                  >
-                    {loading ? (
-                      t.form.processing
-                    ) : tab === 'signup' ? (
-                      <>
-                        <span>{t.form.submitSignup}</span>
-                        <ArrowRight size={16} />
-                      </>
-                    ) : (
-                      <>
-                        <span>{t.form.submitSignin}</span>
-                        <ArrowRight size={16} />
-                      </>
-                    )}
-                  </button>
-                </form>
-
-                {/* Footnote */}
-                <p className="mt-5 text-center text-[11px] leading-4 text-zinc-500">
-                  {t.footer.text1}
-                  <a
-                    href="https://stagelaboratories.com/privacidad"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium underline hover:text-zinc-800"
-                  >
-                    {t.footer.terms}
-                  </a>
-                  {t.footer.text2}
-                  <a
-                    href="https://stagelaboratories.com/security"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium underline hover:text-zinc-800"
-                  >
-                    {t.footer.privacy}
-                  </a>
-                  {t.footer.text3}
-                </p>
-              </div>
-
-            </div>
-
-            {/* Social Proof Badges replacing the footnote quote */}
-            <div className="mt-auto pt-8 flex flex-wrap gap-3">
-              <div className="rounded-md bg-[#126769] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
-                CEO Copilot / Stage AI Labs
-              </div>
-              <div className="rounded-md bg-[#126769] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white shadow-md">
-                {t.bottomTagline2}
-              </div>
-            </div>
+      <main className="stage-auth__main">
+        <section className="stage-auth__story" aria-labelledby="stage-auth-title">
+          <div className="stage-auth__emblem" aria-hidden="true"><img src="/stage-logo.png" alt="" /></div>
+          <h1 id="stage-auth-title">{t.title}</h1>
+          <p>{t.description}</p>
+          <span className="stage-auth__signature">Stage AI Labs LLC</span>
+        </section>
+        <section className="stage-auth__panel" aria-label={tab === 'signup' ? t.signup : t.signin}>
+          <div className="stage-auth__panel-top">
+            <img src="/stage-logo.png" alt="" />
+            <span>Stage AI Labs</span>
           </div>
-
-          {/* Right Column: Hero Visual with Real Person & Floating AI Cards matching Image 2 */}
-          <div className="relative flex flex-col lg:col-span-6 animate-rise [animation-delay:120ms] h-full">
-            <div className="relative flex-1 flex items-center justify-center min-h-[600px]">
-              
-              {/* Aura Glow Behind Phone */}
-              <div className="absolute top-1/2 left-1/2 h-[450px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal-400/30 blur-[90px] mix-blend-multiply" />
-              <div className="absolute top-1/2 left-1/2 h-[300px] w-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#126769]/40 blur-[70px] mix-blend-multiply" />
-              
-              {/* Floating Business Stickers */}
-              <motion.div 
-                animate={{ y: [0, -12, 0] }} 
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                className="absolute top-[18%] right-[8%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md rotate-3"
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                  <Bot size={16} />
-                </div>
-                24/7 Autopilot
-              </motion.div>
-
-              <motion.div 
-                animate={{ y: [0, 12, 0] }} 
-                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-[22%] left-[4%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md -rotate-6"
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                  <Sparkles size={16} />
-                </div>
-                Instant Replies
-              </motion.div>
-
-              <motion.div 
-                animate={{ y: [0, -10, 0] }} 
-                transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 2 }}
-                className="absolute top-[65%] right-[6%] z-30 hidden sm:flex items-center gap-2 rounded-xl border border-white/60 bg-white/95 px-3.5 py-2.5 text-xs font-bold text-zinc-800 shadow-xl backdrop-blur-md rotate-6"
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                  <ArrowRight size={16} className="-rotate-45" />
-                </div>
-                +40% Sales
-              </motion.div>
-
-              {/* Instagram Bot Animation Interface (Static Phone Frame) */}
-              <div className="relative z-20 h-[520px] w-[260px] shrink-0 overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-[0_0_80px_-15px_rgba(13,92,88,0.4)] ring-1 ring-black/10">
-                <AnimatedChat lang={lang} />
+          <div className="stage-auth__tabs" role="group" aria-label="Acceso">
+            {(['signup', 'signin'] as const).map((value) => (
+              <button key={value} type="button" id={value === 'signup' ? 'desktop-tab-signup' : 'desktop-tab-signin'} onClick={() => { setTab(value); setError(''); setNotice(''); }} aria-pressed={tab === value} className={tab === value ? 'is-active' : ''}>
+                {tab === value && <motion.span layoutId="stage-auth-tab" className="stage-auth__tab-indicator" transition={reduceMotion ? { duration: 0 } : { type: 'spring', duration: 0.25, bounce: 0.1 }} />}
+                <span>{value === 'signup' ? t.signup : t.signin}</span>
+              </button>
+            ))}
+          </div>
+          <form onSubmit={submit} className="stage-auth__form">
+            {tab === 'signup' && (
+              <div className="stage-auth__field">
+                <label htmlFor="desktop-auth-name">{t.name}</label>
+                <input id="desktop-auth-name" type="text" autoComplete="name" maxLength={80} value={name} onChange={(event) => setName(event.target.value)} required placeholder={t.namePlaceholder} />
+              </div>
+            )}
+            <div className="stage-auth__field">
+              <label htmlFor="desktop-auth-email">{t.email}</label>
+              <input id="desktop-auth-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder={t.emailPlaceholder} />
+            </div>
+            <div className="stage-auth__field">
+              <label htmlFor="desktop-auth-password">{t.password}</label>
+              <div className="stage-auth__password">
+                <input id="desktop-auth-password" type={showPassword ? 'text' : 'password'} autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} minLength={tab === 'signup' ? 12 : undefined} value={password} onChange={(event) => setPassword(event.target.value)} required placeholder={t.passwordPlaceholder} />
+                <button type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? t.hide : t.show} aria-pressed={showPassword}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
+            {turnstileSiteKey && (
+              <AuthTurnstile key={captchaAttempt} layout="desktop" siteKey={turnstileSiteKey} onTokenChange={updateCaptchaToken} label={t.captcha} checkingLabel={t.checking} verifiedLabel={t.verified} loadError={t.captchaError} />
+            )}
+            {error && <p role="alert" className="stage-auth__error">{error}</p>}
+            {notice && <p role="status" className="stage-auth__notice">{notice}</p>}
+            <button type="submit" disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)} className="stage-auth__submit">
+              <span>{loading ? t.processing : tab === 'signup' ? t.submitSignup : t.submitSignin}</span><ArrowRight size={18} aria-hidden="true" />
+            </button>
+          </form>
+          <div className="stage-auth__divider"><span>{t.other}</span></div>
+          <div className="stage-auth__social">
+            <button type="button" id="desktop-google-login-btn" onClick={() => handleSocial('google')} disabled={loading}><GoogleIcon className="h-5 w-5" /><span>Google</span></button>
+            <button type="button" id="desktop-facebook-login-btn" onClick={() => handleSocial('facebook')} disabled={loading}><FacebookIcon className="h-5 w-5" /><span>Facebook</span></button>
           </div>
-        </div>
+          <p className="stage-auth__legal">
+            {t.legalStart}<a href="https://stagelaboratories.com/privacidad" target="_blank" rel="noopener noreferrer">{t.privacy}</a>
+            {t.legalMiddle}<a href="https://stagelaboratories.com/security" target="_blank" rel="noopener noreferrer">{t.security}</a>{t.legalEnd}
+          </p>
+        </section>
       </main>
     </div>
   );
