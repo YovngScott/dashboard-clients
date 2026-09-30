@@ -13,6 +13,7 @@ import { TeamSettings } from './TeamSettings';
 import { NotificationSettings } from './NotificationSettings';
 import { InboxBehaviorSettings } from './InboxBehaviorSettings';
 import { WorkspaceBrandSettings } from './WorkspaceBrandSettings';
+import { AutoAssignmentSettings } from './AutoAssignmentSettings';
 
 interface SettingsScreenProps {
   profile: Profile;
@@ -24,6 +25,7 @@ interface SettingsScreenProps {
   onBack: () => void;
   onOpenUpgrade: () => void;
   onWorkspaceUpdate: (name: string, logoPath: string | null, logoUrl: string | null) => void;
+  preview?: boolean;
 }
 
 type SettingKey = 'general' | 'plan' | 'notifications' | 'team' | 'inbox' | 'assignment';
@@ -43,22 +45,8 @@ const navGroups: { label: string; items: { key: SettingKey; label: string; icon:
   ] },
 ];
 
-function DraftNotice({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-900 dark:text-amber-200">
-    <p className="font-semibold">Propuesta, todavía no operativa</p>
-    <p className="mt-0.5 text-amber-900/80 dark:text-amber-100/80">{children}</p>
-  </div>;
-}
-
-function DraftRow({ title, description }: { title: string; description: string }) {
-  return <div className="flex items-start justify-between gap-4 border-b border-ink/10 py-4 last:border-0">
-    <div><p className="text-sm font-semibold text-ink">{title}</p><p className="mt-1 text-sm leading-5 text-ink/60">{description}</p></div>
-    <span className="shrink-0 rounded-md border border-amber-600/25 px-2 py-1 text-[11px] font-semibold text-amber-800 dark:text-amber-200">Pendiente</span>
-  </div>;
-}
-
 export function SettingsScreen({
-  profile, workspace, identity, themePref, updateTheme, onLogout, onBack, onOpenUpgrade, onWorkspaceUpdate,
+  profile, workspace, identity, themePref, updateTheme, onLogout, onBack, onOpenUpgrade, onWorkspaceUpdate, preview = false,
 }: SettingsScreenProps) {
   const [active, setActive] = useState<SettingKey>('general');
   const themeLabel = themePref === 'dark' ? 'Oscuro' : themePref === 'light' ? 'Claro' : 'Sistema';
@@ -132,11 +120,7 @@ export function SettingsScreen({
 
         {active === 'inbox' && <div className="space-y-4"><p className="text-sm text-ink/60">Ajusta el flujo esperado de atención. Puedes guardar un borrador local mientras terminamos la conexión con Inbox.</p><InboxBehaviorSettings organizationId={workspace.organizationId} /></div>}
 
-        {active === 'assignment' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-          <h3 className="text-base font-bold">Asignación automática</h3><p className="mt-1 text-sm text-ink/60">La bandeja todavía no distribuye conversaciones automáticamente.</p>
-          <div className="mt-4"><DraftRow title="Asignación manual" description="El equipo toma conversaciones pendientes manualmente." /><DraftRow title="Distribución equilibrada" description="Reparto automático entre miembros disponibles." /><DraftRow title="Reglas de asignación" description="Asignar por canal, horario o disponibilidad del equipo." /></div>
-          <DraftNotice>Se muestra para planificar el producto; todavía no hay reglas configurables ni guardado.</DraftNotice>
-        </section>}
+        {active === 'assignment' && <AutoAssignmentSettings workspace={workspace} userId={profile.id} preview={preview} />}
 
         <section className="mt-6 border-t border-ink/10 pt-4">
           <h3 className="text-xs font-bold text-ink/55">Ayuda y legal</h3>

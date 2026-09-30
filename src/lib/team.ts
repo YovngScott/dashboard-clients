@@ -6,6 +6,7 @@ export type TeamMember = {
   user_id: string;
   email: string;
   name: string;
+  avatar_url: string | null;
   role: OrganizationRole;
   created_at: string;
 };
@@ -25,7 +26,24 @@ export type TeamSnapshot = {
 export async function loadTeam(organizationId: string): Promise<TeamSnapshot> {
   const { data, error } = await supabase.rpc('get_team', { target_organization_id: organizationId });
   if (error) throw error;
-  return data as TeamSnapshot;
+  const snapshot = data as TeamSnapshot;
+  return {
+    ...snapshot,
+    members: snapshot.members.map((member) => ({
+      ...member,
+      avatar_url: safeAvatar(member.avatar_url),
+    })),
+  };
+}
+
+function safeAvatar(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function inviteTeamMember(organizationId: string, role: TeamInvitation['role']) {

@@ -558,6 +558,7 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
               onBack={() => setShowSettings(false)}
               onOpenUpgrade={() => setShowUpgrade(true)}
               onWorkspaceUpdate={(name, logoPath, logoUrl) => setWorkspace((current) => current ? { ...current, name, logoPath, logoUrl } : current)}
+              preview={Boolean(previewMode)}
             />
           ) : (
             <>

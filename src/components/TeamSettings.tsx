@@ -11,7 +11,7 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
   const preview = import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'dashboard';
   const [team, setTeam] = useState<TeamSnapshot | null>(preview ? {
     seat_limit: 3,
-    members: [{ user_id: userId, email: 'propietario@empresa.com', name: 'Vista previa', role: 'owner', created_at: new Date().toISOString() }],
+    members: [{ user_id: userId, email: 'propietario@empresa.com', name: 'Vista previa', avatar_url: null, role: 'owner', created_at: new Date().toISOString() }],
     invitations: [],
   } : null);
   const [loading, setLoading] = useState(!preview);
@@ -101,7 +101,9 @@ export function TeamSettings({ workspace, userId }: { workspace: WorkspaceContex
           const canEdit = canManage && member.role !== 'owner' && member.user_id !== userId && (workspace.role === 'owner' || member.role !== 'admin');
           return <div key={member.user_id} className="grid grid-cols-1 items-center gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
-              <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-teal-500/10 text-sm font-bold text-teal-700 dark:text-teal-300">{member.name?.trim().charAt(0).toUpperCase() || '?'}</span>
+              {member.avatar_url
+                ? <img src={member.avatar_url} alt="" referrerPolicy="no-referrer" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink/10" />
+                : <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-teal-500/10 text-sm font-bold text-teal-700 dark:text-teal-300">{member.name?.trim().charAt(0).toUpperCase() || '?'}</span>}
               <div className="min-w-0"><p className="truncate text-sm font-semibold text-ink">{member.name}{member.user_id === userId ? ' (tú)' : ''}</p><p className="truncate text-xs text-ink/60">{member.email}</p></div>
             </div>
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 sm:max-w-full">
