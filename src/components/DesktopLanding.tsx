@@ -204,10 +204,6 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
           <span className="stage-auth__signature">Stage AI Labs LLC</span>
         </section>
         <section className="stage-auth__panel" aria-label={tab === 'signup' ? t.signup : t.signin}>
-          <div className="stage-auth__panel-top">
-            <img src="/stage-logo.png" alt="" />
-            <span>Stage AI Labs</span>
-          </div>
           <div className="stage-auth__tabs" role="group" aria-label="Acceso">
             {(['signup', 'signin'] as const).map((value) => (
               <button key={value} type="button" id={value === 'signup' ? 'desktop-tab-signup' : 'desktop-tab-signin'} onClick={() => { setTab(value); setError(''); setNotice(''); }} aria-pressed={tab === value} className={tab === value ? 'is-active' : ''}>
