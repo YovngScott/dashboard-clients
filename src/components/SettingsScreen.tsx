@@ -11,6 +11,7 @@ import { roleLabel } from '@/lib/workspace';
 import { STAGE_PLANS } from '@/lib/product-data';
 import { AccountAvatar } from './AccountAvatar';
 import { TeamSettings } from './TeamSettings';
+import { NotificationSettings } from './NotificationSettings';
 
 interface SettingsScreenProps {
   profile: Profile;
@@ -131,11 +132,7 @@ export function SettingsScreen({
           </div>
         </div>}
 
-        {active === 'notifications' && <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-          <h3 className="text-base font-bold">Notificaciones de actividad</h3><p className="mt-1 text-sm text-ink/60">Preferencias que se planea ofrecer por espacio y usuario.</p>
-          <div className="mt-4"><DraftRow title="Conversaciones asignadas" description="Aviso cuando una conversación nueva se asigne a una persona del equipo." /><DraftRow title="Conversaciones sin asignar" description="Aviso cuando llegue una conversación pendiente de atención." /><DraftRow title="Actividad del agente" description="Avisos sobre fallos, pausas o cambios de estado." /></div>
-          <DraftNotice>Las preferencias no se guardan todavía. No hay interruptores activos en esta vista.</DraftNotice>
-        </section>}
+        {active === 'notifications' && <NotificationSettings userId={profile.id} accountEmail={identity.email} />}
 
         {active === 'team' && <TeamSettings workspace={workspace} userId={profile.id} />}
 
