@@ -142,13 +142,17 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 .stage-auth__legal a { color: #e8f1ee; text-underline-offset: 3px; }
 .stage-auth button:focus-visible, .stage-auth a:focus-visible { outline: 2px solid #a9e6df; outline-offset: 3px; }
 @media (prefers-reduced-motion: no-preference) {
-  .stage-auth__bar--one { animation: stage-drift-one 11s ease-in-out infinite alternate; }
-  .stage-auth__bar--two { animation: stage-drift-two 13s ease-in-out infinite alternate; }
-  .stage-auth__orbit--one { animation: stage-orbit-drift 16s ease-in-out infinite alternate; }
+  .stage-auth__bar--one { animation: stage-drift-one 9s ease-in-out infinite alternate; }
+  .stage-auth__bar--two { animation: stage-drift-two 11s ease-in-out infinite alternate; }
+  .stage-auth__orbit--one { animation: stage-orbit-drift 12s ease-in-out infinite alternate; }
+  .stage-auth__orbit--two { animation: stage-orbit-drift-two 14s ease-in-out infinite alternate; }
+  .stage-auth__emblem { animation: stage-emblem-float 7s ease-in-out infinite alternate; }
 }
-@keyframes stage-drift-one { to { transform: translate3d(12px,-9px,0) rotate(-34deg); } }
-@keyframes stage-drift-two { to { transform: translate3d(-10px,10px,0) rotate(29deg); } }
-@keyframes stage-orbit-drift { to { transform: translate3d(-11px,9px,0); } }
+@keyframes stage-drift-one { to { transform: translate3d(22px,-15px,0) rotate(-31deg); } }
+@keyframes stage-drift-two { to { transform: translate3d(-20px,16px,0) rotate(26deg); } }
+@keyframes stage-orbit-drift { to { transform: translate3d(-20px,14px,0); } }
+@keyframes stage-orbit-drift-two { to { transform: translate3d(18px,-13px,0); } }
+@keyframes stage-emblem-float { to { transform: translate3d(0,-10px,0) rotate(-4deg); } }
 @media (max-width: 1023px) {
   .stage-auth__main { width: min(100% - 2rem, 34rem); min-height: auto; display: block; padding: 2rem 0 3rem; }
   .stage-auth__header { width: min(100% - 2rem, 34rem); }

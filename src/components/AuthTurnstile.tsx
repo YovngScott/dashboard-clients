@@ -65,6 +65,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
   const [hasError, setHasError] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isDesktopLayout, setIsDesktopLayout] = useState(() => window.matchMedia('(min-width: 1024px)').matches);
+  const [canFitFlexibleWidget, setCanFitFlexibleWidget] = useState(() => window.matchMedia('(min-width: 360px)').matches);
 
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
@@ -73,7 +74,15 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
     return () => media.removeEventListener('change', handleChange);
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 360px)');
+    const handleChange = (event: MediaQueryListEvent) => setCanFitFlexibleWidget(event.matches);
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
+
   const isActive = layout === 'desktop' ? isDesktopLayout : !isDesktopLayout;
+  const widgetSize = layout === 'mobile' && !canFitFlexibleWidget ? 'compact' : 'flexible';
 
   useEffect(() => {
     if (!isActive) return;
@@ -86,7 +95,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
         api = turnstile;
         widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          size: layout === 'mobile' ? 'compact' : 'flexible',
+          size: widgetSize,
           appearance,
           callback: (token) => {
             if (active) {
@@ -122,18 +131,20 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
       if (api && widgetIdRef.current) api.remove(widgetIdRef.current);
       widgetIdRef.current = undefined;
     };
-  }, [appearance, isActive, layout, siteKey, onTokenChange]);
+  }, [appearance, isActive, siteKey, onTokenChange, widgetSize]);
 
   return (
     <div
-      className="px-1 py-1 text-white"
+      className={layout === 'mobile' ? 'text-white' : 'px-1 py-1 text-white'}
       role="group"
       aria-label={label}
     >
-      <div className="mb-2 flex items-center gap-2">
-        <ShieldCheck aria-hidden="true" size={15} className="text-teal-300" />
-        <span className="text-xs font-semibold">{label}</span>
-      </div>
+      {layout === 'desktop' && (
+        <div className="mb-2 flex items-center gap-2">
+          <ShieldCheck aria-hidden="true" size={15} className="text-teal-300" />
+          <span className="text-xs font-semibold">{label}</span>
+        </div>
+      )}
       <div className="flex min-h-10 w-full justify-center overflow-hidden">
         <div ref={containerRef} className="w-full max-w-full" />
       </div>
