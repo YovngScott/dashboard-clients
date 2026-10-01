@@ -96,7 +96,20 @@ Deno.serve(async (request) => {
   });
 
   if (!paddleResponse.ok) {
-    console.error('Paddle transaction creation failed', paddleResponse.status);
+    let paddleError: unknown = null;
+    try {
+      paddleError = await paddleResponse.json();
+    } catch {
+      // Paddle can return an empty non-JSON body during an upstream incident.
+    }
+    const errors = Array.isArray((paddleError as { errors?: unknown })?.errors)
+      ? (paddleError as { errors: Array<{ code?: unknown; field?: unknown; detail?: unknown }> }).errors.map(({ code, field, detail }) => ({
+        code: typeof code === 'string' ? code : undefined,
+        field: typeof field === 'string' ? field : undefined,
+        detail: typeof detail === 'string' ? detail.slice(0, 500) : undefined,
+      }))
+      : undefined;
+    console.error('Paddle transaction creation failed', { status: paddleResponse.status, errors });
     return respond({ error: 'Could not create checkout transaction' }, 502);
   }
   const paddle = await paddleResponse.json();
