@@ -29,7 +29,7 @@ export function BottomNavBar({ currentTab, onSelectTab }: BottomNavBarProps) {
               onClick={() => onSelectTab(item.label)}
               aria-current={isActive ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 transition ${
-                isActive ? 'text-ink font-bold' : 'text-ink/40 hover:text-ink/70'
+                isActive ? 'text-ink font-bold' : 'text-ink/70 hover:text-ink/70'
               }`}
             >
               <div

@@ -52,11 +52,11 @@ export function DashboardSidebar({
     ? { initial: false as const, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0 } }
     : { initial: { opacity: 0, transform: 'translateX(-8px)' }, animate: { opacity: 1, transform: 'translateX(0px)' }, exit: { opacity: 0, transform: 'translateX(-8px)' }, transition: { duration: 0.18, ease: [0.23, 1, 0.32, 1] as [number, number, number, number] } };
   return (
-    <motion.aside layout="size" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className={`sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#111d36] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
+    <motion.aside layout="position" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className={`stage-workspace-sidebar sticky top-0 hidden h-screen shrink-0 flex-col overflow-hidden border-r border-white/10 bg-[#111d36] text-white lg:flex ${collapsed ? 'w-[76px]' : 'w-[248px]'}`}>
       <div className="flex h-20 items-center px-[14px]">
-        <button type="button" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'} aria-expanded={!collapsed} title={collapsed ? 'Expandir menú' : 'Contraer menú'} className="group flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400">
+        <button type="button" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'} aria-expanded={!collapsed} title={collapsed ? 'Expandir menú' : 'Contraer menú'} className="group flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
           <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white p-1"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
-          <AnimatePresence initial={false}>{!collapsed && <motion.span {...labelMotion} className="whitespace-nowrap font-display text-lg font-extrabold tracking-[-.02em] group-hover:text-white/80">Stage AI Labs</motion.span>}</AnimatePresence>
+          <AnimatePresence initial={false}>{!collapsed && <motion.span {...labelMotion} className="whitespace-nowrap font-display text-lg font-extrabold tracking-[-.02em] group-hover:text-ink/80">Stage AI Labs</motion.span>}</AnimatePresence>
         </button>
       </div>
 
@@ -71,10 +71,10 @@ export function DashboardSidebar({
                 aria-current={active ? 'page' : undefined}
                 onClick={() => onSelectTab(tab)}
                 title={collapsed ? label : undefined}
-                className={`flex min-h-11 w-full items-center gap-3 px-[12px] rounded-xl text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400 ${
+                className={`flex min-h-11 w-full items-center gap-3 px-[12px] rounded-xl text-left text-sm font-semibold transition-transform duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 ${
                   active
-                    ? 'bg-[#c8d8ff]/14 text-[#dbe6ff] shadow-[inset_3px_0_0_#a9c3ff]'
-                    : 'text-white/70 hover:bg-white/[.07] hover:text-white'
+                    ? 'bg-[#c8d8ff]/14 text-ink '
+                    : 'text-ink/70 hover:bg-white/[.07] hover:text-ink'
                 }`}
               >
                 <Icon size={19} strokeWidth={active ? 2.25 : 1.9} className="shrink-0" />
@@ -90,7 +90,7 @@ export function DashboardSidebar({
           type="button"
           onClick={onOpenChannels}
           title={collapsed ? 'Canales' : undefined}
-          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-[12px] text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400"
+          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-[12px] text-left text-sm font-semibold text-ink/70 transition-transform duration-150 hover:bg-white/[.07] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
         >
           <SlidersHorizontal size={19} className="shrink-0" />
           <AnimatePresence initial={false}>{!collapsed && <motion.span {...labelMotion} className="whitespace-nowrap">Canales</motion.span>}</AnimatePresence>
@@ -99,7 +99,7 @@ export function DashboardSidebar({
           type="button"
           onClick={onOpenSettings}
           title={collapsed ? 'Configuración' : undefined}
-          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-[12px] text-left text-sm font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[.07] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400"
+          className="flex min-h-11 w-full items-center gap-3 rounded-xl px-[12px] text-left text-sm font-semibold text-ink/70 transition-transform duration-150 hover:bg-white/[.07] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
         >
           <Settings size={19} className="shrink-0" />
           <AnimatePresence initial={false}>{!collapsed && <motion.span {...labelMotion} className="whitespace-nowrap">Configuración</motion.span>}</AnimatePresence>
@@ -111,14 +111,14 @@ export function DashboardSidebar({
           <AccountAvatar identity={identity} className="h-10 w-10" />
           <AnimatePresence initial={false}>{!collapsed && <motion.div {...labelMotion} className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold" title={identity.name}>{identity.name}</p>
-            <p className="mt-0.5 truncate text-xs text-white/65" title={workspace.name}>{workspace.name}</p>
+            <p className="mt-0.5 truncate text-xs text-ink/70" title={workspace.name}>{workspace.name}</p>
           </motion.div>}</AnimatePresence>
           <button
             type="button"
             onClick={onLogout}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white/45 transition-colors duration-150 hover:bg-white/[.08] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-400"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-ink/70 transition-transform duration-150 hover:bg-white/[.08] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400"
           >
             <LogOut size={17} />
           </button>

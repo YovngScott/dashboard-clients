@@ -69,28 +69,28 @@ export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: Chann
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-0 sm:items-center sm:p-5"
+      className="stage-dialog-overlay fixed inset-0 z-50 flex items-end justify-center bg-black/65 p-0 sm:items-center sm:p-5"
       onMouseDown={(event) => { if (event.target === event.currentTarget) closeModal(); }}
     >
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="channels-title"
-        className="flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-panel text-ink shadow-[0_28px_100px_-36px_rgba(0,0,0,.8)] sm:rounded-2xl"
+        className="stage-channel-dialog flex max-h-[92dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl bg-panel text-ink shadow-[0_28px_100px_-36px_rgba(0,0,0,.8)] sm:rounded-2xl"
       >
         <header className="flex shrink-0 items-start justify-between gap-5 border-b border-ink/10 px-5 py-5 sm:px-6">
           <div>
             {selectedChannel && (
-              <button type="button" onClick={() => setSelected(null)} className="mb-3 inline-flex min-h-9 items-center gap-1 rounded-lg pr-2 text-xs font-bold text-ink/50 transition-colors hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
+              <button type="button" onClick={() => setSelected(null)} className="mb-3 inline-flex min-h-9 items-center gap-1 rounded-lg pr-2 text-xs font-bold text-ink/70 transition-transform duration-150 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">
                 <ChevronLeft size={16} /> Todos los canales
               </button>
             )}
             <h2 id="channels-title" className="font-display text-xl font-extrabold tracking-[-.02em]">{selectedChannel ? selectedChannel.name : 'Canales'}</h2>
-            <p className="mt-1 max-w-lg text-sm leading-6 text-ink/55">
+            <p className="mt-1 max-w-lg text-sm leading-6 text-ink/70">
               {selectedChannel ? selectedChannel.description : 'Elige hasta tres canales en Launch. Conectarlos aquí no activa respuestas automáticas.'}
             </p>
           </div>
-          <button autoFocus type="button" onClick={closeModal} aria-label="Cerrar canales" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/50 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500">
+          <button autoFocus type="button" onClick={closeModal} aria-label="Cerrar canales" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/70 transition-transform duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">
             <X size={20} />
           </button>
         </header>
@@ -99,11 +99,11 @@ export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: Chann
           {selectedChannel ? (
             <div className="mx-auto max-w-xl py-3">
               <div className="flex items-start gap-4 rounded-2xl border border-ink/10 bg-canvas/70 p-5 sm:p-6">
-                <span className={`channel-brand-icon channel-brand-icon--${selectedChannel.brand} grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/65`}>{selectedChannel.icon}</span>
+                <span className={`channel-brand-icon channel-brand-icon--${selectedChannel.brand} grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/70`}>{selectedChannel.icon}</span>
                 <div>
                   <p className="text-sm font-bold">{connectedChannels.includes(selectedChannel.name) ? 'Canal conectado' : 'Conexión pendiente'}</p>
-                  <p className="mt-2 text-sm leading-6 text-ink/55">{selectedChannel.readiness}</p>
-                  <p className="mt-4 text-xs leading-5 text-ink/45">Primero se autorizará el acceso. Después podrás seleccionar este canal para un agente y decidir cuándo activarlo.</p>
+                  <p className="mt-2 text-sm leading-6 text-ink/70">{selectedChannel.readiness}</p>
+                  <p className="mt-4 text-xs leading-5 text-ink/70">Primero se autorizará el acceso. Después podrás seleccionar este canal para un agente y decidir cuándo activarlo.</p>
                 </div>
               </div>
               {selectedChannel.status === 'available' && !connectedChannels.includes(selectedChannel.name) && (
@@ -118,17 +118,17 @@ export function ChannelsModal({ isOpen, onClose, connectedChannels = [] }: Chann
               {channels.map(({ name, icon, brand, description }) => {
                 const connected = connectedChannels.includes(name);
                 return (
-                  <button key={name} type="button" onClick={() => setSelected(name)} className={`channel-card group flex min-h-[142px] flex-col items-start rounded-2xl border border-ink/10 bg-canvas/60 p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${connected ? 'is-connected' : ''}`}>
+                  <button key={name} type="button" onClick={() => setSelected(name)} className={`channel-card group flex min-h-[142px] flex-col items-start rounded-2xl border border-ink/10 bg-canvas/60 p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 ${connected ? 'is-connected' : ''}`}>
                     <span className="flex w-full items-start justify-between gap-3">
-                      <span className={`channel-brand-icon channel-brand-icon--${brand} grid h-10 w-10 place-items-center rounded-xl bg-ink/5 text-ink/65`}>{icon}</span>
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${connected ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-teal-500/10 text-teal-700 dark:text-teal-300'}`}>
+                      <span className={`channel-brand-icon channel-brand-icon--${brand} grid h-10 w-10 place-items-center rounded-xl bg-ink/5 text-ink/70`}>{icon}</span>
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${connected ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'}`}>
                         {connected ? <CheckCircle2 size={12} /> : null}
                         {connected ? 'Conectado' : 'Configurar'}
                       </span>
                     </span>
                     <strong className="mt-4 text-sm font-bold">{name}</strong>
-                    <span className="mt-1 flex-1 text-xs leading-5 text-ink/50">{description}</span>
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-teal-700 dark:text-teal-300">Configurar canal <ChevronRight size={13} /></span>
+                    <span className="mt-1 flex-1 text-xs leading-5 text-ink/70">{description}</span>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-indigo-700 dark:text-indigo-300">Configurar canal <ChevronRight size={13} /></span>
                   </button>
                 );
               })}

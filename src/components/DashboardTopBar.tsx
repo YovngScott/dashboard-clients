@@ -19,7 +19,7 @@ export function DashboardTopBar({ workspace, identity, onOpenSettings }: Dashboa
         <AccountAvatar identity={identity} className="h-10 w-10" />
         <div className="min-w-0">
           <span className="block max-w-[13rem] truncate font-display text-sm font-extrabold tracking-[-.02em] text-ink sm:text-base">{identity.name}</span>
-          <span className="block max-w-[13rem] truncate text-xs text-ink/60">{workspace.name}</span>
+          <span className="block max-w-[13rem] truncate text-xs text-ink/70">{workspace.name}</span>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export function DashboardTopBar({ workspace, identity, onOpenSettings }: Dashboa
         type="button"
         onClick={onOpenSettings}
         aria-label="Configuración"
-        className="grid h-11 w-11 place-items-center rounded-xl text-ink transition-colors duration-150 hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 dark:hover:bg-zinc-800/60"
+        className="grid h-11 w-11 place-items-center rounded-xl text-ink transition-transform duration-150 hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:hover:bg-zinc-800/60"
       >
         <Menu size={26} strokeWidth={2.2} />
       </button>

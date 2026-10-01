@@ -166,9 +166,9 @@ export function AutoAssignmentSettings({ workspace, userId, preview = false }: {
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h3 id="assignment-heading" className="text-base font-bold">Asignación automática</h3>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/60">Elige cómo deberían repartirse las nuevas conversaciones entre las personas de tu equipo.</p>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">Elige cómo deberían repartirse las nuevas conversaciones entre las personas de tu equipo.</p>
       </div>
-      <button type="button" onClick={() => void refresh()} disabled={loading || busy} aria-label="Actualizar asignación automática" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-3 text-sm font-semibold text-ink/75 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50">
+      <button type="button" onClick={() => void refresh()} disabled={loading || busy} aria-label="Actualizar asignación automática" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-3 text-sm font-semibold text-ink/75 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50">
         <RotateCw size={16} /> Actualizar
       </button>
     </div>
@@ -179,15 +179,15 @@ export function AutoAssignmentSettings({ workspace, userId, preview = false }: {
     </div>
 
     {error && <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm leading-5 text-red-800 dark:text-red-200">{error}</p>}
-    {loading && <p role="status" className="rounded-2xl border border-ink/10 bg-panel p-5 text-sm text-ink/60">Cargando equipo y preferencias…</p>}
+    {loading && <p role="status" className="rounded-2xl border border-ink/10 bg-panel p-5 text-sm text-ink/70">Cargando equipo y preferencias…</p>}
 
     {!loading && config && team && <>
       <fieldset disabled={!canManage || busy} className="min-w-0">
         <legend className="mb-3 text-sm font-semibold">Modo de asignación</legend>
         <div className="grid gap-3 lg:grid-cols-3">
-          {modeOptions.map((option) => <label key={option.value} className={`flex min-h-28 cursor-pointer gap-3 rounded-2xl border p-4 transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-teal-500 ${config.mode === option.value ? 'border-teal-600/45 bg-teal-500/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
+          {modeOptions.map((option) => <label key={option.value} className={`flex min-h-28 cursor-pointer gap-3 rounded-2xl border p-4 transition-transform duration-150 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-500 ${config.mode === option.value ? 'border-indigo-600/45 bg-indigo-500/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
             <input type="radio" name="assignment-mode" value={option.value} checked={config.mode === option.value} onChange={() => updateConfig((current) => ({ ...current, mode: option.value }))} className="mt-0.5 h-4 w-4 accent-teal-700" />
-            <span className="min-w-0"><span className="block text-sm font-semibold text-ink">{option.title}</span><span className="mt-1 block text-xs leading-5 text-ink/60">{option.description}</span></span>
+            <span className="min-w-0"><span className="block text-sm font-semibold text-ink">{option.title}</span><span className="mt-1 block text-xs leading-5 text-ink/70">{option.description}</span></span>
           </label>)}
         </div>
       </fieldset>
@@ -195,8 +195,8 @@ export function AutoAssignmentSettings({ workspace, userId, preview = false }: {
       {config.mode !== 'off' && <>
         <section aria-labelledby="assignment-agents-heading" className="overflow-hidden rounded-2xl border border-ink/10 bg-panel">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-4 py-4 sm:px-5">
-            <div><h4 id="assignment-agents-heading" className="flex items-center gap-2 text-sm font-bold"><Users size={17} className="text-teal-600" /> Agentes disponibles</h4><p className="mt-1 text-xs leading-5 text-ink/55">El límite evita dirigir más conversaciones a una persona de las que puede atender.</p></div>
-            <span className="text-xs font-medium text-ink/55">{eligibleAgents.length} seleccionados</span>
+            <div><h4 id="assignment-agents-heading" className="flex items-center gap-2 text-sm font-bold"><Users size={17} className="text-indigo-600" /> Agentes disponibles</h4><p className="mt-1 text-xs leading-5 text-ink/70">El límite evita dirigir más conversaciones a una persona de las que puede atender.</p></div>
+            <span className="text-xs font-medium text-ink/70">{eligibleAgents.length} seleccionados</span>
           </div>
           {config.agents.map((agent) => {
             const member = agentsById.get(agent.user_id);
@@ -204,43 +204,43 @@ export function AutoAssignmentSettings({ workspace, userId, preview = false }: {
             return <div key={agent.user_id} className="grid gap-3 border-b border-ink/10 px-4 py-4 last:border-0 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,14rem)] sm:items-center sm:px-5">
               <label className="flex min-w-0 cursor-pointer items-center gap-3">
                 <input type="checkbox" checked={agent.enabled} disabled={!canManage || busy} onChange={(event) => updateConfig((current) => ({ ...current, agents: current.agents.map((item) => item.user_id === agent.user_id ? { ...item, enabled: event.target.checked } : item) }))} className="h-4 w-4 shrink-0 accent-teal-700 disabled:cursor-not-allowed" />
-                {member.avatar_url ? <img src={member.avatar_url} alt="" referrerPolicy="no-referrer" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink/10" /> : <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-teal-500/10 text-sm font-bold text-teal-700 dark:text-teal-300">{member.name.trim().charAt(0).toUpperCase() || '?'}</span>}
-                <span className="min-w-0"><span className="block truncate text-sm font-semibold">{member.name}</span><span className="block truncate text-xs text-ink/55">{roleLabel(member.role)} · {member.email}</span></span>
+                {member.avatar_url ? <img src={member.avatar_url} alt="" referrerPolicy="no-referrer" className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink/10" /> : <span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-500/10 text-sm font-bold text-indigo-700 dark:text-indigo-300">{member.name.trim().charAt(0).toUpperCase() || '?'}</span>}
+                <span className="min-w-0"><span className="block truncate text-sm font-semibold">{member.name}</span><span className="block truncate text-xs text-ink/70">{roleLabel(member.role)} · {member.email}</span></span>
               </label>
-              <label className={`grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-3 text-xs font-medium text-ink/65 ${agent.enabled ? '' : 'opacity-45'}`}>
+              <label className={`grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-3 text-xs font-medium text-ink/70 ${agent.enabled ? '' : 'opacity-45'}`}>
                 <span>Límite abierto</span>
-                <input type="number" min={1} max={500} step={1} value={agent.max_open_conversations ?? ''} disabled={!canManage || busy || !agent.enabled || agent.max_open_conversations === null} aria-label={`Límite de conversaciones de ${member.name}`} onChange={(event) => updateConfig((current) => ({ ...current, agents: current.agents.map((item) => item.user_id === agent.user_id ? { ...item, max_open_conversations: Math.max(1, Math.min(500, Number(event.target.value) || 1)) } : item) }))} className="min-h-10 w-full rounded-lg border border-ink/15 bg-canvas px-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-500 disabled:cursor-not-allowed" />
+                <input type="number" min={1} max={500} step={1} value={agent.max_open_conversations ?? ''} disabled={!canManage || busy || !agent.enabled || agent.max_open_conversations === null} aria-label={`Límite de conversaciones de ${member.name}`} onChange={(event) => updateConfig((current) => ({ ...current, agents: current.agents.map((item) => item.user_id === agent.user_id ? { ...item, max_open_conversations: Math.max(1, Math.min(500, Number(event.target.value) || 1)) } : item) }))} className="min-h-10 w-full rounded-lg border border-ink/15 bg-canvas px-2 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-indigo-500 disabled:cursor-not-allowed" />
               </label>
-              <label className="sm:col-start-2 sm:justify-self-end inline-flex min-h-8 items-center gap-2 text-xs text-ink/60">
+              <label className="sm:col-start-2 sm:justify-self-end inline-flex min-h-8 items-center gap-2 text-xs text-ink/70">
                 <input type="checkbox" checked={agent.max_open_conversations === null} disabled={!canManage || busy || !agent.enabled} onChange={(event) => updateConfig((current) => ({ ...current, agents: current.agents.map((item) => item.user_id === agent.user_id ? { ...item, max_open_conversations: event.target.checked ? null : 10 } : item) }))} className="h-4 w-4 accent-teal-700 disabled:cursor-not-allowed" /> Sin límite
               </label>
             </div>;
           })}
-          {config.agents.length === 0 && <p className="px-5 py-4 text-sm text-ink/60">No hay miembros elegibles. Invita un operador o cambia un rol de lector desde Miembros del equipo.</p>}
+          {config.agents.length === 0 && <p className="px-5 py-4 text-sm text-ink/70">No hay miembros elegibles. Invita un operador o cambia un rol de lector desde Miembros del equipo.</p>}
         </section>
 
-        {config.mode === 'basic' && <p className="rounded-xl border border-ink/10 bg-panel px-4 py-3 text-sm leading-6 text-ink/65">La distribución básica usa turnos entre las personas activadas y respeta su límite de conversaciones abiertas.</p>}
+        {config.mode === 'basic' && <p className="rounded-xl border border-ink/10 bg-panel px-4 py-3 text-sm leading-6 text-ink/70">La distribución básica usa turnos entre las personas activadas y respeta su límite de conversaciones abiertas.</p>}
 
         {config.mode === 'advanced' && <section aria-labelledby="assignment-rules-heading" className="overflow-hidden rounded-2xl border border-ink/10 bg-panel">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 px-4 py-4 sm:px-5">
-            <div><h4 id="assignment-rules-heading" className="text-sm font-bold">Reglas por canal</h4><p className="mt-1 text-xs leading-5 text-ink/55">Cada regla dirige conversaciones de un canal a una persona seleccionada.</p></div>
-            <button type="button" onClick={addRule} disabled={!canManage || busy || eligibleAgents.length === 0} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-3 text-sm font-semibold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50"><Plus size={16} /> Añadir regla</button>
+            <div><h4 id="assignment-rules-heading" className="text-sm font-bold">Reglas por canal</h4><p className="mt-1 text-xs leading-5 text-ink/70">Cada regla dirige conversaciones de un canal a una persona seleccionada.</p></div>
+            <button type="button" onClick={addRule} disabled={!canManage || busy || eligibleAgents.length === 0} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-3 text-sm font-semibold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"><Plus size={16} /> Añadir regla</button>
           </div>
           {config.rules.map((rule, index) => <div key={rule.id} className="grid gap-3 border-b border-ink/10 p-4 last:border-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end sm:px-5">
-            <label className="block min-w-0 text-xs font-semibold text-ink/70">Canal<select disabled={!canManage || busy} value={rule.channel} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, channel: event.target.value as WorkspaceChannel } : item) }))} className="mt-1.5 block min-h-11 w-full rounded-xl border border-ink/15 bg-canvas px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-60">{channels.map((channel) => <option key={channel.value} value={channel.value}>{channel.label}</option>)}</select></label>
-            <label className="block min-w-0 text-xs font-semibold text-ink/70">Asignar a<select disabled={!canManage || busy} value={rule.target_user_id} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, target_user_id: event.target.value } : item) }))} className="mt-1.5 block min-h-11 w-full rounded-xl border border-ink/15 bg-canvas px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-60">{config.agents.filter((agent) => agent.enabled).map((agent) => { const member = agentsById.get(agent.user_id)!; return <option key={member.user_id} value={member.user_id}>{member.name}</option>; })}</select></label>
-            <div className="flex items-center justify-between gap-3 sm:justify-end"><label className="inline-flex min-h-11 items-center gap-2 text-xs font-medium text-ink/65"><input type="checkbox" checked={rule.enabled} disabled={!canManage || busy} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, enabled: event.target.checked } : item) }))} className="h-4 w-4 accent-teal-700 disabled:cursor-not-allowed" />Regla activa</label><button type="button" aria-label={`Eliminar regla ${index + 1}`} disabled={!canManage || busy} onClick={() => updateConfig((current) => ({ ...current, rules: current.rules.filter((item) => item.id !== rule.id) }))} className="grid h-11 w-11 place-items-center rounded-lg text-ink/55 hover:bg-red-500/10 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-50"><Trash2 size={16} /></button></div>
+            <label className="block min-w-0 text-xs font-semibold text-ink/70">Canal<select disabled={!canManage || busy} value={rule.channel} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, channel: event.target.value as WorkspaceChannel } : item) }))} className="mt-1.5 block min-h-11 w-full rounded-xl border border-ink/15 bg-canvas px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60">{channels.map((channel) => <option key={channel.value} value={channel.value}>{channel.label}</option>)}</select></label>
+            <label className="block min-w-0 text-xs font-semibold text-ink/70">Asignar a<select disabled={!canManage || busy} value={rule.target_user_id} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, target_user_id: event.target.value } : item) }))} className="mt-1.5 block min-h-11 w-full rounded-xl border border-ink/15 bg-canvas px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-60">{config.agents.filter((agent) => agent.enabled).map((agent) => { const member = agentsById.get(agent.user_id)!; return <option key={member.user_id} value={member.user_id}>{member.name}</option>; })}</select></label>
+            <div className="flex items-center justify-between gap-3 sm:justify-end"><label className="inline-flex min-h-11 items-center gap-2 text-xs font-medium text-ink/70"><input type="checkbox" checked={rule.enabled} disabled={!canManage || busy} onChange={(event) => updateConfig((current) => ({ ...current, rules: current.rules.map((item) => item.id === rule.id ? { ...item, enabled: event.target.checked } : item) }))} className="h-4 w-4 accent-teal-700 disabled:cursor-not-allowed" />Regla activa</label><button type="button" aria-label={`Eliminar regla ${index + 1}`} disabled={!canManage || busy} onClick={() => updateConfig((current) => ({ ...current, rules: current.rules.filter((item) => item.id !== rule.id) }))} className="grid h-11 w-11 place-items-center rounded-lg text-ink/70 hover:bg-red-500/10 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"><Trash2 size={16} /></button></div>
           </div>)}
-          {config.rules.length === 0 && <p className="px-5 py-4 text-sm text-ink/60">Aún no hay reglas. Añade una para dirigir un canal a una persona del equipo.</p>}
-          <p className="border-t border-ink/10 px-4 py-3 text-xs leading-5 text-ink/55 sm:px-5">Las reglas actuales permiten elegir canal y persona. Los grupos y otras condiciones avanzadas de Inbox todavía no existen en Stage.</p>
+          {config.rules.length === 0 && <p className="px-5 py-4 text-sm text-ink/70">Aún no hay reglas. Añade una para dirigir un canal a una persona del equipo.</p>}
+          <p className="border-t border-ink/10 px-4 py-3 text-xs leading-5 text-ink/70 sm:px-5">Las reglas actuales permiten elegir canal y persona. Los grupos y otras condiciones avanzadas de Inbox todavía no existen en Stage.</p>
         </section>}
       </>}
 
-      {!canManage && <p className="rounded-xl border border-ink/10 bg-ink/5 px-4 py-3 text-sm text-ink/60">Solo propietarios y administradores pueden cambiar estas preferencias.</p>}
+      {!canManage && <p className="rounded-xl border border-ink/10 bg-ink/5 px-4 py-3 text-sm text-ink/70">Solo propietarios y administradores pueden cambiar estas preferencias.</p>}
       {notice && <p role="status" className="flex items-start gap-2 rounded-xl border border-emerald-700/20 bg-emerald-700/8 px-4 py-3 text-sm leading-5 text-emerald-950 dark:text-emerald-100"><Check size={17} className="mt-0.5 shrink-0" />{notice}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
-        <p className="text-xs text-ink/50">Los cambios son por espacio y se aplicarán cuando Inbox tenga motor de asignación.</p>
-        {canManage && !preview && <button type="button" onClick={() => void save()} disabled={busy || loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:opacity-50"><Save size={16} />{busy ? 'Guardando…' : 'Guardar preferencias'}</button>}
+        <p className="text-xs text-ink/70">Los cambios son por espacio y se aplicarán cuando Inbox tenga motor de asignación.</p>
+        {canManage && !preview && <button type="button" onClick={() => void save()} disabled={busy || loading} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50"><Save size={16} />{busy ? 'Guardando…' : 'Guardar preferencias'}</button>}
       </div>
     </>}
   </section>;

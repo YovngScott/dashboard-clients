@@ -7,7 +7,7 @@ export function AccountAvatar({ identity, className = '' }: { identity: AccountI
   const showImage = identity.avatarUrl && failedUrl !== identity.avatarUrl;
 
   return (
-    <span aria-hidden="true" className={`grid shrink-0 place-items-center overflow-hidden rounded-xl bg-teal-500 text-xs font-extrabold text-white ${className}`}>
+    <span aria-hidden="true" className={`grid shrink-0 place-items-center overflow-hidden rounded-xl bg-indigo-500 text-xs font-extrabold text-white ${className}`}>
       {showImage ? (
         <img
           src={identity.avatarUrl ?? undefined}

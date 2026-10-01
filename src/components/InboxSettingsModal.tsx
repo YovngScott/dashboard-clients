@@ -92,7 +92,7 @@ export function InboxSettingsModal({ isOpen, onClose }: InboxSettingsModalProps)
               <button
                 type="button"
                 onClick={() => setConversationsVisibility(!conversationsVisibility)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                   conversationsVisibility ? 'bg-emerald-500' : 'bg-zinc-600'
                 }`}
               >

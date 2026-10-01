@@ -217,6 +217,8 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       </header>
       <main className="stage-auth__main">
         <section className="stage-auth__story" aria-labelledby="stage-auth-title">
+          <img className="stage-auth__scene" src="/stage-workspace-scene.png" alt="" width="1672" height="941" fetchPriority="high" />
+          <div className="stage-auth__story-content">
           <span className="stage-auth__eyebrow">{t.workspace}</span>
           <h1 id="stage-auth-title">{t.title}</h1>
           <p>{t.description}</p>
@@ -224,6 +226,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
             {t.steps.map((step) => <span key={step}><Check size={16} aria-hidden="true" /> {step}</span>)}
           </div>
           <span className="stage-auth__signature">Stage AI Labs LLC</span>
+          </div>
         </section>
         <section className="stage-auth__panel" aria-label={tab === 'signup' ? t.signup : t.signin}>
           {chosenPlan && <p className="stage-auth__selection" role="status">{t.selectedPlan}: <strong>{chosenPlan.name} {chosenCycle}</strong>. {t.changePlan}</p>}
@@ -235,7 +238,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
               </button>
             ))}
           </div>
-          {invitationPending && <div role="status" className="stage-auth__notice stage-auth__notice--invitation"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-current/75 hover:bg-white/10 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300"><X size={16} /></button></div>}
+          {invitationPending && <div role="status" className="stage-auth__notice stage-auth__notice--invitation"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-current/75 hover:bg-white/10 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"><X size={16} /></button></div>}
           <form onSubmit={submit} className="stage-auth__form">
             {tab === 'signup' && !invitationPending && (
               <div className="stage-auth__field">

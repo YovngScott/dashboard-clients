@@ -24,14 +24,14 @@ export function HomeHeroBanner({ onOpenUpgrade }: HomeHeroBannerProps) {
           <h1 className="font-display text-2xl font-black leading-tight tracking-tight sm:text-3xl lg:text-4xl">
             Don't let growth stop you
           </h1>
-          <p className="mt-2 text-sm text-teal-200/90 sm:text-base">
+          <p className="mt-2 text-sm text-indigo-200/90 sm:text-base">
             Upgrade to reply to every fan as you grow
           </p>
           <div className="mt-5">
             <button
               id="hero-upgrade-cta"
               onClick={onOpenUpgrade}
-              className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-950/50 transition hover:bg-teal-500 active:scale-95"
+              className="inline-flex items-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-950/50 transition hover:bg-indigo-500 active:scale-95"
             >
               Try 14 days for free
             </button>

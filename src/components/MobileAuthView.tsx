@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Mail, X, ArrowRight, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
 import { authErrorMessage, normalizeEmail, validateDisplayName, validateEmail, validatePassword } from '@/lib/auth-validation';
@@ -146,6 +146,7 @@ const translations = {
 };
 
 export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
+  const reduceMotion = useReducedMotion();
   const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
   const [showEmailSheet, setShowEmailSheet] = useState<boolean>(false);
@@ -348,6 +349,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
   return (
     <div className="mobile-auth-screen stage-auth relative flex w-full flex-col overflow-hidden font-sans text-white">
+      <img className="mobile-auth-scene" src="/stage-workspace-scene.png" alt="" width="1672" height="941" />
 
       {/* 2. Top Navigation Bar */}
       <header className="mobile-auth-header relative z-50 flex shrink-0 items-center justify-between px-6 pt-6 sm:px-8">
@@ -392,7 +394,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   }`}
                 >
                   <span>{l.label}</span>
-                  {lang === l.code && <Check size={13} className="text-teal-400" />}
+                  {lang === l.code && <Check size={13} className="text-indigo-400" />}
                 </button>
               ))}
             </div>
@@ -418,22 +420,22 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[1.5rem] border-x border-t border-white/20 bg-[#102b3d] px-6 pb-10 pt-5 shadow-[0_-12px_45px_rgba(0,0,0,0.25)]"
       >
         {chosenPlan && <p className="stage-auth__selection mb-4" role="status">{t.selectedPlan}: <strong>{chosenPlan.name} {chosenCycle}</strong>. {t.changePlan}</p>}
-        {invitationPending && <div role="status" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm leading-5 text-teal-50"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-teal-50/75 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200"><X size={16} /></button></div>}
+        {invitationPending && <div role="status" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-indigo-300/20 bg-indigo-300/10 px-4 py-3 text-sm leading-5 text-indigo-50"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-indigo-50/75 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-200"><X size={16} /></button></div>}
         <div className="relative mb-6 flex rounded-xl border border-white/20 bg-black/20 p-1.5">
           <button
             type="button"
             id="mobile-tab-create-account"
             onClick={() => setTab('signup')}
-            className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-colors duration-200"
+            className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-transform duration-150"
           >
             {tab === 'signup' && (
               <motion.div
                 layoutId="mobile-auth-active-pill"
                 className="absolute inset-0 rounded-xl border border-white/30 bg-white/25 shadow-[0_2px_12px_rgba(0,0,0,0.2)] backdrop-blur-2xl ring-1 ring-white/20"
-                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
-            <span className={`relative z-20 ${tab === 'signup' ? 'text-white font-extrabold' : 'text-white/60 hover:text-white'}`}>
+            <span className={`relative z-20 ${tab === 'signup' ? 'text-white font-extrabold' : 'text-white/70 hover:text-white'}`}>
               {t.tabs.signup}
             </span>
           </button>
@@ -442,16 +444,16 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             type="button"
             id="mobile-tab-sign-in"
             onClick={() => setTab('signin')}
-            className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-colors duration-200"
+            className="relative z-10 flex-1 py-3 text-center text-xs font-bold transition-transform duration-150"
           >
             {tab === 'signin' && (
               <motion.div
                 layoutId="mobile-auth-active-pill"
                 className="absolute inset-0 rounded-xl border border-white/30 bg-white/25 shadow-[0_2px_12px_rgba(0,0,0,0.2)] backdrop-blur-2xl ring-1 ring-white/20"
-                transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 450, damping: 35 }}
               />
             )}
-            <span className={`relative z-20 ${tab === 'signin' ? 'text-white font-extrabold' : 'text-white/60 hover:text-white'}`}>
+            <span className={`relative z-20 ${tab === 'signin' ? 'text-white font-extrabold' : 'text-white/70 hover:text-white'}`}>
               {t.tabs.signin}
             </span>
           </button>
@@ -474,7 +476,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.15 }}
+                transition={{ duration: reduceMotion ? 0 : 0.15, ease: [0.23, 1, 0.32, 1] }}
               >
                 {t.continueEmail}
               </motion.span>
@@ -514,13 +516,13 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         </div>
 
         {/* Footer Terms */}
-        <p className="mt-6 mb-2 text-center text-[11px] leading-4 text-white/60 drop-shadow-sm">
+        <p className="mt-6 mb-2 text-center text-[11px] leading-4 text-white/70 drop-shadow-sm">
           {t.separator}
           <a
             href="https://stagelaboratories.com/privacidad"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-white underline underline-offset-2 hover:text-teal-200"
+            className="font-semibold text-white underline underline-offset-2 hover:text-indigo-200"
           >
             {t.terms}
           </a>
@@ -529,7 +531,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             href="https://stagelaboratories.com/security"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-white underline underline-offset-2 hover:text-teal-200"
+            className="font-semibold text-white underline underline-offset-2 hover:text-indigo-200"
           >
             {t.privacy}
           </a>
@@ -545,7 +547,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md"
             onClick={closeEmailSheet}
           >
@@ -557,7 +559,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              transition={reduceMotion ? { duration: 0 } : { type: 'spring', damping: 28, stiffness: 300 }}
               className="relative max-h-[92dvh] w-full max-w-md touch-pan-y overflow-y-auto overscroll-contain rounded-t-[2.6rem] border-t border-x border-white/30 bg-[#172c43]/95 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white shadow-[0_-16px_50px_rgba(0,0,0,0.6)] ring-1 ring-inset ring-white/20"
               onClick={(e) => e.stopPropagation()}
             >
@@ -578,11 +580,11 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
               {/* Brand Graphic */}
               <div className="mt-3 flex items-center gap-3.5">
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#126769] p-2 shadow-lg shadow-[#126769]/40 border border-teal-400/30">
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#126769] p-2 shadow-lg shadow-[#126769]/40 border border-indigo-400/30">
                   <img src="/stage-logo.png" alt="" className="h-9 w-9 rounded-md bg-white p-1 object-contain" />
                 </div>
                 <div>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-teal-400/30 bg-teal-500/20 px-2.5 py-0.5 text-[10px] font-bold text-teal-200">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-2.5 py-0.5 text-[10px] font-bold text-indigo-200">
                     <CheckCircle2 size={11} /> CEO Copilot
                   </span>
                   <p className="mt-1 text-xs text-white/70">Stage AI Labs LLC</p>
@@ -596,7 +598,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                   initial={{ opacity: 0, transform: 'translateY(4px)' }}
                   animate={{ opacity: 1, transform: 'translateY(0px)' }}
                   exit={{ opacity: 0, transform: 'translateY(-4px)' }}
-                  transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+                  transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.23, 1, 0.32, 1] }}
                   className="mt-4"
                 >
                   <h2 id="email-auth-heading" ref={captchaHeadingRef} tabIndex={-1} className="font-display text-2xl font-black tracking-tight text-white">
@@ -653,10 +655,10 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <AnimatePresence>
                   {tab === 'signup' && !invitationPending && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.23, 1, 0.32, 1] }}
                     >
                       <label htmlFor="mobile-auth-name" className="mb-1 block text-xs font-semibold text-white/80">
                         {t.form.nameLabel}
@@ -670,7 +672,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t.form.namePlaceholder}
-                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
                       />
                     </motion.div>
                   )}
@@ -689,7 +691,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.form.emailPlaceholder}
-                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
                   />
                 </div>
 
@@ -707,14 +709,14 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t.form.passwordPlaceholder}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-10 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-teal-400 focus:bg-white/15"
+                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-10 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? t.form.hidePassword : t.form.showPassword}
                       aria-pressed={showPassword}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/50 hover:text-white"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70 hover:text-white"
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -725,7 +727,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <button
                   type="submit"
                   disabled={loading || !captchaToken}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] disabled:opacity-50 border border-teal-400/30"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] disabled:opacity-50 border border-indigo-400/30"
                 >
                   {loading ? t.form.processing : tab === 'signup' ? invitationPending ? t.form.invitationSubmit : t.form.submitSignup : t.form.submitSignin}
                   <ArrowRight size={16} />
@@ -738,7 +740,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <button
                   type="button"
                   onClick={() => setTab(tab === 'signup' ? 'signin' : 'signup')}
-                  className="text-xs font-semibold text-teal-300 hover:underline"
+                  className="text-xs font-semibold text-indigo-300 hover:underline"
                 >
                   {tab === 'signup'
                     ? '¿Ya tienes una cuenta? Iniciar sesión'

@@ -49,9 +49,9 @@ function SwitchRow({
   return <label htmlFor={id} className="flex min-h-[68px] cursor-pointer items-center justify-between gap-4 border-b border-ink/10 py-3 last:border-0">
     <span className="min-w-0">
       <span className="block text-sm font-semibold text-ink">{label}</span>
-      <span className="mt-1 block text-xs leading-5 text-ink/60">{description}</span>
+      <span className="mt-1 block text-xs leading-5 text-ink/70">{description}</span>
     </span>
-    <input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-5 w-5 shrink-0 accent-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600" />
+    <input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-5 w-5 shrink-0 accent-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" />
   </label>;
 }
 
@@ -178,7 +178,7 @@ export function NotificationSettings({ userId, accountEmail }: { userId: string;
   return <form onSubmit={savePreferences} aria-busy={loading || saving} className="space-y-5">
     <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
       <h3 className="text-base font-bold">Notificaciones de escritorio de Inbox</h3>
-      <p className="mt-1 text-sm text-ink/60">Elige qué actividad debería generar un aviso en este dispositivo.</p>
+      <p className="mt-1 text-sm text-ink/70">Elige qué actividad debería generar un aviso en este dispositivo.</p>
       <div className="mt-3">
         {preferenceFields.map(([key, label, description]) => <SwitchRow key={key} id={key} label={label} description={description} checked={preferences[key]} onChange={(value) => update(key, value)} />)}
       </div>
@@ -186,17 +186,17 @@ export function NotificationSettings({ userId, accountEmail }: { userId: string;
 
     <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
       <h3 className="text-base font-bold">Acción: notificar a los asignados</h3>
-      <p className="mt-1 text-sm text-ink/60">Selecciona por qué canales debería avisarse a la persona asignada. Las preferencias se guardan por persona, no por organización.</p>
+      <p className="mt-1 text-sm text-ink/70">Selecciona por qué canales debería avisarse a la persona asignada. Las preferencias se guardan por persona, no por organización.</p>
       <div className="mt-3">
         {channelFields.map(([key, label, description, Icon]) => <div key={key} className="flex items-center gap-3">
-          <Icon aria-hidden="true" size={17} className="shrink-0 text-ink/55" />
+          <Icon aria-hidden="true" size={17} className="shrink-0 text-ink/70" />
           <div className="min-w-0 flex-1"><SwitchRow id={key} label={label} description={description} checked={preferences[key]} onChange={(value) => update(key, value)} /></div>
         </div>)}
       </div>
       <div className="mt-4 rounded-xl border border-ink/10 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div><p className="text-sm font-semibold">Permiso de este navegador</p><p className="mt-1 text-xs text-ink/60">Estado: {browserPermission === 'granted' ? 'concedido' : browserPermission === 'denied' ? 'bloqueado en el navegador' : browserPermission === 'default' ? 'sin decidir' : 'no disponible'}</p></div>
-          <button type="button" onClick={() => void enableBrowserNotifications()} disabled={loading || browserPermission === 'granted' || browserPermission === 'unsupported'} className="min-h-11 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50">
+          <div><p className="text-sm font-semibold">Permiso de este navegador</p><p className="mt-1 text-xs text-ink/70">Estado: {browserPermission === 'granted' ? 'concedido' : browserPermission === 'denied' ? 'bloqueado en el navegador' : browserPermission === 'default' ? 'sin decidir' : 'no disponible'}</p></div>
+          <button type="button" onClick={() => void enableBrowserNotifications()} disabled={loading || browserPermission === 'granted' || browserPermission === 'unsupported'} className="min-h-11 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-50">
             {browserPermission === 'granted' ? 'Permiso concedido' : 'Permitir avisos'}
           </button>
         </div>
@@ -204,17 +204,17 @@ export function NotificationSettings({ userId, accountEmail }: { userId: string;
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="notification-email" className="block text-sm font-semibold">Correo para avisos</label>
-          <input id="notification-email" type="email" autoComplete="email" value={preferences.notification_email} onChange={(event) => update('notification_email', event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600" placeholder="nombre@empresa.com" />
-          <p className="mt-1 text-xs text-ink/55">No cambia el correo de acceso de tu cuenta.</p>
+          <input id="notification-email" type="email" autoComplete="email" value={preferences.notification_email} onChange={(event) => update('notification_email', event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" placeholder="nombre@empresa.com" />
+          <p className="mt-1 text-xs text-ink/70">No cambia el correo de acceso de tu cuenta.</p>
         </div>
         <div>
           <label htmlFor="notification-phone" className="block text-sm font-semibold">Teléfono para SMS</label>
-          <input id="notification-phone" type="tel" autoComplete="tel" inputMode="tel" value={preferences.notification_phone} onChange={(event) => update('notification_phone', event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600" placeholder="+14155552671" aria-describedby="notification-phone-help" />
-          <p id="notification-phone-help" className="mt-1 text-xs text-ink/55">Formato internacional con + y código de país.</p>
+          <input id="notification-phone" type="tel" autoComplete="tel" inputMode="tel" value={preferences.notification_phone} onChange={(event) => update('notification_phone', event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" placeholder="+14155552671" aria-describedby="notification-phone-help" />
+          <p id="notification-phone-help" className="mt-1 text-xs text-ink/70">Formato internacional con + y código de país.</p>
         </div>
       </div>
       <label className="mt-4 flex min-h-11 items-start gap-3 text-sm leading-5 text-ink/75">
-        <input type="checkbox" checked={preferences.sms_consent} onChange={(event) => update('sms_consent', event.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600" />
+        <input type="checkbox" checked={preferences.sms_consent} onChange={(event) => update('sms_consent', event.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" />
         <span>Confirmo que el teléfono me pertenece y autorizo a Stage AI Labs a enviarme notificaciones por SMS cuando este canal esté disponible.</span>
       </label>
     </section>
@@ -225,9 +225,9 @@ export function NotificationSettings({ userId, accountEmail }: { userId: string;
     </div>
 
     {error && <p role="alert" className="rounded-xl border border-red-600/25 bg-red-600/10 px-4 py-3 text-sm text-red-800 dark:text-red-200">{error}</p>}
-    {notice && <p role="status" aria-live="polite" className="rounded-xl border border-teal-700/20 bg-teal-700/10 px-4 py-3 text-sm text-teal-950 dark:text-teal-100">{notice}</p>}
+    {notice && <p role="status" aria-live="polite" className="rounded-xl border border-indigo-700/20 bg-indigo-700/10 px-4 py-3 text-sm text-teal-950 dark:text-indigo-100">{notice}</p>}
     <div className="flex justify-end">
-      <button type="submit" disabled={loading || saving} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:cursor-not-allowed disabled:opacity-50">
+      <button type="submit" disabled={loading || saving} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-50">
         {saving ? 'Guardando…' : <><Check aria-hidden="true" size={16} />Guardar preferencias</>}
       </button>
     </div>

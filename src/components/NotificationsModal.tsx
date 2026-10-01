@@ -64,7 +64,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                 <button
                   type="button"
                   onClick={() => setAssignedToMe(!assignedToMe)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                     assignedToMe ? 'bg-emerald-500' : 'bg-zinc-600'
                   }`}
                 >
@@ -81,7 +81,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                 <button
                   type="button"
                   onClick={() => setUnassigned(!unassigned)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                     unassigned ? 'bg-emerald-500' : 'bg-zinc-600'
                   }`}
                 >
@@ -125,7 +125,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                 <button
                   type="button"
                   onClick={() => setAutomationsResults(!automationsResults)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                     automationsResults ? 'bg-emerald-500' : 'bg-zinc-600'
                   }`}
                 >
@@ -142,7 +142,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                 <button
                   type="button"
                   onClick={() => setRecommendations(!recommendations)}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                     recommendations ? 'bg-emerald-500' : 'bg-zinc-600'
                   }`}
                 >

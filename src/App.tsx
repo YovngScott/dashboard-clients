@@ -65,7 +65,7 @@ const previewIdentity: AccountIdentity = {
 
 const previewWorkspace: WorkspaceContext = {
   organizationId: 'preview',
-  name: 'Juan Dadid',
+  name: 'Stage AI Labs',
   logoPath: null,
   logoUrl: null,
   role: 'owner',
@@ -163,20 +163,20 @@ function Button({ children, onClick, variant = 'primary', disabled = false, type
     ? 'bg-[#bcd0ff] text-[#10213e] hover:bg-[#d8e4ff] shadow-md shadow-[#506cad]/20'
     : variant === 'secondary'
     ? 'border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10'
-    : 'text-ink/60 hover:bg-ink/5 hover:text-ink';
-  return <button type={type} disabled={disabled} onClick={onClick} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-[background-color,color,transform] duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}>{children}</button>;
+    : 'text-ink/70 hover:bg-ink/5 hover:text-ink';
+  return <button type={type} disabled={disabled} onClick={onClick} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-transform duration-150 active:scale-[.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}>{children}</button>;
 }
 
 /* ── Onboarding ─────────────────────────────────────────────── */
 
 function Progress({ step }: { step: number }) {
-  return <div className="mb-9 flex items-center gap-2" aria-label={`Paso ${step} de 4`}>{[1, 2, 3, 4].map(item => <div key={item} className={`h-1 flex-1 rounded-full transition-colors duration-150 ${item <= step ? 'bg-[#a9c3ff]' : 'bg-ink/10'}`} />)}</div>;
+  return <div className="mb-9 flex items-center gap-2" aria-label={`Paso ${step} de 4`}>{[1, 2, 3, 4].map(item => <div key={item} className={`h-1 flex-1 rounded-full transition-transform duration-150 ${item <= step ? 'bg-[#a9c3ff]' : 'bg-ink/10'}`} />)}</div>;
 }
 
 function ChoiceCard({ option, selected, onClick, multi = false }: { option: Option; selected: boolean; onClick: () => void; multi?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={selected} className={`group flex min-h-[76px] w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected ? 'border-[#a9c3ff] bg-[#a9c3ff]/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition ${selected ? 'bg-[#a9c3ff] text-[#10213e]' : 'bg-ink/5 text-ink/60 group-hover:text-ink'}`}>{option.icon}</span>
+<button type="button" onClick={onClick} aria-pressed={selected} className={`group flex min-h-[76px] w-full items-center gap-4 rounded-2xl border p-4 text-left transition-transform duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected ? 'border-[#a9c3ff] bg-[#a9c3ff]/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition ${selected ? 'bg-[#a9c3ff] text-[#10213e]' : 'bg-ink/5 text-ink/70 group-hover:text-ink'}`}>{option.icon}</span>
       <span className={`flex-1 text-sm font-semibold ${selected ? 'text-ink' : 'text-ink/70'}`}>{option.label}</span>
       <span className={`grid h-5 w-5 place-items-center rounded-md border transition ${selected ? 'border-[#a9c3ff] bg-[#a9c3ff] text-[#10213e]' : 'border-ink/20'} ${!multi && selected ? 'rounded-full' : ''}`}>{selected && <Check size={13} strokeWidth={3} />}</span>
     </button>
@@ -189,17 +189,17 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
     <div className="stage-onboarding dark min-h-screen bg-canvas px-4 py-4 text-ink sm:px-8 sm:py-6">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between">
-          <button type="button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 text-ink/60 transition-colors duration-150 hover:border-ink/25 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"><ArrowLeft size={19} /></button>
+          <button type="button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 text-ink/70 transition-transform duration-150 hover:border-ink/25 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"><ArrowLeft size={19} /></button>
           <Logo />
           
           <div className="flex items-center gap-4">
-            <span className="hidden sm:inline-block text-xs font-semibold uppercase tracking-[.16em] text-ink/35">{eyebrow}</span>
+            <span className="hidden sm:inline-block text-xs font-semibold uppercase tracking-[.16em] text-ink/70">{eyebrow}</span>
             <div className="relative">
               <button 
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex min-h-11 items-center gap-1.5 rounded-xl border border-ink/10 bg-panel px-3 text-xs font-bold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-500"
+                className="flex min-h-11 items-center gap-1.5 rounded-xl border border-ink/10 bg-panel px-3 text-xs font-bold text-ink hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"
               >
-                <Globe size={14} className="text-teal-600" />
+                <Globe size={14} className="text-indigo-600" />
                 {lang}
               </button>
               {showLangMenu && (
@@ -208,7 +208,7 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
                     <button
                       key={l}
                       onClick={() => { setLang(l); setShowLangMenu(false); }}
-                      className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors ${lang === l ? 'bg-teal-500/10 text-teal-600' : 'text-ink/70 hover:bg-ink/5'}`}
+                      className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition-transform duration-150 ${lang === l ? 'bg-indigo-500/10 text-indigo-600' : 'text-ink/70 hover:bg-ink/5'}`}
                     >
                       {l === 'ES' ? 'Español' : l === 'EN' ? 'English' : 'Português'}
                     </button>
@@ -222,16 +222,16 @@ function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: Re
           <aside className="hidden lg:block">
             <div className="sticky top-12">
               <h2 className="font-display text-2xl font-extrabold tracking-[-.025em]">Configura tu espacio</h2>
-              <p className="mt-3 text-sm leading-6 text-ink/55">Cuatro decisiones breves para adaptar Stage a tu forma de atender.</p>
-              <ul className="mt-8 space-y-5 text-sm text-ink/55">
-                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Tus respuestas se guardan en tu cuenta.</li>
-                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Elegir un canal no lo conecta todavía.</li>
-                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-teal-600" />Podrás cambiar esta información después.</li>
+              <p className="mt-3 text-sm leading-6 text-ink/70">Cuatro decisiones breves para adaptar Stage a tu forma de atender.</p>
+              <ul className="mt-8 space-y-5 text-sm text-ink/70">
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-indigo-600" />Tus respuestas se guardan en tu cuenta.</li>
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-indigo-600" />Elegir un canal no lo conecta todavía.</li>
+                <li className="flex gap-3"><Check size={17} className="mt-0.5 shrink-0 text-indigo-600" />Podrás cambiar esta información después.</li>
               </ul>
             </div>
           </aside>
           <main className="min-w-0 rounded-2xl bg-panel p-5 shadow-[0_24px_70px_-56px_rgba(15,23,42,.65)] sm:p-8 lg:p-10">
-            <div className="mb-5 text-xs font-bold uppercase tracking-[.14em] text-ink/40 lg:hidden">{eyebrow}</div>
+            <div className="mb-5 text-xs font-bold uppercase tracking-[.14em] text-ink/70 lg:hidden">{eyebrow}</div>
             {children}
           </main>
         </div>
@@ -332,17 +332,17 @@ function Channel({ onNext, onBack, selected, setSelected, lang, setLang }: { onN
       <Progress step={1} />
       <div className="mb-8 max-w-xl">
         <h1 className="text-balance font-display text-3xl font-extrabold tracking-[-.03em] text-ink sm:text-4xl">{t.channelTitle}</h1>
-        <p className="mt-3 text-base leading-7 text-ink/55">{t.channelDesc}</p>
+        <p className="mt-3 text-base leading-7 text-ink/70">{t.channelDesc}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {channels.map(channel => (
-          <button key={channel.name} type="button" aria-pressed={selected === channel.name} onClick={() => setSelected(channel.name)} className={`flex min-h-[126px] flex-col items-start rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected === channel.name ? 'border-[#a9c3ff] bg-[#a9c3ff]/[.07]' : 'border-ink/10 bg-canvas/55 hover:border-ink/25'}`}>
+          <button key={channel.name} type="button" aria-pressed={selected === channel.name} onClick={() => setSelected(channel.name)} className={`flex min-h-[126px] flex-col items-start rounded-2xl border p-4 text-left transition-transform duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected === channel.name ? 'border-[#a9c3ff] bg-[#a9c3ff]/[.07]' : 'border-ink/10 bg-canvas/55 hover:border-ink/25'}`}>
             <span className="flex w-full items-start justify-between gap-3">
               <span className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${channel.tone}`}>{channel.icon}</span>
-              <span className={`text-xs font-bold ${selected === channel.name ? 'text-[#adc5ff]' : 'text-ink/55'}`}>{selected === channel.name ? t.connected : t.connect}</span>
+              <span className={`text-xs font-bold ${selected === channel.name ? 'text-[#adc5ff]' : 'text-ink/70'}`}>{selected === channel.name ? t.connected : t.connect}</span>
             </span>
             <span className="mt-4 block font-display text-base font-bold text-ink">{channel.name}</span>
-            <span className="mt-1 block text-xs leading-5 text-ink/48">{channel.detail}</span>
+            <span className="mt-1 block text-xs leading-5 text-ink/70">{channel.detail}</span>
           </button>
         ))}
       </div>
@@ -410,12 +410,12 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
       <Progress step={step + 1} />
       <div className="mb-8">
         <h1 className="text-balance font-display text-3xl font-extrabold tracking-[-.03em] text-ink sm:text-4xl">{t.title}</h1>
-        <p className="mt-3 max-w-lg text-base leading-7 text-ink/55">{subtitle}</p>
+        <p className="mt-3 max-w-lg text-base leading-7 text-ink/70">{subtitle}</p>
       </div>
       {step === 1 && (
         <label className="mb-7 block">
-          <span className="mb-2 block text-sm text-ink/60">{t.qName}</span>
-          <input value={name} onChange={e => setName(e.target.value)} className="min-h-12 w-full rounded-xl border border-ink/10 bg-canvas/55 px-4 text-ink outline-none transition-colors duration-150 placeholder:text-ink/30 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/15" placeholder={t.qNamePlaceholder} />
+          <span className="mb-2 block text-sm text-ink/70">{t.qName}</span>
+          <input value={name} onChange={e => setName(e.target.value)} className="min-h-12 w-full rounded-xl border border-ink/10 bg-canvas/55 px-4 text-ink outline-none transition-transform duration-150 placeholder:text-ink/70 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" placeholder={t.qNamePlaceholder} />
         </label>
       )}
       <h2 className="mb-4 font-display text-xl font-bold text-ink">{title}</h2>
@@ -498,13 +498,13 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
         <h1 className="font-display text-2xl font-bold">Tu espacio de trabajo</h1>
         {workspaceError ? (
           <>
-            <p role="alert" className="mt-3 text-sm leading-6 text-ink/65">{workspaceError}</p>
+            <p role="alert" className="mt-3 text-sm leading-6 text-ink/70">{workspaceError}</p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button type="button" onClick={() => { setWorkspaceError(''); setWorkspaceRetry((retry) => retry + 1); }} className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
-              <button type="button" onClick={onLogout} className="min-h-11 rounded-xl border border-ink/15 px-5 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Cerrar sesión</button>
+              <button type="button" onClick={() => { setWorkspaceError(''); setWorkspaceRetry((retry) => retry + 1); }} className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Reintentar</button>
+              <button type="button" onClick={onLogout} className="min-h-11 rounded-xl border border-ink/15 px-5 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Cerrar sesión</button>
             </div>
           </>
-        ) : <p role="status" className="mt-3 text-sm text-ink/65">Cargando los datos de tu empresa...</p>}
+        ) : <p role="status" className="mt-3 text-sm text-ink/70">Cargando los datos de tu empresa...</p>}
       </div>
     </main>
   );
@@ -529,20 +529,20 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
       <motion.div layout="position" transition={{ layout: reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.32, 0.72, 0, 1] } }} className="min-w-0 flex-1 pb-24 lg:pb-0">
         <DashboardTopBar workspace={workspace} identity={identity} onOpenSettings={() => setShowSettings(true)} />
 
-        <header className="hidden h-20 items-center justify-between border-b border-ink/8 bg-panel/70 px-8 lg:flex xl:px-10">
+        <header className="stage-workspace-toolbar hidden h-20 items-center justify-between border-b border-ink/8 bg-panel/70 px-8 lg:flex xl:px-10">
           <div>
-            <p className="text-xs font-semibold text-ink/55">{workspace.name}</p>
-            <h1 className="mt-1 font-display text-xl font-extrabold tracking-[-.02em]">{pageTitle}</h1>
+            <p className="text-xs font-semibold text-ink/70">{workspace.name}</p>
+            <p className="mt-1 font-display text-sm font-semibold tracking-[-.02em]">{pageTitle}</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex min-h-9 items-center gap-2 rounded-xl bg-ink/5 px-3 text-xs font-semibold text-ink/55">
+            <span className="inline-flex min-h-9 items-center gap-2 rounded-xl bg-ink/5 px-3 text-xs font-semibold text-ink/70">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
               Configuración pendiente
             </span>
             <button
               type="button"
               onClick={() => setShowChannels(true)}
-              className="inline-flex min-h-10 items-center rounded-xl border border-ink/10 bg-panel px-4 text-sm font-bold text-ink/70 transition-colors duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+              className="inline-flex min-h-10 items-center rounded-xl border border-ink/10 bg-panel px-4 text-sm font-bold text-ink/70 transition-transform duration-150 hover:bg-ink/5 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             >
               Canales
             </button>
@@ -846,34 +846,34 @@ function App() {
         <div className="flex items-center gap-3"><Logo /><span className="rounded-full bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200">Configuración requerida</span></div>
         <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">El acceso está temporalmente fuera de servicio.</h1>
         <p className="mt-3 leading-7 text-slate-300">Faltan las variables públicas de Supabase en este despliegue. No se creó ninguna sesión ni dato de demostración.</p>
-        <a href="https://stagelaboratories.com/contact" className="mt-7 flex min-h-12 items-center justify-center rounded-xl bg-teal-300 px-5 font-bold text-[#07131f]">Contactar a Stage AI Labs</a>
+        <a href="https://stagelaboratories.com/contact" className="mt-7 flex min-h-12 items-center justify-center rounded-xl bg-indigo-300 px-5 font-bold text-[#07131f]">Contactar a Stage AI Labs</a>
       </section>
     </main>
   );
 
-  if (loading) return <main role="status" aria-live="polite" className="fixed inset-0 grid place-items-center bg-[#172c43] bg-[radial-gradient(ellipse_at_30%_25%,#416077,transparent_65%)] px-5 text-white"><div className="flex flex-col items-center gap-5"><Logo /><div aria-hidden="true" className="h-8 w-8 rounded-full border-2 border-white/20 border-t-teal-300 motion-safe:animate-spin" /><p className="text-sm font-medium text-white/80">Cargando tu espacio...</p></div></main>;
+  if (loading) return <main role="status" aria-live="polite" className="fixed inset-0 grid place-items-center bg-[#090d15] px-5 text-white"><div className="flex flex-col items-center gap-5"><Logo /><div aria-hidden="true" className="h-8 w-8 rounded-full border-2 border-white/20 border-t-indigo-200 motion-safe:animate-spin" /><p className="text-sm font-medium text-white/80">Cargando tu espacio...</p></div></main>;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
-      <section className="w-full max-w-lg rounded-2xl border border-ink/10 bg-white p-7 shadow-xl dark:bg-zinc-900">
+      <section className="w-full max-w-lg rounded-[28px] border border-ink/15 bg-panel p-7">
         <Logo />
         <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">
           {invitationError ? 'Problema con la invitación' : 'No pudimos abrir tu espacio.'}
         </h1>
-        <p role="alert" className="mt-3 leading-7 text-ink/60">{authError}</p>
+        <p role="alert" className="mt-3 leading-7 text-ink/70">{authError}</p>
         {invitationError ? (
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={handleDiscardInviteAndContinue}
-              className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+              className="flex min-h-12 flex-1 items-center justify-center rounded-full bg-brand px-5 font-bold text-brand-ink transition-transform duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             >
               {invitationError.type === 'workspace' ? 'Continuar a mi espacio' : 'Descartar invitación y crear mi propio espacio'}
             </button>
             <button
               type="button"
               onClick={handleSwitchAccount}
-              className="flex min-h-12 items-center justify-center rounded-xl border border-ink/20 px-5 font-bold text-ink transition hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 dark:hover:bg-white/5"
+              className="flex min-h-12 items-center justify-center rounded-xl border border-ink/20 px-5 font-bold text-ink transition hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:hover:bg-white/5"
             >
               {invitationError.type === 'mismatch' ? 'Iniciar con la cuenta invitada' : 'Cambiar de cuenta'}
             </button>
@@ -883,14 +883,14 @@ function App() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="min-h-12 rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+              className="min-h-12 rounded-full bg-brand px-5 font-bold text-brand-ink transition-transform duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             >
               Reintentar
             </button>
             <button
               type="button"
               onClick={handleSwitchAccount}
-              className="min-h-12 rounded-xl border border-ink/20 px-5 font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+              className="min-h-12 rounded-xl border border-ink/20 px-5 font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             >
               Cambiar de cuenta
             </button>

@@ -53,18 +53,22 @@ export function SettingsScreen({
   const activeItem = navGroups.flatMap((group) => group.items).find((item) => item.key === active);
   const plan = STAGE_PLANS.find((item) => item.id === workspace.planCode);
   const currentPlan = planLabel(workspace.planCode);
+  const selectSection = (key: SettingKey) => {
+    setActive(key);
+    document.getElementById('settings-content')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  };
 
-  return <div className="mx-auto w-full max-w-6xl pb-24 text-ink lg:pb-8">
+  return <div className="stage-settings mx-auto w-full max-w-6xl pb-24 text-ink lg:pb-8">
     <div className="sticky top-0 z-20 flex items-center gap-3 bg-canvas/95 px-1 py-3 lg:hidden">
-      <button id="settings-back-button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl text-ink hover:bg-panel focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600"><ArrowLeft size={21} /></button>
+      <button id="settings-back-button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl text-ink hover:bg-panel focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600"><ArrowLeft size={21} /></button>
       <h1 className="font-display text-2xl font-bold tracking-tight">Configuración</h1>
     </div>
 
     <div className="grid gap-5 px-1 pt-2 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8">
-      <nav aria-label="Secciones de configuración" className="self-start rounded-2xl border border-ink/10 bg-panel p-2 lg:sticky lg:top-4">
+      <nav aria-label="Secciones de configuración" className="stage-settings-navigation self-start rounded-2xl border border-ink/10 bg-panel p-2 lg:sticky lg:top-4">
         {navGroups.map((group) => <div key={group.label} className="mb-3 grid grid-cols-2 gap-1 last:mb-0 lg:block">
-          <h2 className="col-span-2 px-3 pb-1 pt-3 text-xs font-bold text-ink/55 lg:col-span-1">{group.label}</h2>
-          {group.items.map(({ key, label, icon: Icon }) => <button key={key} type="button" aria-current={active === key ? 'page' : undefined} onClick={() => setActive(key)} className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl px-2.5 text-left text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600 sm:gap-3 sm:px-3 sm:text-sm lg:mb-1 ${active === key ? 'bg-teal-500/10 text-teal-800 dark:text-teal-200' : 'text-ink/75 hover:bg-ink/5'}`}>
+          <h2 className="col-span-2 px-3 pb-1 pt-3 text-xs font-bold text-ink/70 lg:col-span-1">{group.label}</h2>
+          {group.items.map(({ key, label, icon: Icon }) => <button key={key} type="button" aria-current={active === key ? 'page' : undefined} onClick={() => selectSection(key)} className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl px-2.5 text-left text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-indigo-600 sm:gap-3 sm:px-3 sm:text-sm lg:mb-1 ${active === key ? 'bg-indigo-500/10 text-indigo-800 dark:text-indigo-200' : 'text-ink/75 hover:bg-ink/5'}`}>
             <Icon aria-hidden="true" size={17} className="shrink-0" /><span className="min-w-0">{label}</span>
           </button>)}
         </div>)}
@@ -72,8 +76,7 @@ export function SettingsScreen({
 
       <section id="settings-content" aria-labelledby="settings-section-title" className="min-w-0">
         <header className="mb-5 border-b border-ink/10 pb-4">
-          <p className="text-sm text-ink/55">{workspace.name}</p>
-          <h2 id="settings-section-title" className="mt-1 font-display text-2xl font-bold tracking-tight text-ink">{activeItem?.label}</h2>
+          <h2 id="settings-section-title" className="font-display text-2xl font-bold tracking-tight text-ink">{activeItem?.label}</h2>
         </header>
 
         {active === 'general' && <div className="space-y-5">
@@ -83,29 +86,29 @@ export function SettingsScreen({
             <h3 id="personal-identity-title" className="text-base font-bold">Perfil personal</h3>
             <div className="mt-4 flex items-center gap-3">
               <AccountAvatar identity={identity} className="h-11 w-11" />
-              <div className="min-w-0"><p className="truncate text-sm font-semibold">{identity.name}</p>{identity.email && <p className="truncate text-sm text-ink/60">{identity.email}</p>}<p className="text-xs text-ink/55">Inicio de sesión con {providerLabel(identity.provider)}</p></div>
+              <div className="min-w-0"><p className="truncate text-sm font-semibold">{identity.name}</p>{identity.email && <p className="truncate text-sm text-ink/70">{identity.email}</p>}<p className="text-xs text-ink/70">Inicio de sesión con {providerLabel(identity.provider)}</p></div>
             </div>
-            <button id="settings-logout-row" type="button" onClick={onLogout} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink/80 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><LogOut size={16} />Cerrar sesión</button>
+            <button id="settings-logout-row" type="button" onClick={onLogout} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink/80 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><LogOut size={16} />Cerrar sesión</button>
           </section>
           <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
-            <h3 className="text-base font-bold">Apariencia</h3><p className="mt-1 text-sm text-ink/60">Esta preferencia se aplica solo a tu sesión.</p>
+            <h3 className="text-base font-bold">Apariencia</h3><p className="mt-1 text-sm text-ink/70">Esta preferencia se aplica solo a tu sesión.</p>
             <label htmlFor="settings-theme" className="mt-5 block text-sm font-semibold">Tema</label>
-            <select id="settings-theme" value={themePref} onChange={(event) => updateTheme(event.target.value as ThemePref)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:max-w-sm">
+            <select id="settings-theme" value={themePref} onChange={(event) => updateTheme(event.target.value as ThemePref)} className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-panel px-3 text-sm text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:max-w-sm">
               <option value="system">Sistema</option><option value="light">Claro</option><option value="dark">Oscuro</option>
             </select>
-            <p className="mt-2 text-xs text-ink/55">Tema actual: {themeLabel}</p>
+            <p className="mt-2 text-xs text-ink/70">Tema actual: {themeLabel}</p>
           </section>
         </div>}
 
         {active === 'plan' && <div className="space-y-5">
           <section className="rounded-2xl border border-ink/10 bg-panel p-5 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div><p className="text-sm text-ink/60">Plan asignado al espacio</p><h3 className="mt-1 text-2xl font-bold">{currentPlan}</h3></div>
-              <button id="settings-upgrade-plan-row" type="button" onClick={onOpenUpgrade} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"><Sparkles size={16} />Ver planes</button>
+              <div><p className="text-sm text-ink/70">Plan asignado al espacio</p><h3 className="mt-1 text-2xl font-bold">{currentPlan}</h3></div>
+              <button id="settings-upgrade-plan-row" type="button" onClick={onOpenUpgrade} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-brand-ink hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><Sparkles size={16} />Ver planes</button>
             </div>
             <div className="mt-5 grid gap-3 border-t border-ink/10 pt-5 sm:grid-cols-2">
-              <div><p className="text-xs text-ink/55">Canales permitidos</p><p className="mt-1 text-sm font-semibold">Hasta {workspace.maxConnectedChannels}</p></div>
-              <div><p className="text-xs text-ink/55">Miembros incluidos</p><p className="mt-1 text-sm font-semibold">{plan?.seats ?? 'Según el plan'}</p></div>
+              <div><p className="text-xs text-ink/70">Canales permitidos</p><p className="mt-1 text-sm font-semibold">Hasta {workspace.maxConnectedChannels}</p></div>
+              <div><p className="text-xs text-ink/70">Miembros incluidos</p><p className="mt-1 text-sm font-semibold">{plan?.seats ?? 'Según el plan'}</p></div>
             </div>
           </section>
           <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-900 dark:text-amber-200">
@@ -118,19 +121,19 @@ export function SettingsScreen({
 
         {active === 'team' && <TeamSettings workspace={workspace} userId={profile.id} />}
 
-        {active === 'inbox' && <div className="space-y-4"><p className="text-sm text-ink/60">Ajusta el flujo esperado de atención. Puedes guardar un borrador local mientras terminamos la conexión con Inbox.</p><InboxBehaviorSettings organizationId={workspace.organizationId} /></div>}
+        {active === 'inbox' && <div className="space-y-4"><p className="text-sm text-ink/70">Ajusta el flujo esperado de atención. Puedes guardar un borrador local mientras terminamos la conexión con Inbox.</p><InboxBehaviorSettings organizationId={workspace.organizationId} /></div>}
 
         {active === 'assignment' && <AutoAssignmentSettings workspace={workspace} userId={profile.id} preview={preview} />}
 
         <section className="mt-6 border-t border-ink/10 pt-4">
-          <h3 className="text-xs font-bold text-ink/55">Ayuda y legal</h3>
+          <h3 className="text-xs font-bold text-ink/70">Ayuda y legal</h3>
           <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <a href="https://stagelaboratories.com/security" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-ink/70 underline-offset-4 hover:text-ink hover:underline"><ShieldCheck size={16} />Centro de seguridad</a>
             <a href="https://stagelaboratories.com/privacidad" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-ink/70 underline-offset-4 hover:text-ink hover:underline"><FileText size={16} />Política de privacidad</a>
-            <span className="inline-flex min-h-11 items-center gap-2 text-ink/55"><LifeBuoy size={16} />Centro de ayuda en preparación</span>
+            <span className="inline-flex min-h-11 items-center gap-2 text-ink/70"><LifeBuoy size={16} />Centro de ayuda en preparación</span>
           </div>
         </section>
-        <p className="mt-6 text-center text-xs text-ink/45">Stage AI Labs</p>
+        <p className="mt-6 text-center text-xs text-ink/70">Stage AI Labs</p>
       </section>
     </div>
   </div>;

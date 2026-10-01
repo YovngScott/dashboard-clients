@@ -120,7 +120,7 @@ export function PrivacyPreferencesModal({ isOpen, onClose, onSave }: PrivacyPref
               <button
                 type="button"
                 onClick={() => setAdvertising(!advertising)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                   advertising ? 'bg-emerald-500' : 'bg-zinc-700'
                 }`}
               >
@@ -163,7 +163,7 @@ export function PrivacyPreferencesModal({ isOpen, onClose, onSave }: PrivacyPref
               <button
                 type="button"
                 onClick={() => setAnalytics(!analytics)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors p-0.5 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-transform duration-150 p-0.5 ${
                   analytics ? 'bg-emerald-500' : 'bg-zinc-700'
                 }`}
               >
