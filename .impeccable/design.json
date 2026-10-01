@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T19:39:55Z",
+  "title": "Design System: Stage AI Labs Client Workspace",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "canvas",
+        "canonical": "rgb(9 13 21)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "panel",
+        "canonical": "rgb(19 25 37)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "panel-2": {
+        "role": "neutral",
+        "displayName": "panel 2",
+        "canonical": "rgb(28 35 51)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "ink",
+        "canonical": "rgb(240 243 250)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "brand": {
+        "role": "primary",
+        "displayName": "brand",
+        "canonical": "rgb(187 198 255)",
+        "tonalRamp": [
+          "oklch(0.15 0.085 265)",
+          "oklch(0.25 0.085 265)",
+          "oklch(0.35 0.085 265)",
+          "oklch(0.45 0.085 265)",
+          "oklch(0.58 0.085 265)",
+          "oklch(0.7 0.085 265)",
+          "oklch(0.83 0.085 265)",
+          "oklch(0.95 0.085 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "brand-ink": {
+        "role": "neutral",
+        "displayName": "brand ink",
+        "canonical": "rgb(21 27 47)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "glass": {
+        "role": "neutral",
+        "displayName": "glass",
+        "canonical": "rgba(28,35,51,.78)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "line",
+        "canonical": "rgba(220,228,255,.16)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "field",
+        "canonical": "#0f1521",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "muted",
+        "canonical": "#b0b9cb",
+        "tonalRamp": [
+          "oklch(0.15 0.015 265)",
+          "oklch(0.25 0.015 265)",
+          "oklch(0.35 0.015 265)",
+          "oklch(0.45 0.015 265)",
+          "oklch(0.58 0.015 265)",
+          "oklch(0.7 0.015 265)",
+          "oklch(0.83 0.015 265)",
+          "oklch(0.95 0.015 265)"
+        ],
+        "note": "Dark-theme source sample; ramp is synthesized for inspection, not a production palette."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Workspace title",
+        "purpose": "Task-focused overview title."
+      },
+      "title": {
+        "displayName": "Task heading",
+        "purpose": "Empty-state and operational headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Readable operational text and controls."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Visible fields and secondary labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "navigation-dark",
+        "value": "0 24px 70px -32px #000a",
+        "purpose": "Floating navigation and dialogs in dark mode."
+      },
+      {
+        "name": "navigation-light",
+        "value": "0 20px 60px -32px #25335440",
+        "purpose": "Equivalent ambient separation in light mode."
+      }
+    ],
+    "motion": [
+      {
+        "name": "sidebar-label",
+        "value": "180ms cubic-bezier(.23,1,.32,1)",
+        "purpose": "Bounded opacity/translation during collapse."
+      },
+      {
+        "name": "sidebar-position",
+        "value": "260ms cubic-bezier(.32,.72,0,1)",
+        "purpose": "Sidebar positional layout change."
+      },
+      {
+        "name": "access-indicator",
+        "value": "spring: duration .25s, bounce .1",
+        "purpose": "Auth selected mode; zero duration under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-overview",
+        "value": "1150px"
+      },
+      {
+        "name": "mobile-workspace",
+        "value": "1023px"
+      },
+      {
+        "name": "mobile-builder",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Builder and plan actions preserve disabled and focus semantics.",
+      "html": "<button class=\"ds-app-primary\" type=\"button\">Continuar</button>",
+      "css": ".ds-app-primary{font-family:'DM Sans',sans-serif;font-size:14px;min-height:44px;padding:0 20px;border:0;border-radius:999px;background:rgb(var(--c-brand,187 198 255));color:rgb(var(--c-brand-ink,21 27 47));font-weight:700;cursor:pointer}.ds-app-primary:focus-visible{outline:2px solid rgb(var(--c-brand,187 198 255));outline-offset:3px;}.ds-app-primary:disabled{opacity:.5;cursor:not-allowed}@media(hover:hover) and (pointer:fine){.ds-app-primary:not(:disabled):hover{filter:brightness(.95)}}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "description": "Quiet bordered workspace action.",
+      "html": "<button class=\"ds-app-secondary\" type=\"button\">Cerrar sesión</button>",
+      "css": ".ds-app-secondary{font-family:'DM Sans',sans-serif;font-size:14px;min-height:44px;padding:0 16px;border:1px solid rgb(var(--c-ink,240 243 250)/.15);border-radius:12px;background:transparent;color:rgb(var(--c-ink,240 243 250)/.8);font-weight:600;cursor:pointer}.ds-app-secondary:focus-visible{outline:2px solid rgb(var(--c-brand,187 198 255));outline-offset:3px;}@media(hover:hover) and (pointer:fine){.ds-app-secondary:hover{background:rgb(var(--c-ink,240 243 250)/.05)}}"
+    },
+    {
+      "name": "Business field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Real labeled builder field with final hardened boundary.",
+      "html": "<label class=\"ds-app-field-label\">Nombre de la empresa<input class=\"ds-app-field\" placeholder=\"Nombre comercial\" /></label>",
+      "css": ".ds-app-field-label{font-family:'DM Sans',sans-serif;font-size:14px;display:block;color:rgb(var(--c-ink,240 243 250)/.7);font-weight:700}.ds-app-field{display:block;margin-top:8px;min-height:48px;padding:12px 14px;border:1px solid rgb(var(--c-ink,240 243 250)/.52);border-radius:12px;background:var(--stage-field,#0f1521);color:rgb(var(--c-ink,240 243 250));font-family:'DM Sans',sans-serif;font-size:14px}.ds-app-field::placeholder{color:var(--stage-muted,#b0b9cb);opacity:1}.ds-app-field:focus-visible{outline:2px solid rgb(var(--c-brand,187 198 255));outline-offset:3px;}"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Floating rail with an explicit current destination.",
+      "html": "<nav class=\"ds-app-nav\" aria-label=\"Workspace\"><button class=\"ds-app-nav-item\" aria-current=\"page\">Inicio</button><button class=\"ds-app-nav-item\">Agentes</button></nav>",
+      "css": ".ds-app-nav{width:224px;padding:12px;border:1px solid var(--stage-line,rgba(220,228,255,.16));border-radius:26px;background:var(--stage-glass,rgba(28,35,51,.78));backdrop-filter:blur(28px) saturate(130%);box-shadow:var(--stage-shadow,0 24px 70px -32px #000a),inset 0 1px #ffffff18}.ds-app-nav-item{font-family:'DM Sans',sans-serif;font-size:14px;display:block;width:100%;min-height:48px;padding:0 12px;border:1px solid transparent;border-radius:14px;background:transparent;color:rgb(var(--c-ink,240 243 250)/.75);font-weight:550;text-align:left;cursor:pointer}.ds-app-nav-item[aria-current=page]{color:rgb(var(--c-ink,240 243 250));background:rgb(var(--c-ink,240 243 250)/.085);box-shadow:inset 0 1px rgb(var(--c-ink,240 243 250)/.16),0 4px 12px #0001;border-color:rgb(var(--c-ink,240 243 250)/.14)}.ds-app-nav-item:focus-visible{outline:2px solid rgb(var(--c-brand,187 198 255));outline-offset:3px;}@media(hover:hover) and (pointer:fine){.ds-app-nav-item:hover{background:rgb(var(--c-ink,240 243 250)/.055)}}@media(prefers-reduced-transparency:reduce){.ds-app-nav{backdrop-filter:none;background:rgb(var(--c-panel-2,28 35 51))}}"
+    },
+    {
+      "name": "Operational panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Opaque information region; no implied connection.",
+      "html": "<section class=\"ds-app-panel\"><h2 class=\"ds-app-panel-title\">Apariencia</h2><p class=\"ds-app-panel-copy\">Esta preferencia se aplica solo a tu sesión.</p></section>",
+      "css": ".ds-app-panel{padding:28px;border:1px solid var(--stage-line,rgba(220,228,255,.16));border-radius:28px;background:rgb(var(--c-panel,19 25 37));color:rgb(var(--c-ink,240 243 250));box-shadow:inset 0 1px rgb(var(--c-ink,240 243 250)/.035)}.ds-app-panel-title{margin:0;font-family:'Manrope',sans-serif;font-size:16px;font-weight:600;letter-spacing:-.035em}.ds-app-panel-copy{font-family:'DM Sans',sans-serif;font-size:14px;margin:4px 0 0;line-height:1.5;color:rgb(var(--c-ink,240 243 250)/.7)}"
+    },
+    {
+      "name": "Access step chips",
+      "kind": "chip",
+      "description": "Static descriptive steps, not connection status.",
+      "html": "<div class=\"ds-app-chips\"><span class=\"ds-app-chip\">Configura</span><span class=\"ds-app-chip\">Conecta</span><span class=\"ds-app-chip\">Activa</span></div>",
+      "css": ".ds-app-chips{display:flex;flex-wrap:wrap;gap:10px}.ds-app-chip{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;border:1px solid #ffffff35;border-radius:999px;background:#ffffff0b;padding:10px 14px;color:#e8edf9}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Precision in glass",
+    "overview": "Stage is an operational B2B workspace, not a consumer chatbot. Dark access scenes establish the brand; a light, dark or system-controlled workspace gives owners and invited employees legible task-focused content. The implemented system pairs Manrope headings with DM Sans body text. The user-pinned Apple-inspired direction describes a functional CSS material approximation, not Apple's native glass API.\n\nGlass separates navigation and selected controls from solid working surfaces. The interface communicates real account, channel, billing and agent states; material richness never implies a completed integration. Surface composition and dials remain in DESIGN-WORKSPACE.md.",
+    "keyCharacteristics": [
+      "Translucent navigation above opaque content.",
+      "Restrained indigo signal, explicit operational state.",
+      "Compact readable controls inside generous rounded containers.",
+      "Theme-aware tokens and reduced-transparency alternatives."
+    ],
+    "rules": [
+      {
+        "name": "The State Before Shine Rule",
+        "body": "Communicate current state in words and semantics; never use an accent or glass treatment as evidence of activation or connection.",
+        "section": "colors"
+      },
+      {
+        "name": "The Task Title Rule",
+        "body": "Name the current operation directly; do not precede headings with invented marketing eyebrows.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Material Plane Rule",
+        "body": "Navigation refracts; content stays readable. Do not stack translucent text surfaces.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do retain semantic light/dark/system tokens and solid reduced-transparency alternatives.",
+      "Do keep navigation material distinct from readable operational content.",
+      "Do preserve fields, providers, permissions, billing, legal and pending-integration states.",
+      "Do verify focus, keyboard operation, responsive reflow and rendered readable contrast."
+    ],
+    "donts": [
+      "Don't invent metrics, customer logos, certifications, backend connections or activation claims.",
+      "Don't change the logo, existing navigation, routes or analytics without authorization.",
+      "Don't add continuous decorative motion, neon purple meshes or stacked translucent text cards.",
+      "Don't claim AA certification or measured Core Web Vitals from visual inspection alone."
+    ]
+  }
+}
