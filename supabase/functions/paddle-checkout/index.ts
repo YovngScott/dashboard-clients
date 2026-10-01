@@ -102,14 +102,34 @@ Deno.serve(async (request) => {
     } catch {
       // Paddle can return an empty non-JSON body during an upstream incident.
     }
-    const errors = Array.isArray((paddleError as { errors?: unknown })?.errors)
-      ? (paddleError as { errors: Array<{ code?: unknown; field?: unknown; detail?: unknown }> }).errors.map(({ code, field, detail }) => ({
+    const payload = paddleError && typeof paddleError === 'object' ? paddleError as Record<string, unknown> : null;
+    const errorList = Array.isArray(payload?.errors)
+      ? payload.errors
+      : Array.isArray((payload?.error as { errors?: unknown } | undefined)?.errors)
+        ? (payload?.error as { errors: unknown[] }).errors
+        : [];
+    const errors = errorList.map((entry) => {
+      const error = entry && typeof entry === 'object' ? entry as Record<string, unknown> : {};
+      const code = error.code;
+      const field = error.field;
+      const detail = error.detail;
+      return {
         code: typeof code === 'string' ? code : undefined,
         field: typeof field === 'string' ? field : undefined,
         detail: typeof detail === 'string' ? detail.slice(0, 500) : undefined,
-      }))
-      : undefined;
-    console.error('Paddle transaction creation failed', { status: paddleResponse.status, errors });
+      };
+    });
+    console.error('Paddle transaction creation failed', {
+      status: paddleResponse.status,
+      payloadKeys: payload ? Object.keys(payload) : [],
+      errorCode: typeof (payload?.error as { code?: unknown } | undefined)?.code === 'string'
+        ? (payload?.error as { code: string }).code
+        : undefined,
+      errorDetail: typeof (payload?.error as { detail?: unknown } | undefined)?.detail === 'string'
+        ? (payload?.error as { detail: string }).detail.slice(0, 500)
+        : undefined,
+      errors,
+    });
     return respond({ error: 'Could not create checkout transaction' }, 502);
   }
   const paddle = await paddleResponse.json();
