@@ -13,4 +13,4 @@ export const STAGE_PLANS: StagePlan[] = [
   { id: 'infinity', name: 'Infinity', price: 149, audience: 'Para operación crítica', summary: 'Capacidad para equipos que ya no pueden depender de tareas manuales.', capacity: 'Contactos activos ilimitados', emailLimit: '250.000 correos al mes', seats: '15 usuarios incluidos', channels: 'Todos los canales', extraSeat: '$3 / mes por usuario extra' },
 ];
 
-export const STAGE_CHANNELS = ['WhatsApp', 'Instagram', 'TikTok', 'Telegram', 'Facebook', 'Gmail', 'Outlook', 'Voice AI'] as const;
+export const STAGE_CHANNELS = ['WhatsApp', 'Instagram', 'TikTok', 'Telegram', 'Facebook', 'Gmail', 'Outlook'] as const;

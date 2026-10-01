@@ -4,7 +4,7 @@ import { Mail, X, ArrowRight, CheckCircle2, Eye, EyeOff, Globe, ChevronDown, Che
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleIcon, FacebookIcon } from './SocialIcons';
 import { getAuthRedirectUrl, supabase } from '@/lib/supabase';
-import { authErrorMessage, normalizeEmail, validateDisplayName, validatePassword } from '@/lib/auth-validation';
+import { authErrorMessage, normalizeEmail, validateDisplayName, validateEmail, validatePassword } from '@/lib/auth-validation';
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
 import { clearPendingTeamInvite, pendingTeamInvite } from '@/lib/team-invite-link';
 import { Profile } from '../types';
@@ -275,10 +275,11 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
     setError('');
     setNotice('');
     const normalizedEmail = normalizeEmail(email);
+    const emailError = validateEmail(email);
     const nameError = tab === 'signup' && !invitationPending ? validateDisplayName(name) : null;
     const passwordError = tab === 'signup' ? validatePassword(password) : null;
-    if (nameError || passwordError) {
-      setError(nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
+    if (emailError || nameError || passwordError) {
+      setError(emailError ?? nameError ?? passwordError ?? 'Revisa los datos e inténtalo de nuevo.');
       return;
     }
     if (!turnstileSiteKey || !captchaToken) {

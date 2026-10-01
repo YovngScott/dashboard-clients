@@ -42,11 +42,29 @@ function firstText(...values: unknown[]): string | null {
   return null;
 }
 
-function safeAvatar(value: unknown): string | null {
+export function safeAvatar(value: unknown): string | null {
   if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 2048) return null;
   try {
-    const url = new URL(value);
-    return url.protocol === 'https:' ? url.toString() : null;
+    const url = new URL(trimmed);
+    if (url.protocol !== 'https:') return null;
+    if (url.username || url.password) return null;
+    const hostname = url.hostname.toLowerCase();
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('172.16.') ||
+      hostname.startsWith('169.254.') ||
+      hostname.endsWith('.internal') ||
+      hostname.endsWith('.local')
+    ) {
+      return null;
+    }
+    return url.toString();
   } catch {
     return null;
   }

@@ -1,10 +1,13 @@
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  X-Permitted-Cross-Domain-Policies: none
+  Cross-Origin-Resource-Policy: same-origin
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Permissions-Policy: camera=(self), microphone=(self), geolocation=(), payment=(), usb=()
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), hid=(), magnetometer=(), microphone=(), midi=(), payment=(), screen-wake-lock=(), serial=(), usb=()
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cache-Control: no-cache, no-store, must-revalidate
   Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://cdn.paddle.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://auvbmpfiplwawxqibmmq.supabase.co wss://auvbmpfiplwawxqibmmq.supabase.co https://challenges.cloudflare.com https://cloudflareinsights.com https://*.paddle.com; frame-src https://challenges.cloudflare.com https://*.paddle.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
 /assets/*

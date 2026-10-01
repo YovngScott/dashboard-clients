@@ -6,6 +6,21 @@ import { supabase } from '@/lib/supabase';
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
+async function validateLogoImage(file: File): Promise<void> {
+  if (!LOGO_TYPES.includes(file.type) || file.size > MAX_LOGO_BYTES || file.size < 12) {
+    throw new Error('El logo debe ser PNG, JPG o WebP y pesar hasta 2 MB.');
+  }
+  const header = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const isPng = header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47;
+  const isJpeg = header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
+  const isRiff = header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46;
+  const isWebp = isRiff && header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50;
+
+  if (!isPng && !isJpeg && !isWebp) {
+    throw new Error('El archivo no tiene una firma de imagen válida (PNG, JPG o WebP).');
+  }
+}
+
 export function WorkspaceBrandSettings({ workspace, canEdit, onUpdated }: {
   workspace: WorkspaceContext;
   canEdit: boolean;
@@ -27,7 +42,14 @@ export function WorkspaceBrandSettings({ workspace, canEdit, onUpdated }: {
     event.preventDefault();
     const cleanName = name.trim();
     if (cleanName.length < 2 || cleanName.length > 120) { setError('El nombre debe tener entre 2 y 120 caracteres.'); return; }
-    if (file && (!LOGO_TYPES.includes(file.type) || file.size > MAX_LOGO_BYTES)) { setError('El logo debe ser PNG, JPG o WebP y pesar hasta 2 MB.'); return; }
+    if (file) {
+      try {
+        await validateLogoImage(file);
+      } catch (validationErr) {
+        setError(validationErr instanceof Error ? validationErr.message : 'El logo debe ser PNG, JPG o WebP válido.');
+        return;
+      }
+    }
     setBusy(true); setError(''); setNotice('');
     if (preview) {
       localStorage.setItem('stage-preview-organization-name', cleanName);

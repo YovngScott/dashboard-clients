@@ -33,13 +33,21 @@ Deno.serve(async (request) => {
   const supabaseUrl = env('SUPABASE_URL');
   if (!supabaseUrl || !publishableKey()) return respond({ error: 'server_configuration_incomplete' }, 503);
 
+  const contentLength = Number(request.headers.get('Content-Length') ?? 0);
+  if (Number.isFinite(contentLength) && contentLength > 2048) return respond({ error: 'request_too_large' }, 413);
+
   let body: { organizationId?: string; role?: string };
   try {
     const raw = await request.text();
     if (new TextEncoder().encode(raw).byteLength > 2048) return respond({ error: 'request_too_large' }, 413);
     body = JSON.parse(raw);
   } catch { return respond({ error: 'invalid_request' }, 400); }
-  if (!body.organizationId || !body.role) return respond({ error: 'invalid_request' }, 400);
+
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const allowedRoles = new Set(['admin', 'editor', 'viewer']);
+  if (!body.organizationId || !uuidPattern.test(body.organizationId) || !body.role || !allowedRoles.has(body.role)) {
+    return respond({ error: 'invalid_request' }, 400);
+  }
 
   const caller = createClient(supabaseUrl, publishableKey(), {
     global: { headers: { Authorization: `Bearer ${token}` } },
@@ -52,7 +60,15 @@ Deno.serve(async (request) => {
     invite_email: null,
     invite_role: body.role,
   });
-  if (invitationError) return respond({ error: invitationError.message }, 400);
+  if (invitationError) {
+    const knownErrors = new Set([
+      'authentication_required', 'invalid_email', 'invalid_role',
+      'organization_not_found', 'insufficient_role', 'already_a_member',
+      'invitation_already_pending', 'seat_limit_unavailable', 'seat_limit_reached'
+    ]);
+    const safeError = knownErrors.has(invitationError.message) ? invitationError.message : 'invitation_creation_failed';
+    return respond({ error: safeError }, 400);
+  }
 
   const link = new URL(appUrl);
   link.searchParams.set('invite', invitation.token);

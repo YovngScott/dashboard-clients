@@ -55,10 +55,17 @@ function parseSignature(header: string): { timestamp: string; signatures: string
   return timestamp && signatures.length ? { timestamp, signatures } : null;
 }
 
+const MAX_WEBHOOK_AGE_SECONDS = 300;
+const MAX_PAYLOAD_BYTES = 65_536;
+
 function constantTimeEquals(left: string, right: string): boolean {
-  if (left.length !== right.length) return false;
+  const leftBytes = new TextEncoder().encode(left);
+  const rightBytes = new TextEncoder().encode(right);
+  if (leftBytes.length !== rightBytes.length) return false;
   let mismatch = 0;
-  for (let index = 0; index < left.length; index += 1) mismatch |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    mismatch |= leftBytes[index] ^ rightBytes[index];
+  }
   return mismatch === 0;
 }
 
@@ -76,7 +83,7 @@ async function verifySignature(rawBody: string, header: string | null): Promise<
   const parsed = parseSignature(header);
   if (!parsed) return false;
   const timestamp = Number(parsed.timestamp);
-  if (!Number.isFinite(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > 5) return false;
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > MAX_WEBHOOK_AGE_SECONDS) return false;
 
   const expected = await hmacSha256Hex(secret, `${parsed.timestamp}:${rawBody}`);
   return parsed.signatures.some((signature) => constantTimeEquals(expected, signature));
@@ -85,7 +92,16 @@ async function verifySignature(rawBody: string, header: string | null): Promise<
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: corsHeaders });
 
+  const contentLength = Number(request.headers.get('Content-Length') ?? 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_PAYLOAD_BYTES) {
+    return new Response(JSON.stringify({ error: 'Request is too large' }), { status: 413, headers: corsHeaders });
+  }
+
   const rawBody = await request.text();
+  if (new TextEncoder().encode(rawBody).byteLength > MAX_PAYLOAD_BYTES) {
+    return new Response(JSON.stringify({ error: 'Request is too large' }), { status: 413, headers: corsHeaders });
+  }
+
   if (!(await verifySignature(rawBody, request.headers.get('Paddle-Signature')))) {
     return new Response(JSON.stringify({ error: 'Invalid Paddle signature' }), { status: 401, headers: corsHeaders });
   }

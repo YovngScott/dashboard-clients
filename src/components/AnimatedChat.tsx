@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence, animate, useReducedMotion } from 'motion/react';
-import { Image as ImageIcon, PlusCircle, Phone, Video, ChevronLeft, Mic } from 'lucide-react';
+import { Image as ImageIcon, PlusCircle, ChevronLeft } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -131,10 +131,6 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-5 text-zinc-900">
-          <Phone size={24} strokeWidth={1.5} className="cursor-pointer" />
-          <Video size={26} strokeWidth={1.5} className="cursor-pointer" />
-        </div>
       </div>
 
       {/* Chat Area */}
@@ -262,9 +258,6 @@ export function AnimatedChat({ lang = 'ES' }: { lang?: 'ES' | 'EN' | 'PT' }) {
             <span className="flex-1 text-[12px] text-zinc-400 truncate">
               Mensaje...
             </span>
-            <button className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors">
-              <Mic size={16} strokeWidth={2} />
-            </button>
             <button className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors">
               <ImageIcon size={16} strokeWidth={2} />
             </button>

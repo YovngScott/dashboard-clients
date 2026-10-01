@@ -830,6 +830,8 @@ function App() {
 
   async function handleSwitchAccount() {
     await supabase.auth.signOut();
+    setProfile(null);
+    setIdentity(null);
     setInvitationError(null);
     setAuthError('');
     setScreen('landing');
@@ -937,7 +939,7 @@ function App() {
 
   if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} lang={lang} setLang={setLang} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
 
-  if (profile && identity) return <Dashboard profile={profile} identity={identity} onLogout={async () => { await supabase.auth.signOut(); setIdentity(null); setScreen('landing'); }} />;
+  if (profile && identity) return <Dashboard profile={profile} identity={identity} onLogout={async () => { await supabase.auth.signOut(); setProfile(null); setIdentity(null); setScreen('landing'); }} />;
 
   return null;
 }

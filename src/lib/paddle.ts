@@ -18,9 +18,10 @@ type PaddleInstance = {
 declare global {
   interface Window {
     Paddle?: PaddleInstance;
-    __stagePaddleToken?: string;
   }
 }
+
+let initializedPaddleToken: string | null = null;
 
 const PADDLE_SCRIPT_ID = 'stage-paddle-js';
 const paddleToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN?.trim();
@@ -56,7 +57,7 @@ async function initializePaddle(): Promise<PaddleInstance> {
   if (!paddleToken) throw new Error('Falta el token público de Paddle en esta aplicación.');
 
   const paddle = await loadPaddleScript();
-  if (window.__stagePaddleToken === paddleToken) return paddle;
+  if (initializedPaddleToken === paddleToken) return paddle;
 
   if (paddleEnvironment === 'sandbox') paddle.Environment.set('sandbox');
   paddle.Initialize({
@@ -67,7 +68,7 @@ async function initializePaddle(): Promise<PaddleInstance> {
       }
     },
   });
-  window.__stagePaddleToken = paddleToken;
+  initializedPaddleToken = paddleToken;
   return paddle;
 }
 

@@ -1,6 +1,19 @@
+const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
 /** Client-side guardrails only. Supabase remains the authority for credentials. */
 export function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
+}
+
+export function validateEmail(value: string) {
+  const normalized = normalizeEmail(value);
+  if (!normalized) {
+    return 'Escribe tu correo electrónico.';
+  }
+  if (normalized.length > 320 || !emailPattern.test(normalized)) {
+    return 'Escribe un correo electrónico válido.';
+  }
+  return null;
 }
 
 export function validatePassword(value: string) {

@@ -43,3 +43,33 @@ test('falls back to the current origin when the build value is malformed', () =>
     'http://localhost:3000',
   );
 });
+
+test('rejects untrusted external origins and falls back to canonical URL', () => {
+  assert.equal(
+    resolveAuthRedirectUrl('https://evil-phishing-site.example.com'),
+    canonicalDashboardUrl,
+  );
+  assert.equal(
+    resolveAuthRedirectUrl('https://evil.attacker.com/app'),
+    canonicalDashboardUrl,
+  );
+  assert.equal(
+    resolveAuthRedirectUrl('javascript:alert(1)'),
+    canonicalDashboardUrl,
+  );
+  assert.equal(
+    resolveAuthRedirectUrl('data:text/html,<script>alert(1)</script>'),
+    canonicalDashboardUrl,
+  );
+});
+
+test('trusts Cloudflare Pages preview domains', () => {
+  assert.equal(
+    resolveAuthRedirectUrl('https://stage-clients-app.pages.dev'),
+    'https://stage-clients-app.pages.dev',
+  );
+  assert.equal(
+    resolveAuthRedirectUrl('https://branch-preview-123.pages.dev'),
+    'https://branch-preview-123.pages.dev',
+  );
+});

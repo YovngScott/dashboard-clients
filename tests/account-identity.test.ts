@@ -48,3 +48,20 @@ test('rejects non-HTTPS avatar URLs', () => {
   });
   assert.equal(resolveAccountIdentity(user).avatarUrl, null);
 });
+
+test('rejects avatar URLs with embedded credentials or internal addresses', () => {
+  const withCreds = authUser({
+    identities: [{ provider: 'google', identity_data: { name: 'Ana', avatar_url: 'https://admin:secret@cdn.example.com/photo.png' } }] as User['identities'],
+  });
+  assert.equal(resolveAccountIdentity(withCreds).avatarUrl, null);
+
+  const withLocalhost = authUser({
+    identities: [{ provider: 'google', identity_data: { name: 'Ana', avatar_url: 'https://localhost:8080/photo.png' } }] as User['identities'],
+  });
+  assert.equal(resolveAccountIdentity(withLocalhost).avatarUrl, null);
+
+  const withInternalIp = authUser({
+    identities: [{ provider: 'google', identity_data: { name: 'Ana', avatar_url: 'https://192.168.1.1/photo.png' } }] as User['identities'],
+  });
+  assert.equal(resolveAccountIdentity(withInternalIp).avatarUrl, null);
+});
