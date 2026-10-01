@@ -90,6 +90,7 @@ const copy = {
 export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
+  const sceneSrc = tab === 'signup' ? '/stage-signup-scene-v2.png' : '/stage-signin-scene-v2.png';
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [name, setName] = useState('');
@@ -217,7 +218,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       </header>
       <main className="stage-auth__main">
         <section className="stage-auth__story" aria-labelledby="stage-auth-title">
-          <img className="stage-auth__scene" src="/stage-workspace-scene.png" alt="" width="1672" height="941" fetchPriority="high" />
+          <img className="stage-auth__scene" src={sceneSrc} alt="" width="1672" height="941" fetchPriority="high" />
           <div className="stage-auth__story-content">
           <span className="stage-auth__eyebrow">{t.workspace}</span>
           <h1 id="stage-auth-title">{t.title}</h1>

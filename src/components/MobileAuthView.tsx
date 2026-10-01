@@ -149,6 +149,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   const reduceMotion = useReducedMotion();
   const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
+  const sceneSrc = tab === 'signup' ? '/stage-signup-scene-v2.png' : '/stage-signin-scene-v2.png';
   const [showEmailSheet, setShowEmailSheet] = useState<boolean>(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -349,7 +350,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
   return (
     <div className="mobile-auth-screen stage-auth relative flex w-full flex-col overflow-hidden font-sans text-white">
-      <img className="mobile-auth-scene" src="/stage-workspace-scene.png" alt="" width="1672" height="941" />
+      <img className="mobile-auth-scene" src={sceneSrc} alt="" width="1672" height="941" />
 
       {/* 2. Top Navigation Bar */}
       <header className="mobile-auth-header relative z-50 flex shrink-0 items-center justify-between px-6 pt-6 sm:px-8">

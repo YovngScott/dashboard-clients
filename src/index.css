@@ -42,7 +42,7 @@ body { margin: 0; min-width: 320px; background: rgb(var(--c-canvas)); }
 @media (max-width: 1023px) {
   html.mobile-auth-active, .mobile-auth-active body {
     height: 100%; overflow: hidden; overscroll-behavior: none;
-    background: #172c43;
+    background: #090d16;
   }
   .mobile-auth-screen {
     position: fixed; inset: 0; height: 100dvh; overscroll-behavior: none;
@@ -54,7 +54,7 @@ body { margin: 0; min-width: 320px; background: rgb(var(--c-canvas)); }
     position: absolute;
     inset: auto 0 0;
     height: env(safe-area-inset-bottom);
-    background: #172c43;
+    background: #090d16;
     pointer-events: none;
   }
   .mobile-auth-headline h1 { font-size: clamp(1.75rem, 4.6dvh, 2.5rem); }
@@ -226,7 +226,7 @@ input, textarea { caret-color: rgb(var(--c-brand)); }
 }
 @media (max-width: 1023px) {
   .mobile-auth-card { background: #14213b; border-color: rgba(198, 215, 255, .23); }
-  .mobile-auth-active body, .mobile-auth-screen::after { background: #0b142a; }
+  .mobile-auth-active body, .mobile-auth-screen::after { background: #090d16; }
 }
 @media (max-width: 360px) {
   .mobile-auth-brand { font-size: 1.25rem; }
