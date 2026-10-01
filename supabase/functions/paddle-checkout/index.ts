@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 type PlanId = 'launch' | 'pulse' | 'infinity';
+type BillingCycle = 'monthly' | 'annual';
 
 const allowedOrigins = new Set(['https://app.stagelaboratories.com']);
 
@@ -27,11 +28,11 @@ function publishableKey(): string {
   return legacyKey;
 }
 
-function priceFor(planId: PlanId): string | null {
+function priceFor(planId: PlanId, billingCycle: BillingCycle): string | null {
   const prices: Record<PlanId, string | undefined> = {
-    launch: environmentValue('PADDLE_LAUNCH_MONTHLY_PRICE_ID'),
-    pulse: environmentValue('PADDLE_PULSE_MONTHLY_PRICE_ID'),
-    infinity: environmentValue('PADDLE_INFINITY_MONTHLY_PRICE_ID'),
+    launch: environmentValue(`PADDLE_LAUNCH_${billingCycle.toUpperCase()}_PRICE_ID`),
+    pulse: environmentValue(`PADDLE_PULSE_${billingCycle.toUpperCase()}_PRICE_ID`),
+    infinity: environmentValue(`PADDLE_INFINITY_${billingCycle.toUpperCase()}_PRICE_ID`),
   };
   return prices[planId] && /^pri_[a-z0-9]+$/i.test(prices[planId]!) ? prices[planId]! : null;
 }
@@ -55,15 +56,18 @@ Deno.serve(async (request) => {
   if (Number.isFinite(contentLength) && contentLength > 2_048) return respond({ error: 'Request is too large' }, 413);
 
   let planId: PlanId;
+  let billingCycle: BillingCycle;
   try {
     const rawBody = await request.text();
     if (new TextEncoder().encode(rawBody).byteLength > 2_048) return respond({ error: 'Request is too large' }, 413);
     const body = JSON.parse(rawBody);
     planId = body.planId;
+    billingCycle = body.billingCycle;
   } catch {
     return respond({ error: 'Invalid request body' }, 400);
   }
   if (!['launch', 'pulse', 'infinity'].includes(planId)) return respond({ error: 'Invalid plan' }, 400);
+  if (!['monthly', 'annual'].includes(billingCycle)) return respond({ error: 'Invalid billing cycle' }, 400);
 
   const supabaseUrl = environmentValue('SUPABASE_URL');
   if (!supabaseUrl) return respond({ error: 'Server configuration is incomplete' }, 500);
@@ -71,7 +75,7 @@ Deno.serve(async (request) => {
   const { data: auth, error: authError } = await supabase.auth.getUser(token);
   if (authError || !auth.user?.id) return respond({ error: 'Invalid session' }, 401);
 
-  const priceId = priceFor(planId);
+  const priceId = priceFor(planId, billingCycle);
   const apiKey = environmentValue('PADDLE_API_KEY');
   if (!priceId || !apiKey) return respond({ error: 'Checkout is not configured' }, 503);
 
@@ -91,6 +95,7 @@ Deno.serve(async (request) => {
       custom_data: {
         stage_user_id: auth.user.id,
         stage_checkout_source: 'dashboard',
+        stage_billing_cycle: billingCycle,
       },
     }),
   });

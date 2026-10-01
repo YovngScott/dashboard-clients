@@ -9,6 +9,7 @@ import { authErrorMessage, normalizeEmail, validateDisplayName, validateEmail, v
 import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account-identity';
 import { clearPendingTeamInvite, pendingTeamInvite } from '@/lib/team-invite-link';
 import type { Profile } from '../types';
+import { STAGE_PLANS } from '@/lib/product-data';
 
 interface DesktopLandingProps {
   onSuccess: (profile: Profile | null) => void;
@@ -16,6 +17,7 @@ interface DesktopLandingProps {
 
 const copy = {
   ES: {
+    workspace: 'Tu espacio de trabajo', steps: ['Define tus reglas', 'Conecta tus canales', 'Mantén el control'], selectedPlan: 'Plan elegido', changePlan: 'Podrás cambiarlo antes de pagar.', monthly: 'mensual', annual: 'anual',
     title: 'Tu espacio para operar con claridad.',
     description: 'Configura tus agentes, canales y reglas desde un solo lugar.',
     signup: 'Crear cuenta', signin: 'Iniciar sesión',
@@ -38,6 +40,7 @@ const copy = {
     legalStart: 'Consulta la ', legalMiddle: ' y el centro de ', legalEnd: '.',
   },
   EN: {
+    workspace: 'Your workspace', steps: ['Set your rules', 'Connect your channels', 'Stay in control'], selectedPlan: 'Selected plan', changePlan: 'You can change it before paying.', monthly: 'monthly', annual: 'annual',
     title: 'Your space to operate with clarity.',
     description: 'Set up your agents, channels, and rules in one place.',
     signup: 'Create account', signin: 'Sign in',
@@ -60,6 +63,7 @@ const copy = {
     legalStart: 'See the Stage AI Labs ', legalMiddle: ' and ', legalEnd: '.',
   },
   PT: {
+    workspace: 'Seu espaço de trabalho', steps: ['Defina suas regras', 'Conecte seus canais', 'Mantenha o controle'], selectedPlan: 'Plano escolhido', changePlan: 'Você poderá alterá-lo antes de pagar.', monthly: 'mensal', annual: 'anual',
     title: 'Seu espaço para operar com clareza.',
     description: 'Configure agentes, canais e regras em um só lugar.',
     signup: 'Criar conta', signin: 'Entrar',
@@ -100,6 +104,9 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
   const reduceMotion = useReducedMotion();
   const t = copy[lang];
+  const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
+  const chosenPlan = STAGE_PLANS.find((plan) => plan.id === requestedPlan);
+  const chosenCycle = new URLSearchParams(window.location.search).get('billing') === 'monthly' ? t.monthly : t.annual;
   const updateCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
 
   async function handleSocial(provider: 'google' | 'facebook') {
@@ -187,12 +194,6 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
 
   return (
     <div className="stage-auth min-h-[100dvh] text-[#e8f1ee]">
-      <div className="stage-auth__ambient" aria-hidden="true">
-        <span className="stage-auth__orbit stage-auth__orbit--one" />
-        <span className="stage-auth__orbit stage-auth__orbit--two" />
-        <span className="stage-auth__bar stage-auth__bar--one" />
-        <span className="stage-auth__bar stage-auth__bar--two" />
-      </div>
       <header className="stage-auth__header">
         <a href="https://stagelaboratories.com/" className="stage-auth__brand" aria-label="Stage AI Labs, ir al sitio principal">
           <span className="stage-auth__logo"><img src="/stage-logo.png" alt="" /></span>
@@ -216,12 +217,16 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       </header>
       <main className="stage-auth__main">
         <section className="stage-auth__story" aria-labelledby="stage-auth-title">
-          <div className="stage-auth__emblem" aria-hidden="true"><img src="/stage-logo.png" alt="" /></div>
+          <span className="stage-auth__eyebrow">{t.workspace}</span>
           <h1 id="stage-auth-title">{t.title}</h1>
           <p>{t.description}</p>
+          <div className="stage-auth__steps" aria-label={t.workspace}>
+            {t.steps.map((step) => <span key={step}><Check size={16} aria-hidden="true" /> {step}</span>)}
+          </div>
           <span className="stage-auth__signature">Stage AI Labs LLC</span>
         </section>
         <section className="stage-auth__panel" aria-label={tab === 'signup' ? t.signup : t.signin}>
+          {chosenPlan && <p className="stage-auth__selection" role="status">{t.selectedPlan}: <strong>{chosenPlan.name} {chosenCycle}</strong>. {t.changePlan}</p>}
           <div className="stage-auth__tabs" role="group" aria-label="Acceso">
             {(['signup', 'signin'] as const).map((value) => (
               <button key={value} type="button" id={value === 'signup' ? 'desktop-tab-signup' : 'desktop-tab-signin'} onClick={() => { setTab(value); setError(''); setNotice(''); }} aria-pressed={tab === value} className={tab === value ? 'is-active' : ''}>

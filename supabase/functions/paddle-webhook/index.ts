@@ -33,11 +33,14 @@ function supabaseSecretKey(): string {
   return legacyKey;
 }
 
-function planFromPrice(priceId: string | undefined): 'launch' | 'pulse' | 'infinity' | null {
-  const pricePlans: Record<string, 'launch' | 'pulse' | 'infinity'> = {
-    [environmentValue('PADDLE_LAUNCH_MONTHLY_PRICE_ID') ?? '']: 'launch',
-    [environmentValue('PADDLE_PULSE_MONTHLY_PRICE_ID') ?? '']: 'pulse',
-    [environmentValue('PADDLE_INFINITY_MONTHLY_PRICE_ID') ?? '']: 'infinity',
+function planFromPrice(priceId: string | undefined): { plan: 'launch' | 'pulse' | 'infinity'; interval: 'month' | 'year' } | null {
+  const pricePlans: Record<string, { plan: 'launch' | 'pulse' | 'infinity'; interval: 'month' | 'year' }> = {
+    [environmentValue('PADDLE_LAUNCH_MONTHLY_PRICE_ID') ?? '']: { plan: 'launch', interval: 'month' },
+    [environmentValue('PADDLE_PULSE_MONTHLY_PRICE_ID') ?? '']: { plan: 'pulse', interval: 'month' },
+    [environmentValue('PADDLE_INFINITY_MONTHLY_PRICE_ID') ?? '']: { plan: 'infinity', interval: 'month' },
+    [environmentValue('PADDLE_LAUNCH_ANNUAL_PRICE_ID') ?? '']: { plan: 'launch', interval: 'year' },
+    [environmentValue('PADDLE_PULSE_ANNUAL_PRICE_ID') ?? '']: { plan: 'pulse', interval: 'year' },
+    [environmentValue('PADDLE_INFINITY_ANNUAL_PRICE_ID') ?? '']: { plan: 'infinity', interval: 'year' },
   };
   return priceId ? pricePlans[priceId] ?? null : null;
 }
@@ -161,10 +164,10 @@ Deno.serve(async (request) => {
   const subscription = eventToProcess.data;
   const subscriptionId = subscription?.id;
   const priceId = subscription?.items?.[0]?.price?.id;
-  const plan = planFromPrice(priceId);
+  const pricePlan = planFromPrice(priceId);
   let userId = subscription?.custom_data?.stage_user_id;
 
-  if (!subscriptionId || !plan || !priceId) {
+  if (!subscriptionId || !pricePlan || !priceId) {
     return new Response(JSON.stringify({ error: 'Unrecognized Stage subscription payload' }), { status: 422, headers: corsHeaders });
   }
 
@@ -176,15 +179,15 @@ Deno.serve(async (request) => {
     return new Response(JSON.stringify({ error: 'Subscription is missing a valid Stage user reference' }), { status: 422, headers: corsHeaders });
   }
 
-  const limits = limitsFor(plan);
+  const limits = limitsFor(pricePlan.plan);
   const { error } = await supabase.from('billing_subscriptions').upsert({
     user_id: userId,
     paddle_customer_id: subscription.customer_id ?? null,
     paddle_subscription_id: subscriptionId,
-    plan_key: plan,
+    plan_key: pricePlan.plan,
     price_id: priceId,
     status: subscription.status ?? 'unknown',
-    billing_interval: 'month',
+    billing_interval: pricePlan.interval,
     current_period_starts_at: subscription.current_billing_period?.starts_at ?? null,
     current_period_ends_at: subscription.current_billing_period?.ends_at ?? null,
     cancel_at_period_end: subscription.scheduled_change?.action === 'cancel',

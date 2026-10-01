@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import type { BillingCycle } from '@/lib/product-data';
 
 export type StagePlanId = 'launch' | 'pulse' | 'infinity';
 
@@ -76,7 +77,7 @@ async function initializePaddle(): Promise<PaddleInstance> {
  * Paddle's client-side token and price IDs are safe for the browser. The webhook,
  * not this client callback, is the authority that grants a subscription.
  */
-export async function openStageCheckout(planId: StagePlanId): Promise<void> {
+export async function openStageCheckout(planId: StagePlanId, billingCycle: BillingCycle): Promise<void> {
   if (!isPaddleConfigured) {
     throw new Error('El checkout aún no está configurado. Intenta de nuevo en unos minutos.');
   }
@@ -87,7 +88,7 @@ export async function openStageCheckout(planId: StagePlanId): Promise<void> {
   }
 
   const { data: checkout, error: checkoutError } = await supabase.functions.invoke('paddle-checkout', {
-    body: { planId },
+    body: { planId, billingCycle },
   });
   if (checkoutError || !checkout?.transactionId || typeof checkout.transactionId !== 'string') {
     throw new Error('No pudimos preparar el pago. Intenta de nuevo o contacta a Stage AI Labs.');

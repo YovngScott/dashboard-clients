@@ -17,6 +17,13 @@ export function getAuthRedirectUrl() {
   const redirect = new URL(resolveAuthRedirectUrl(window.location.origin, configuredAppUrl));
   const invite = pendingTeamInvite();
   if (invite) redirect.searchParams.set('invite', invite);
+  const current = new URLSearchParams(window.location.search);
+  const requestedPlan = current.get('checkout');
+  const requestedBilling = current.get('billing');
+  if (requestedPlan && ['launch', 'pulse', 'infinity'].includes(requestedPlan)) {
+    redirect.searchParams.set('checkout', requestedPlan);
+    redirect.searchParams.set('billing', requestedBilling === 'monthly' ? 'monthly' : 'annual');
+  }
   return redirect.toString();
 }
 

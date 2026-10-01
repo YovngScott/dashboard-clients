@@ -17,7 +17,7 @@ import { AnimatedEmptyState } from './components/AnimatedEmptyState';
 import { MobileAuthView } from './components/MobileAuthView';
 import { DesktopLanding } from './components/DesktopLanding';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
-import { STAGE_PLANS, type StagePlan } from './lib/product-data';
+import { STAGE_PLANS, type BillingCycle, type StagePlan } from './lib/product-data';
 import { AgentWorkspace } from './features/agents/AgentWorkspace';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardOverview } from './components/DashboardOverview';
@@ -52,7 +52,7 @@ const previewProfile: Profile = {
   goals: ['digital', 'fisico'],
   discovery_source: 'ia',
   onboarding_complete: true,
-  theme_preference: 'light',
+  theme_preference: 'dark',
 };
 
 const previewIdentity: AccountIdentity = {
@@ -114,7 +114,7 @@ const sourceOptions: Option[] = [
 /* ── Theme hook ────────────────────────────────────────────── */
 
 function useTheme(profile: Profile | null) {
-  const [themePref, setThemePref] = useState<ThemePref>(profile?.theme_preference ?? 'system');
+  const [themePref, setThemePref] = useState<ThemePref>(profile?.theme_preference ?? 'dark');
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -160,7 +160,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 
 function Button({ children, onClick, variant = 'primary', disabled = false, type = 'button', className = '' }: { children: ReactNode; onClick?: () => void; variant?: 'primary' | 'secondary' | 'ghost'; disabled?: boolean; type?: 'button' | 'submit'; className?: string }) {
   const styles = variant === 'primary'
-    ? 'bg-[#126769] text-white hover:bg-[#0d5052] dark:bg-teal-600 dark:hover:bg-teal-500 shadow-md shadow-[#126769]/20'
+    ? 'bg-[#bcd0ff] text-[#10213e] hover:bg-[#d8e4ff] shadow-md shadow-[#506cad]/20'
     : variant === 'secondary'
     ? 'border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10'
     : 'text-ink/60 hover:bg-ink/5 hover:text-ink';
@@ -170,15 +170,15 @@ function Button({ children, onClick, variant = 'primary', disabled = false, type
 /* ── Onboarding ─────────────────────────────────────────────── */
 
 function Progress({ step }: { step: number }) {
-  return <div className="mb-9 flex items-center gap-2" aria-label={`Paso ${step} de 4`}>{[1, 2, 3, 4].map(item => <div key={item} className={`h-1 flex-1 rounded-full transition-colors duration-150 ${item <= step ? 'bg-teal-500' : 'bg-ink/10'}`} />)}</div>;
+  return <div className="mb-9 flex items-center gap-2" aria-label={`Paso ${step} de 4`}>{[1, 2, 3, 4].map(item => <div key={item} className={`h-1 flex-1 rounded-full transition-colors duration-150 ${item <= step ? 'bg-[#a9c3ff]' : 'bg-ink/10'}`} />)}</div>;
 }
 
 function ChoiceCard({ option, selected, onClick, multi = false }: { option: Option; selected: boolean; onClick: () => void; multi?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={selected} className={`group flex min-h-[76px] w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${selected ? 'border-teal-500 bg-teal-500/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition ${selected ? 'bg-teal-500 text-white' : 'bg-ink/5 text-ink/60 group-hover:text-ink'}`}>{option.icon}</span>
+    <button type="button" onClick={onClick} aria-pressed={selected} className={`group flex min-h-[76px] w-full items-center gap-4 rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected ? 'border-[#a9c3ff] bg-[#a9c3ff]/10' : 'border-ink/10 bg-panel hover:border-ink/25'}`}>
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition ${selected ? 'bg-[#a9c3ff] text-[#10213e]' : 'bg-ink/5 text-ink/60 group-hover:text-ink'}`}>{option.icon}</span>
       <span className={`flex-1 text-sm font-semibold ${selected ? 'text-ink' : 'text-ink/70'}`}>{option.label}</span>
-      <span className={`grid h-5 w-5 place-items-center rounded-md border transition ${selected ? 'border-teal-500 bg-teal-500 text-white' : 'border-ink/20'} ${!multi && selected ? 'rounded-full' : ''}`}>{selected && <Check size={13} strokeWidth={3} />}</span>
+      <span className={`grid h-5 w-5 place-items-center rounded-md border transition ${selected ? 'border-[#a9c3ff] bg-[#a9c3ff] text-[#10213e]' : 'border-ink/20'} ${!multi && selected ? 'rounded-full' : ''}`}>{selected && <Check size={13} strokeWidth={3} />}</span>
     </button>
   );
 }
@@ -186,7 +186,7 @@ function ChoiceCard({ option, selected, onClick, multi = false }: { option: Opti
 function SetupShell({ children, onBack, eyebrow, lang, setLang }: { children: ReactNode; onBack: () => void; eyebrow: string; lang: 'ES' | 'EN' | 'PT'; setLang: (l: 'ES' | 'EN' | 'PT') => void }) {
   const [showLangMenu, setShowLangMenu] = useState(false);
   return (
-    <div className="min-h-screen bg-canvas px-4 py-4 text-ink sm:px-8 sm:py-6">
+    <div className="stage-onboarding dark min-h-screen bg-canvas px-4 py-4 text-ink sm:px-8 sm:py-6">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between">
           <button type="button" onClick={onBack} aria-label="Volver" className="grid h-11 w-11 place-items-center rounded-xl border border-ink/10 text-ink/60 transition-colors duration-150 hover:border-ink/25 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"><ArrowLeft size={19} /></button>
@@ -336,10 +336,10 @@ function Channel({ onNext, onBack, selected, setSelected, lang, setLang }: { onN
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {channels.map(channel => (
-          <button key={channel.name} type="button" aria-pressed={selected === channel.name} onClick={() => setSelected(channel.name)} className={`flex min-h-[126px] flex-col items-start rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 ${selected === channel.name ? 'border-teal-500 bg-teal-500/5' : 'border-ink/10 bg-canvas/55 hover:border-ink/25'}`}>
+          <button key={channel.name} type="button" aria-pressed={selected === channel.name} onClick={() => setSelected(channel.name)} className={`flex min-h-[126px] flex-col items-start rounded-2xl border p-4 text-left transition-[border-color,background-color,transform] duration-150 active:scale-[.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff] ${selected === channel.name ? 'border-[#a9c3ff] bg-[#a9c3ff]/[.07]' : 'border-ink/10 bg-canvas/55 hover:border-ink/25'}`}>
             <span className="flex w-full items-start justify-between gap-3">
               <span className={`grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br ${channel.tone}`}>{channel.icon}</span>
-              <span className={`text-xs font-bold ${selected === channel.name ? 'text-teal-700 dark:text-teal-300' : 'text-ink/42'}`}>{selected === channel.name ? t.connected : t.connect}</span>
+              <span className={`text-xs font-bold ${selected === channel.name ? 'text-[#adc5ff]' : 'text-ink/55'}`}>{selected === channel.name ? t.connected : t.connect}</span>
             </span>
             <span className="mt-4 block font-display text-base font-bold text-ink">{channel.name}</span>
             <span className="mt-1 block text-xs leading-5 text-ink/48">{channel.detail}</span>
@@ -439,11 +439,14 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
   const initialCheckoutPlan: PlanId = hasCheckoutRequest
     ? requestedPlan as PlanId
     : 'pulse';
+  const requestedBilling = new URLSearchParams(window.location.search).get('billing');
+  const initialCheckoutBilling: BillingCycle = requestedBilling === 'monthly' ? 'monthly' : 'annual';
   const [tab, setTab] = useState<DashboardTab>('Inicio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('stage-sidebar-collapsed') === 'true');
   const [showSettings, setShowSettings] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(hasCheckoutRequest);
   const [checkoutPlan] = useState<PlanId>(initialCheckoutPlan);
+  const [checkoutBilling] = useState<BillingCycle>(initialCheckoutBilling);
   const [showChannels, setShowChannels] = useState(false);
   const [createAgentRequest, setCreateAgentRequest] = useState(0);
   const [workspace, setWorkspace] = useState<WorkspaceContext | null>(previewMode ? previewWorkspace : null);
@@ -507,7 +510,7 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
   );
 
   return (
-    <div className="min-h-screen bg-canvas text-ink lg:flex">
+    <div className="stage-dashboard-shell min-h-screen bg-canvas text-ink lg:flex">
       <a href="#dashboard-main" className="sr-only z-[70] rounded-lg bg-panel px-4 py-3 font-bold text-ink focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Ir al contenido
       </a>
@@ -595,7 +598,7 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
       </motion.div>
 
       {/* Global Modals */}
-      <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} />
+      <UpgradeModal key={showUpgrade ? `open-${checkoutPlan}-${checkoutBilling}` : 'closed'} isOpen={showUpgrade} onClose={() => setShowUpgrade(false)} initialPlan={checkoutPlan} initialBilling={checkoutBilling} />
       <ChannelsModal isOpen={showChannels} onClose={() => setShowChannels(false)} />
     </div>
   );
@@ -633,7 +636,7 @@ function App() {
       window.clearTimeout(bootTimer);
       setLoading(false);
     };
-    const defaultProfile = (id: string): Profile => ({ id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'system' });
+    const defaultProfile = (id: string): Profile => ({ id, display_name: null, channel: null, account_type: null, goals: [], discovery_source: null, onboarding_complete: false, theme_preference: 'dark' });
 
     const hydrateSession = async (session: Session | null) => {
       if (!mounted || bootTimedOut) return;
@@ -700,7 +703,7 @@ function App() {
       }
       if (!current) {
         const profile = { ...defaultProfile(session.user.id), onboarding_complete: Boolean(inviteToken) };
-        const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: profile.onboarding_complete, theme_preference: 'system' });
+        const { error: createError } = await supabase.from('onboarding_profiles').upsert({ id: profile.id, goals: [], onboarding_complete: profile.onboarding_complete, theme_preference: 'dark' });
         if (!mounted || bootTimedOut || version !== hydrationVersion) return;
         if (createError) {
           setAuthError('Tu cuenta fue creada, pero no pudimos preparar tu espacio. Inténtalo nuevamente.');
@@ -771,9 +774,9 @@ function App() {
           goals: [],
           discovery_source: null,
           onboarding_complete: false,
-          theme_preference: 'system',
+          theme_preference: 'dark',
         };
-        await supabase.from('onboarding_profiles').upsert({ id: user.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
+        await supabase.from('onboarding_profiles').upsert({ id: user.id, goals: [], onboarding_complete: false, theme_preference: 'dark' });
         setProfile(newProfile);
         setScreen('channel');
       }
@@ -808,11 +811,11 @@ function App() {
           goals: [],
           discovery_source: null,
           onboarding_complete: false,
-          theme_preference: 'system',
+          theme_preference: 'dark',
         };
         await supabase
           .from('onboarding_profiles')
-          .upsert({ id: newProfile.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
+          .upsert({ id: newProfile.id, goals: [], onboarding_complete: false, theme_preference: 'dark' });
         setProfile(newProfile);
         setChannel('');
         setScreen('channel');

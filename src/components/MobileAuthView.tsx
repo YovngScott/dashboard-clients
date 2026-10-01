@@ -9,6 +9,7 @@ import { clearRememberedAuthProvider, rememberAuthProvider } from '@/lib/account
 import { clearPendingTeamInvite, pendingTeamInvite } from '@/lib/team-invite-link';
 import { Profile } from '../types';
 import { AuthTurnstile } from './AuthTurnstile';
+import { STAGE_PLANS } from '@/lib/product-data';
 
 interface MobileAuthViewProps {
   onSuccess: (profile: Profile | null) => void;
@@ -17,6 +18,7 @@ interface MobileAuthViewProps {
 
 const translations = {
   ES: {
+    workspace: 'Tu espacio de trabajo', selectedPlan: 'Plan elegido', changePlan: 'Podrás cambiarlo antes de pagar.', monthly: 'mensual', annual: 'anual',
     headline: 'Tu espacio para operar con claridad.',
     subtitlePart1: 'Configura tus agentes, canales y reglas',
     subtitlePart2: 'desde un solo lugar.',
@@ -58,6 +60,7 @@ const translations = {
     }
   },
   EN: {
+    workspace: 'Your workspace', selectedPlan: 'Selected plan', changePlan: 'You can change it before paying.', monthly: 'monthly', annual: 'annual',
     headline: 'Your space to operate with clarity.',
     subtitlePart1: 'Set up your agents, channels, and rules',
     subtitlePart2: 'in one place.',
@@ -99,6 +102,7 @@ const translations = {
     }
   },
   PT: {
+    workspace: 'Seu espaço de trabalho', selectedPlan: 'Plano escolhido', changePlan: 'Você poderá alterá-lo antes de pagar.', monthly: 'mensal', annual: 'anual',
     headline: 'Seu espaço para operar com clareza.',
     subtitlePart1: 'Configure agentes, canais e regras',
     subtitlePart2: 'em um só lugar.',
@@ -167,6 +171,9 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
 
   const t = translations[lang];
+  const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
+  const chosenPlan = STAGE_PLANS.find((plan) => plan.id === requestedPlan);
+  const chosenCycle = new URLSearchParams(window.location.search).get('billing') === 'monthly' ? t.monthly : t.annual;
   useEffect(() => {
     document.documentElement.classList.add('mobile-auth-active');
     return () => document.documentElement.classList.remove('mobile-auth-active');
@@ -341,22 +348,16 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
   return (
     <div className="mobile-auth-screen stage-auth relative flex w-full flex-col overflow-hidden font-sans text-white">
-      <div className="stage-auth__ambient" aria-hidden="true">
-        <span className="stage-auth__orbit stage-auth__orbit--one" />
-        <span className="stage-auth__orbit stage-auth__orbit--two" />
-        <span className="stage-auth__bar stage-auth__bar--one" />
-        <span className="stage-auth__bar stage-auth__bar--two" />
-      </div>
 
       {/* 2. Top Navigation Bar */}
       <header className="mobile-auth-header relative z-50 flex shrink-0 items-center justify-between px-6 pt-6 sm:px-8">
         <div className="flex items-center gap-2">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white p-1 shadow-sm"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></span>
           <div className="flex items-center gap-1.5">
-            <span className="font-display text-2xl font-black tracking-tight text-white drop-shadow-md">
+            <span className="mobile-auth-brand font-display text-2xl font-black tracking-tight text-white">
               Stage AI Labs
             </span>
-            <span className="rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/90 backdrop-blur-md">
+            <span className="mobile-auth-llc rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/90 backdrop-blur-md">
               LLC
             </span>
           </div>
@@ -401,13 +402,13 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
       {/* 3. Center Display Typography */}
       <div className="mobile-auth-headline relative z-10 mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col justify-end px-6 pb-6 text-left">
-        <div aria-hidden="true" className="mobile-auth-emblem mb-5 grid h-16 w-16 place-items-center rounded-xl bg-[#f7f6f1] p-3 shadow-xl"><img src="/stage-logo.png" alt="" className="h-full w-full object-contain" /></div>
+        <span className="stage-auth__eyebrow mb-5">{t.workspace}</span>
         <h1 className="font-display text-[2.5rem] font-black leading-[1.1] tracking-[-0.035em] text-white sm:text-5xl">
           {t.headline}
         </h1>
-        <p className="mt-3 text-sm font-medium leading-6 text-[#c6dcde]">
+        <p className="mt-3 text-sm font-medium leading-6 text-[#c3d0eb]">
           <span className="text-white">{t.subtitlePart1}</span>{' '}
-          <span className="font-bold text-[#a9e6df]">{t.subtitlePart2}</span>
+          <span className="font-bold text-[#adc5ff]">{t.subtitlePart2}</span>
         </p>
       </div>
 
@@ -416,6 +417,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
         id="mobile-auth-liquid-card"
         className="mobile-auth-card relative z-20 mx-auto flex w-full max-w-md shrink-0 flex-col rounded-t-[1.5rem] border-x border-t border-white/20 bg-[#102b3d] px-6 pb-10 pt-5 shadow-[0_-12px_45px_rgba(0,0,0,0.25)]"
       >
+        {chosenPlan && <p className="stage-auth__selection mb-4" role="status">{t.selectedPlan}: <strong>{chosenPlan.name} {chosenCycle}</strong>. {t.changePlan}</p>}
         {invitationPending && <div role="status" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-teal-300/20 bg-teal-300/10 px-4 py-3 text-sm leading-5 text-teal-50"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-teal-50/75 hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-200"><X size={16} /></button></div>}
         <div className="relative mb-6 flex rounded-xl border border-white/20 bg-black/20 p-1.5">
           <button
@@ -463,7 +465,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
             id="mobile-auth-email-button"
             ref={emailTriggerRef}
             onClick={openEmailSheet}
-            className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#126769] py-4 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] border border-teal-400/30"
+            className="flex w-full min-h-12 items-center justify-center gap-2.5 rounded-2xl border border-[#adc5ff]/40 bg-[#bcd0ff] py-4 text-sm font-bold text-[#10213e] shadow-[0_12px_34px_rgba(65,94,173,.18)] transition-transform duration-150 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#adc5ff]"
           >
             <Mail size={18} strokeWidth={2.4} />
             <AnimatePresence mode="wait">
