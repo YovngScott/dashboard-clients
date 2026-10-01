@@ -580,7 +580,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
 
               {/* Brand Graphic */}
               <div className="mt-3 flex items-center gap-3.5">
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#126769] p-2 shadow-lg shadow-[#126769]/40 border border-indigo-400/30">
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[#cbd4ff]/15 p-2 border border-indigo-400/30">
                   <img src="/stage-logo.png" alt="" className="h-9 w-9 rounded-md bg-white p-1 object-contain" />
                 </div>
                 <div>
@@ -672,7 +672,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder={t.form.namePlaceholder}
-                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
+                        className="w-full rounded-xl border border-white/20 bg-[#0f1521] px-4 py-3 text-base text-white placeholder-white/70 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
                       />
                     </motion.div>
                   )}
@@ -691,7 +691,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t.form.emailPlaceholder}
-                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
+                    className="w-full rounded-xl border border-white/20 bg-[#0f1521] px-4 py-3 text-base text-white placeholder-white/70 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
                   />
                 </div>
 
@@ -709,7 +709,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t.form.passwordPlaceholder}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 pr-10 text-base text-white placeholder-white/30 outline-none backdrop-blur-md transition focus:border-indigo-400 focus:bg-white/15"
+                      className="w-full rounded-xl border border-white/20 bg-[#0f1521] px-4 py-3 pr-10 text-base text-white placeholder-white/70 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
                     />
                     <button
                       type="button"
@@ -727,7 +727,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
                 <button
                   type="submit"
                   disabled={loading || !captchaToken}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#126769] py-3.5 text-sm font-bold text-white shadow-lg shadow-[#126769]/35 transition hover:bg-[#0d5052] active:scale-[0.98] disabled:opacity-50 border border-indigo-400/30"
+                  className="stage-auth__submit mt-3 flex w-full items-center justify-center gap-2 py-3.5 text-sm transition-transform duration-150 ease-out active:scale-[0.98] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
                 >
                   {loading ? t.form.processing : tab === 'signup' ? invitationPending ? t.form.invitationSubmit : t.form.submitSignup : t.form.submitSignin}
                   <ArrowRight size={16} />
