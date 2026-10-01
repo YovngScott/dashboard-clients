@@ -611,6 +611,7 @@ function App() {
   const [channel, setChannel] = useState(previewMode ? 'Instagram' : '');
   const [loading, setLoading] = useState(previewMode ? false : isSupabaseConfigured);
   const [authError, setAuthError] = useState('');
+  const [invitationError, setInvitationError] = useState<{ type: 'mismatch' | 'expired' | 'workspace'; message: string } | null>(null);
 
   useEffect(() => {
     if (previewMode || !isSupabaseConfigured) return;
@@ -663,11 +664,24 @@ function App() {
         catch (cause) {
           if (!mounted || bootTimedOut || version !== hydrationVersion) return;
           const detail = cause instanceof Error ? cause.message : '';
-          setAuthError(detail.includes('invitation_email_mismatch')
-            ? 'Esta invitación pertenece a otro correo. Cierra sesión e inicia con la cuenta invitada.'
-            : detail.includes('already_in_workspace')
-              ? 'Esta cuenta ya pertenece a otro espacio. Usa el correo invitado o pide ayuda al propietario.'
-              : 'No pudimos aceptar la invitación. Puede haber vencido o haberse cancelado. Pide una nueva al propietario.');
+          const isMismatch = detail.includes('invitation_email_mismatch');
+          const isWorkspace = detail.includes('already_in_workspace');
+
+          if (!isMismatch) {
+            clearPendingTeamInvite();
+          }
+
+          const message = isMismatch
+            ? 'Esta invitación pertenece a otro correo. Puedes cambiar de cuenta para entrar con el correo invitado o descartar la invitación y crear tu propio espacio.'
+            : isWorkspace
+              ? 'Esta cuenta ya pertenece a otro espacio de trabajo. Puedes continuar a tu espacio o cambiar de cuenta.'
+              : 'El enlace de invitación ya no es válido, ha vencido o fue cancelado. Puedes descartar la invitación para crear tu propio espacio independiente o pedir una nueva al propietario.';
+
+          setInvitationError({
+            type: isMismatch ? 'mismatch' : isWorkspace ? 'workspace' : 'expired',
+            message,
+          });
+          setAuthError(message);
           finishLoading();
           return;
         }
@@ -766,6 +780,61 @@ function App() {
     }
   }
 
+  async function handleDiscardInviteAndContinue() {
+    clearPendingTeamInvite();
+    setInvitationError(null);
+    setAuthError('');
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setScreen('landing');
+        setLoading(false);
+        return;
+      }
+      const { data: current, error: profileError } = await supabase
+        .from('onboarding_profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (profileError) throw profileError;
+
+      if (!current) {
+        const newProfile: Profile = {
+          id: session.user.id,
+          display_name: null,
+          channel: null,
+          account_type: null,
+          goals: [],
+          discovery_source: null,
+          onboarding_complete: false,
+          theme_preference: 'system',
+        };
+        await supabase
+          .from('onboarding_profiles')
+          .upsert({ id: newProfile.id, goals: [], onboarding_complete: false, theme_preference: 'system' });
+        setProfile(newProfile);
+        setChannel('');
+        setScreen('channel');
+      } else {
+        setProfile(current as Profile);
+        setChannel(current.channel ?? '');
+        setScreen(current.onboarding_complete ? 'dashboard' : 'channel');
+      }
+    } catch {
+      setAuthError('No pudimos inicializar tu espacio. Por favor, intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSwitchAccount() {
+    await supabase.auth.signOut();
+    setInvitationError(null);
+    setAuthError('');
+    setScreen('landing');
+  }
+
   if (!isSupabaseConfigured && !previewMode) return (
     <main className="grid min-h-screen place-items-center bg-[#07131f] px-5 text-white">
       <section className="w-full max-w-lg rounded-2xl border border-white/10 bg-white/[.04] p-7 shadow-2xl">
@@ -783,10 +852,45 @@ function App() {
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
       <section className="w-full max-w-lg rounded-2xl border border-ink/10 bg-white p-7 shadow-xl dark:bg-zinc-900">
         <Logo />
-        <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">No pudimos abrir tu espacio.</h1>
+        <h1 className="mt-8 font-display text-3xl font-extrabold tracking-[-.03em]">
+          {invitationError ? 'Problema con la invitación' : 'No pudimos abrir tu espacio.'}
+        </h1>
         <p role="alert" className="mt-3 leading-7 text-ink/60">{authError}</p>
-        <button type="button" onClick={() => window.location.reload()} className="mt-7 min-h-12 rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Reintentar</button>
-        <button type="button" onClick={async () => { await supabase.auth.signOut(); setAuthError(''); setScreen('landing'); }} className="ml-3 mt-7 min-h-12 rounded-xl border border-ink/20 px-5 font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500">Cambiar de cuenta</button>
+        {invitationError ? (
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleDiscardInviteAndContinue}
+              className="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+            >
+              {invitationError.type === 'workspace' ? 'Continuar a mi espacio' : 'Descartar invitación y crear mi propio espacio'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSwitchAccount}
+              className="flex min-h-12 items-center justify-center rounded-xl border border-ink/20 px-5 font-bold text-ink transition hover:bg-black/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500 dark:hover:bg-white/5"
+            >
+              {invitationError.type === 'mismatch' ? 'Iniciar con la cuenta invitada' : 'Cambiar de cuenta'}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-7 flex gap-3">
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="min-h-12 rounded-xl bg-[#126769] px-5 font-bold text-white transition hover:bg-[#0d5052] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+            >
+              Reintentar
+            </button>
+            <button
+              type="button"
+              onClick={handleSwitchAccount}
+              className="min-h-12 rounded-xl border border-ink/20 px-5 font-bold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500"
+            >
+              Cambiar de cuenta
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
