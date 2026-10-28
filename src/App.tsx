@@ -16,6 +16,7 @@ import { BottomNavBar } from './components/BottomNavBar';
 import { AnimatedEmptyState } from './components/AnimatedEmptyState';
 import { MobileAuthView } from './components/MobileAuthView';
 import { DesktopLanding } from './components/DesktopLanding';
+import { AuthLoadingSkeleton } from './components/AuthLoadingSkeleton';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
 import { STAGE_PLANS, type BillingCycle, type StagePlan } from './lib/product-data';
 import { AgentWorkspace } from './features/agents/AgentWorkspace';
@@ -851,7 +852,7 @@ function App() {
     </main>
   );
 
-  if (loading) return <main role="status" aria-live="polite" className="fixed inset-0 grid place-items-center bg-[#090d15] px-5 text-white"><div className="flex flex-col items-center gap-5"><Logo /><div aria-hidden="true" className="h-8 w-8 rounded-full border-2 border-white/20 border-t-indigo-200 motion-safe:animate-spin" /><p className="text-sm font-medium text-white/80">Cargando tu espacio...</p></div></main>;
+  if (loading) return <AuthLoadingSkeleton />;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">

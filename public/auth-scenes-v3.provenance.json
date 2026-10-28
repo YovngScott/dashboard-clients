@@ -1,0 +1,12 @@
+{
+  "method": "Built-in image_gen; WebP encoding with sharp, quality 85",
+  "date": "2026-10-28",
+  "signup": {
+    "asset": "stage-signup-scene-v3.webp",
+    "prompt": "Photorealistic editorial photograph for Stage AI Labs B2B software SIGN UP screen. A young Latin American business founder welcoming a colleague at a beautifully organized contemporary small studio, setting up a clean laptop workspace together, purposeful beginning, natural candid moment, charcoal clothing, muted oak and slate materials, restrained cool indigo ambient accents, soft morning window light. Premium realistic photography not generic stock handshake. Square composition, subjects and work in upper two thirds center, lower third naturally dark uncluttered desk for white text overlay added by website. No text, no logos, no fake interface graphics, no robots. Calm confident professional."
+  },
+  "signin": {
+    "asset": "stage-signin-scene-v3.webp",
+    "prompt": "Photorealistic editorial photograph for Stage AI Labs B2B software SIGN IN screen. A young Latin American business operator calmly returning to a familiar refined workspace, seated in profile checking laptop, a neatly placed notebook and cup, contemporary office at blue hour, large window with softly defocused city. Premium realistic photography, charcoal wardrobe, slate and muted oak materials, restrained indigo light with warm desk lamp. Square composition, subject and laptop in upper two thirds center, bottom third naturally dark clean desk for white text overlay added by website. No text, no logos, no floating interface graphics, no padlocks or robots. Calm focused returning to work, not dramatic hacker."
+  }
+}

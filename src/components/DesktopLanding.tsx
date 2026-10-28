@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowRight, Check, ChevronDown, Eye, EyeOff, Globe, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
@@ -90,7 +90,8 @@ const copy = {
 export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
-  const sceneSrc = tab === 'signup' ? '/stage-signup-scene-v2.png' : '/stage-signin-scene-v2.png';
+  const [activeScene, setActiveScene] = useState<'signup' | 'signin'>('signup');
+  const [loadedScenes, setLoadedScenes] = useState<Record<'signup' | 'signin', boolean>>({ signup: false, signin: false });
   const [lang, setLang] = useState<'ES' | 'EN' | 'PT'>('ES');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [name, setName] = useState('');
@@ -98,6 +99,8 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const requestPending = useRef(false);
+  const [sceneFailed, setSceneFailed] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
@@ -110,8 +113,29 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   const chosenCycle = new URLSearchParams(window.location.search).get('billing') === 'monthly' ? t.monthly : t.annual;
   const updateCaptchaToken = useCallback((token: string) => setCaptchaToken(token), []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add('desktop-auth-active');
+    return () => root.classList.remove('desktop-auth-active');
+  }, []);
+
+  function selectTab(value: 'signup' | 'signin') {
+    if (requestPending.current || value === tab) return;
+    setShowPassword(false);
+    setTab(value);
+    setError('');
+    setNotice('');
+    if (loadedScenes[value]) setActiveScene(value);
+  }
+
+  function markSceneReady(scene: 'signup' | 'signin') {
+    setLoadedScenes((current) => ({ ...current, [scene]: true }));
+    if (scene === tab) setActiveScene(scene);
+  }
+
   async function handleSocial(provider: 'google' | 'facebook') {
-    if (loading) return;
+    if (requestPending.current) return;
+    requestPending.current = true;
     setLoading(true);
     setError('');
     setNotice('');
@@ -126,12 +150,14 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       clearRememberedAuthProvider();
       setError('No pudimos iniciar la conexión. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
+      requestPending.current = false;
       setLoading(false);
     }
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (requestPending.current) return;
     setError('');
     setNotice('');
     const normalizedEmail = normalizeEmail(email);
@@ -146,6 +172,8 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       setError(t.captchaRequired);
       return;
     }
+    requestPending.current = true;
+    setShowPassword(false);
     setLoading(true);
     try {
       rememberAuthProvider('email');
@@ -170,10 +198,12 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
         return;
       }
       if (tab === 'signup' && !result.data.session) {
+        setPassword('');
         setNotice(t.notice);
         return;
       }
       if (result.data.user) {
+        setPassword('');
         const { data } = await supabase
           .from('onboarding_profiles')
           .select('*')
@@ -185,6 +215,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       clearRememberedAuthProvider();
       setError('No pudimos completar el acceso. Revisa tu conexión e inténtalo de nuevo.');
     } finally {
+      requestPending.current = false;
       if (turnstileSiteKey) {
         setCaptchaToken('');
         setCaptchaAttempt((attempt) => attempt + 1);
@@ -194,7 +225,7 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
   }
 
   return (
-    <div className="stage-auth min-h-[100dvh] text-[#e8f1ee]">
+    <div className="stage-auth text-[#e8f1ee]">
       <header className="stage-auth__header">
         <a href="https://stagelaboratories.com/" className="stage-auth__brand" aria-label="Stage AI Labs, ir al sitio principal">
           <span className="stage-auth__logo"><img src="/stage-logo.png" alt="" /></span>
@@ -218,7 +249,33 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
       </header>
       <main className="stage-auth__main">
         <section className="stage-auth__story" aria-labelledby="stage-auth-title">
-          <img className="stage-auth__scene" src={sceneSrc} alt="" width="1672" height="941" fetchPriority="high" />
+          <div className="stage-auth__scene-stack" aria-hidden="true">
+            {!loadedScenes[activeScene] && !sceneFailed && <div className="stage-auth__image-skeleton auth-skeleton-block" />}
+            <img
+              className={`stage-auth__scene ${activeScene === 'signup' ? 'is-active' : ''}`}
+              src="/stage-signup-scene-v3.webp"
+              alt=""
+              width="1672"
+              height="941"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              onLoad={() => markSceneReady('signup')}
+              onError={() => setSceneFailed(true)}
+            />
+            <img
+              className={`stage-auth__scene ${activeScene === 'signin' ? 'is-active' : ''}`}
+              src="/stage-signin-scene-v3.webp"
+              alt=""
+              width="1672"
+              height="941"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              onLoad={() => markSceneReady('signin')}
+              onError={() => setSceneFailed(true)}
+            />
+          </div>
           <div className="stage-auth__story-content">
           <span className="stage-auth__eyebrow">{t.workspace}</span>
           <h1 id="stage-auth-title">{t.title}</h1>
@@ -233,14 +290,15 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
           {chosenPlan && <p className="stage-auth__selection" role="status">{t.selectedPlan}: <strong>{chosenPlan.name} {chosenCycle}</strong>. {t.changePlan}</p>}
           <div className="stage-auth__tabs" role="group" aria-label="Acceso">
             {(['signup', 'signin'] as const).map((value) => (
-              <button key={value} type="button" id={value === 'signup' ? 'desktop-tab-signup' : 'desktop-tab-signin'} onClick={() => { setTab(value); setError(''); setNotice(''); }} aria-pressed={tab === value} className={tab === value ? 'is-active' : ''}>
+              <button key={value} type="button" disabled={loading} id={value === 'signup' ? 'desktop-tab-signup' : 'desktop-tab-signin'} onClick={() => selectTab(value)} aria-pressed={tab === value} className={tab === value ? 'is-active' : ''}>
                 {tab === value && <motion.span layoutId="stage-auth-tab" className="stage-auth__tab-indicator" transition={reduceMotion ? { duration: 0 } : { type: 'spring', duration: 0.25, bounce: 0.1 }} />}
                 <span>{value === 'signup' ? t.signup : t.signin}</span>
               </button>
             ))}
           </div>
           {invitationPending && <div role="status" className="stage-auth__notice stage-auth__notice--invitation"><span>{t.invitationContext}</span><button type="button" aria-label={t.dismissInvitation} title={t.dismissInvitation} onClick={() => { clearPendingTeamInvite(); setInvitationPending(false); setTab('signup'); setError(''); setNotice(''); }} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-current/75 hover:bg-white/10 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"><X size={16} /></button></div>}
-          <form onSubmit={submit} className="stage-auth__form">
+          <form onSubmit={submit} className="stage-auth__form" aria-busy={loading}>
+            <fieldset className="stage-auth__fields" data-mode={tab} disabled={loading}>
             {tab === 'signup' && !invitationPending && (
               <div className="stage-auth__field">
                 <label htmlFor="desktop-auth-name">{t.name}</label>
@@ -260,13 +318,14 @@ export function DesktopLanding({ onSuccess }: DesktopLandingProps) {
                 </button>
               </div>
             </div>
+            </fieldset>
             {turnstileSiteKey && (
               <AuthTurnstile key={captchaAttempt} layout="desktop" siteKey={turnstileSiteKey} onTokenChange={updateCaptchaToken} label={t.captcha} checkingLabel={t.checking} verifiedLabel={t.verified} loadError={t.captchaError} />
             )}
             {error && <p role="alert" className="stage-auth__error">{error}</p>}
             {notice && <p role="status" className="stage-auth__notice">{notice}</p>}
             <button type="submit" disabled={loading || (Boolean(turnstileSiteKey) && !captchaToken)} className="stage-auth__submit">
-              <span>{loading ? t.processing : tab === 'signup' ? invitationPending ? t.invitationSubmit : t.submitSignup : t.submitSignin}</span><ArrowRight size={18} aria-hidden="true" />
+              <span>{loading ? t.processing : tab === 'signup' ? invitationPending ? t.invitationSubmit : t.submitSignup : t.submitSignin}</span>{loading ? <span className="auth-skeleton-block stage-auth__pending-bar" aria-hidden="true" /> : <ArrowRight size={18} aria-hidden="true" />}
             </button>
           </form>
           <div className="stage-auth__divider"><span>{t.other}</span></div>

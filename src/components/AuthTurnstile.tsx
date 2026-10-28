@@ -135,7 +135,7 @@ export function AuthTurnstile({ layout, siteKey, onTokenChange, label, checkingL
 
   return (
     <div
-      className={layout === 'mobile' ? 'text-white' : 'px-1 py-1 text-white'}
+      className={layout === 'mobile' ? 'auth-turnstile auth-turnstile--mobile text-white' : 'auth-turnstile auth-turnstile--desktop px-1 py-1 text-white'}
       role="group"
       aria-label={label}
     >

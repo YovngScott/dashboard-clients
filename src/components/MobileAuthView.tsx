@@ -149,7 +149,7 @@ export function MobileAuthView({ onSuccess }: MobileAuthViewProps) {
   const reduceMotion = useReducedMotion();
   const [invitationPending, setInvitationPending] = useState(() => Boolean(pendingTeamInvite()));
   const [tab, setTab] = useState<'signup' | 'signin'>('signup');
-  const sceneSrc = tab === 'signup' ? '/stage-signup-scene-v2.png' : '/stage-signin-scene-v2.png';
+  const sceneSrc = tab === 'signup' ? '/stage-signup-scene-v3.webp' : '/stage-signin-scene-v3.webp';
   const [showEmailSheet, setShowEmailSheet] = useState<boolean>(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
