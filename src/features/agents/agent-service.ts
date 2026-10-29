@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import type { WorkspaceContext } from '@/lib/workspace';
-import { draftValidationError } from './draft-validation';
+import { canManageAgents, type WorkspaceContext } from '@/lib/workspace';
+import { draftValidationError, websiteValidationError } from './draft-validation';
 import { validateContextPdf } from './context-pdf';
 export { validateContextPdf } from './context-pdf';
 
@@ -42,6 +42,36 @@ export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' |
 
 export type Workspace = WorkspaceContext;
 
+export class AgentUpdateConflict extends Error {}
+
+// Do not spread caller input: ownership, status and security fields are never writable here.
+export function editableAgentFields(draft: AgentDraft): AgentDraft {
+  return {
+    name: draft.name, business_name: draft.business_name, business_description: draft.business_description,
+    catalog_summary: draft.catalog_summary, important_facts: draft.important_facts,
+    operating_instructions: draft.operating_instructions, website_url: draft.website_url?.trim() || null,
+    phone: draft.phone, goal: draft.goal, tone: draft.tone, handoff_instructions: draft.handoff_instructions,
+    requested_channels: [...draft.requested_channels],
+  };
+}
+
+export async function updateAgent(workspace: Workspace, agent: AgentRecord, draft: AgentDraft): Promise<AgentRecord> {
+  if (!canManageAgents(workspace.role) || agent.organization_id !== workspace.organizationId || !agent.id || !agent.updated_at) {
+    throw new Error('No tienes permiso para editar este agente en este espacio.');
+  }
+  const invalid = draftValidationError(draft) ?? websiteValidationError(draft.website_url ?? '');
+  if (invalid) throw new Error(invalid);
+  const fields = editableAgentFields(draft);
+  // Editing the profile must not change channel selections.
+  fields.requested_channels = [...agent.requested_channels];
+  const { data, error } = await supabase.from('agents').update(fields)
+    .eq('organization_id', workspace.organizationId).eq('id', agent.id).eq('updated_at', agent.updated_at)
+    .select('id,organization_id,created_by,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at').maybeSingle();
+  if (error) throw error;
+  if (!data || data.id !== agent.id || data.organization_id !== workspace.organizationId) throw new AgentUpdateConflict();
+  return data as AgentRecord;
+}
+
 export async function listAgents(organizationId: string): Promise<AgentRecord[]> {
   const { data, error } = await supabase
     .from('agents')
@@ -55,12 +85,8 @@ export async function listAgents(organizationId: string): Promise<AgentRecord[]>
 export async function createAgent(organizationId: string, userId: string, draft: AgentDraft): Promise<AgentRecord> {
   const validationError = draftValidationError(draft);
   if (validationError) throw new Error(validationError);
-  if (draft.website_url?.trim()) {
-    try {
-      const website = new URL(draft.website_url.trim());
-      if (!['https:', 'http:'].includes(website.protocol) || website.username || website.password) throw new Error();
-    } catch { throw new Error('Introduce una dirección web válida que empiece por https://.'); }
-  }
+  const websiteError = websiteValidationError(draft.website_url ?? '');
+  if (websiteError) throw new Error(websiteError);
   const { data, error } = await supabase
     .from('agents')
     .insert({ ...draft, organization_id: organizationId, created_by: userId })

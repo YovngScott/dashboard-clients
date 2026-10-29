@@ -1,12 +1,13 @@
 import { useLayoutEffect, useState } from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AgentBuilder, type AgentDraftMemory } from '../../src/features/agents/AgentWorkspace';
+import { AgentBuilder, AgentWorkspace, type AgentDraftMemory } from '../../src/features/agents/AgentWorkspace';
+import { AgentEditor } from '../../src/features/agents/AgentEditor';
 import type { AgentRecord, Workspace } from '../../src/features/agents/agent-service';
 import { File as NodeFile } from 'node:buffer';
 import { validateContextPdf as realValidatePdf } from '../../src/features/agents/context-pdf';
 
-const api = vi.hoisted(() => ({ createAgent: vi.fn(), uploadContextPdf: vi.fn(), validateContextPdf: vi.fn(), listAgents: vi.fn() }));
+const api = vi.hoisted(() => ({ createAgent: vi.fn(), updateAgent: vi.fn(), editableAgentFields: vi.fn((a: object) => ({...a})), AgentUpdateConflict: class extends Error {}, uploadContextPdf: vi.fn(), validateContextPdf: vi.fn(), listAgents: vi.fn() }));
 vi.mock('../../src/features/agents/agent-service', () => api);
 vi.mock('../../src/lib/workspace', () => ({ canManageAgents: (role: string) => role !== 'viewer' }));
 
@@ -28,6 +29,10 @@ function fillKnowledge(withFile = false) {
   next(); next();
 }
 function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(r => { resolve = r; }); return { promise, resolve }; }
+function WorkspaceFixture() {
+  const [memory, setMemory] = useState<AgentDraftMemory | null>(null);
+  return <AgentWorkspace userId="user-a" workspace={workspace} draftMemory={memory} setDraftMemory={setMemory} />;
+}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -39,6 +44,35 @@ beforeEach(() => {
 });
 
 describe('real component, synthetic services only', () => {
+  it('shows onboarding without security marketing for an empty workspace', async () => {
+    api.listAgents.mockResolvedValue([]); render(<WorkspaceFixture />);
+    expect(await screen.findByText('Agente de Atención Inteligente')).toBeTruthy();
+    expect(screen.queryByText('Protección permanente')).toBeNull();
+    expect(screen.queryByText('Tus datos quedan separados')).toBeNull();
+  });
+  it('shows real next steps instead of the creation hero when an agent exists', async () => {
+    api.listAgents.mockResolvedValue([{...row, name:'Agente sintético', business_name:'Negocio', requested_channels:['instagram']}]); render(<WorkspaceFixture />);
+    expect(await screen.findByText('Siguientes pasos')).toBeTruthy();
+    expect(screen.queryByText('Agente de Atención Inteligente')).toBeNull();
+    expect(button('Crear otro asistente')).toBeTruthy();
+    fireEvent.click(button('Revisar mis agentes'));
+    expect(screen.getByRole('tab', {name:/Mis agentes/}).getAttribute('aria-selected')).toBe('true');
+  });
+  it('blocks advancing with an invalid website and displays an associated error on blur', () => {
+    render(<Memory />);
+    const website = screen.getByLabelText('Sitio web') as HTMLInputElement;
+    fireEvent.change(website, { target: { value: 'not-a-url' } });
+    expect((button('Continuar') as HTMLButtonElement).disabled).toBe(true);
+    expect(website.getAttribute('aria-invalid')).toBeNull();
+    fireEvent.blur(website);
+    expect(website.getAttribute('aria-invalid')).toBe('true');
+    expect(document.getElementById(website.getAttribute('aria-describedby')!)?.textContent).toContain('dirección válida');
+    fireEvent.change(website, { target: { value: ' https://example.test ' } });
+    expect((button('Continuar') as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.blur(website);
+    expect(website.value).toBe('https://example.test');
+    expect(website.getAttribute('aria-invalid')).toBeNull();
+  });
   for (const [label, makeFile, expected] of [
     ['invalid MIME', () => new NodeFile(['%PDF-'], 'synthetic.txt', {type:'text/plain'}), 'Selecciona un archivo PDF'],
     ['invalid signature', () => new NodeFile(['NOT-PDF'], 'synthetic.pdf', {type:'application/pdf'}), 'firma PDF válida'],
@@ -95,10 +129,11 @@ describe('real component, synthetic services only', () => {
   it('retains edits while navigating backwards, and rejects an invalid website without service calls', async () => {
     render(<Memory />); fillKnowledge();
     fireEvent.click(button('Atrás')); fireEvent.click(button('Atrás')); fireEvent.click(button('Atrás'));
-    fireEvent.change(screen.getByLabelText('Sitio web'), { target: { value: 'javascript:alert(1)' } });
-    next(); next(); next();
-    fireEvent.click(button('Guardar asistente'));
-    expect(screen.getByRole('alert').textContent).toContain('dirección web válida');
+    const website = screen.getByLabelText('Sitio web');
+    fireEvent.change(website, { target: { value: 'javascript:alert(1)' } });
+    fireEvent.blur(website);
+    expect((button('Continuar') as HTMLButtonElement).disabled).toBe(true);
+    expect(website.getAttribute('aria-invalid')).toBe('true');
     expect(api.createAgent).not.toHaveBeenCalled();
   });
 
@@ -268,5 +303,78 @@ describe('real component, synthetic services only', () => {
     expect(api.uploadContextPdf).not.toHaveBeenCalled();
     expect(completed).not.toHaveBeenCalled();
     expect((screen.getByLabelText(/Nombre del agente/) as HTMLInputElement).value).toBe('Synthetic Studio Atención');
+  });
+});
+
+describe('existing agent editor with synthetic services', () => {
+  const existing = { ...row, name:'Atlas', business_name:'Studio', business_description:'A synthetic business description for tests.',
+    catalog_summary:'', important_facts:'', operating_instructions:'', handoff_instructions:'', website_url:'', phone:'',
+    goal:'customer_service', tone:'clear_and_warm', requested_channels:['instagram'], updated_at:'2026-10-29T00:00:00Z' } as AgentRecord;
+  const onSaved = vi.fn(async () => {}); const onClose = vi.fn();
+  beforeEach(() => { vi.clearAllMocks(); api.updateAgent.mockResolvedValue({...existing,name:'Nuevo'}); api.uploadContextPdf.mockResolvedValue('doc'); api.validateContextPdf.mockResolvedValue(undefined); });
+  function open() { return render(<AgentEditor agent={existing} workspace={workspace} userId="user-a" onClose={onClose} onSaved={onSaved} />); }
+  it('requires confirmation to discard and saves edited data once', async () => {
+    open(); fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}});
+    fireEvent.click(button('Cancelar')); expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert').textContent).toContain('cambios sin guardar');
+    fireEvent.click(button('Seguir editando')); fireEvent.click(button('Guardar cambios'));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
+    expect(api.updateAgent).toHaveBeenCalledTimes(1);
+  });
+  it('blocks retry after a conflict', async () => {
+    api.updateAgent.mockRejectedValueOnce(new api.AgentUpdateConflict()); open();
+    fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}}); fireEvent.click(button('Guardar cambios'));
+    expect((await screen.findByRole('alert')).textContent).toContain('cambió');
+    expect((button('Guardar cambios') as HTMLButtonElement).disabled).toBe(true);
+    expect(api.updateAgent).toHaveBeenCalledTimes(1);
+  });
+  for (const [label, value, minimum] of [['Nombre del agente','x','2'], ['Nombre de la empresa','x','2'], ['Descripción del negocio','short','20']] as const) {
+    it('shows an associated inline error for '+label+' after blur', () => {
+      open(); const field=screen.getByLabelText(label);
+      fireEvent.change(field,{target:{value}}); expect(field.getAttribute('aria-invalid')).toBeNull();
+      expect((button('Guardar cambios') as HTMLButtonElement).disabled).toBe(true);
+      fireEvent.blur(field); expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(document.getElementById(field.getAttribute('aria-describedby')!)?.textContent).toContain(minimum);
+    });
+  }
+  it('prevents switching agents or tabs until a dirty editor is closed explicitly', async () => {
+    api.listAgents.mockResolvedValue([existing,{...existing,id:'agent-b',name:'Beta'}]); render(<WorkspaceFixture />);
+    await screen.findByText('Siguientes pasos'); fireEvent.click(button('Revisar mis agentes'));
+    fireEvent.click(button('Editar Atlas')); fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'En edición'}});
+    expect(screen.queryByRole('button',{name:'Editar Beta'})).toBeNull();
+    expect((screen.getByRole('tab',{name:'Para empezar'}) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(button('Cancelar')); fireEvent.click(button('Seguir editando'));
+    expect((screen.getByLabelText('Nombre del agente') as HTMLInputElement).value).toBe('En edición');
+    fireEvent.click(button('Cancelar')); fireEvent.click(button('Descartar cambios'));
+    await screen.findByRole('button',{name:'Editar Beta'});
+  });
+  it('prevents navigation to another agent during a pending save', async () => {
+    const pending=deferred<AgentRecord>(); api.updateAgent.mockReturnValue(pending.promise);
+    api.listAgents.mockResolvedValue([existing,{...existing,id:'agent-b',name:'Beta'}]); render(<WorkspaceFixture />);
+    await screen.findByText('Siguientes pasos'); fireEvent.click(button('Revisar mis agentes')); fireEvent.click(button('Editar Atlas'));
+    fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}}); fireEvent.click(button('Guardar cambios'));
+    await waitFor(()=>expect(api.updateAgent).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('button',{name:'Editar Beta'})).toBeNull();
+    expect((button('Cancelar') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('tab',{name:'Para empezar'}) as HTMLButtonElement).disabled).toBe(true);
+    await act(async()=>pending.resolve({...existing,name:'Nuevo'}));
+  });
+  it('retries a failed document without repeating the successful update', async () => {
+    api.uploadContextPdf.mockRejectedValueOnce(new Error('synthetic')); open();
+    fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}});
+    const file=new File(['%PDF-test'],'synthetic.pdf',{type:'application/pdf'});
+    fireEvent.change(screen.getByLabelText('Añadir PDF opcional'),{target:{files:[file]}}); fireEvent.click(button('Guardar cambios'));
+    await screen.findByRole('alert'); fireEvent.click(button('Guardar cambios'));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
+    expect(api.updateAgent).toHaveBeenCalledTimes(1); expect(api.uploadContextPdf).toHaveBeenCalledTimes(2);
+    expect(api.uploadContextPdf.mock.calls[1][3]).toBe(file);
+  });
+  it('does not start a document upload after an old editor unmounts', async () => {
+    const pending=deferred<AgentRecord>(); api.updateAgent.mockReturnValue(pending.promise); const view=open();
+    fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}});
+    fireEvent.change(screen.getByLabelText('Añadir PDF opcional'),{target:{files:[new File(['%PDF-test'],'test.pdf',{type:'application/pdf'})]}});
+    fireEvent.click(button('Guardar cambios')); await waitFor(()=>expect(api.updateAgent).toHaveBeenCalledTimes(1));
+    view.unmount(); await act(async()=>pending.resolve(existing));
+    expect(api.uploadContextPdf).not.toHaveBeenCalled(); expect(onSaved).not.toHaveBeenCalled();
   });
 });

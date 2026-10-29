@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [{
     name: 'synthetic-fixture-services', enforce: 'pre',
     resolveId(source, importer) {
-      if (importer?.endsWith('/src/features/agents/AgentWorkspace.tsx')) {
+      if (importer?.endsWith('/src/features/agents/AgentWorkspace.tsx') || importer?.endsWith('/src/features/agents/AgentEditor.tsx')) {
         if (source === './agent-service') return path('./tests/fixtures/agent-service-mock.ts');
         if (source === '@/lib/workspace') return '\0synthetic-workspace';
       }
