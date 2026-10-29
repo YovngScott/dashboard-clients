@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import type { WorkspaceContext } from '@/lib/workspace';
+import { draftValidationError } from './draft-validation';
+import { validateContextPdf } from './context-pdf';
+export { validateContextPdf } from './context-pdf';
 
 export const supportedChannels = [
   'instagram',
@@ -15,6 +18,7 @@ export type AgentChannel = (typeof supportedChannels)[number];
 export type AgentStatus = 'draft' | 'processing' | 'needs_attention' | 'ready' | 'activating' | 'active' | 'failed' | 'paused';
 
 export type AgentRecord = {
+  created_by?: string;
   id: string;
   organization_id: string;
   name: string;
@@ -34,14 +38,14 @@ export type AgentRecord = {
   updated_at: string;
 };
 
-export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' | 'status_detail' | 'updated_at'>;
+export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' | 'status_detail' | 'updated_at' | 'created_by'>;
 
 export type Workspace = WorkspaceContext;
 
 export async function listAgents(organizationId: string): Promise<AgentRecord[]> {
   const { data, error } = await supabase
     .from('agents')
-    .select('id,organization_id,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at')
+    .select('id,organization_id,created_by,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at')
     .eq('organization_id', organizationId)
     .order('updated_at', { ascending: false });
   if (error) throw error;
@@ -49,9 +53,8 @@ export async function listAgents(organizationId: string): Promise<AgentRecord[]>
 }
 
 export async function createAgent(organizationId: string, userId: string, draft: AgentDraft): Promise<AgentRecord> {
-  if (draft.name.trim().length < 2 || draft.business_name.trim().length < 2 || draft.business_description.trim().length < 20) {
-    throw new Error('Completa el nombre del asistente, la empresa y una descripción de al menos 20 caracteres.');
-  }
+  const validationError = draftValidationError(draft);
+  if (validationError) throw new Error(validationError);
   if (draft.website_url?.trim()) {
     try {
       const website = new URL(draft.website_url.trim());
@@ -65,15 +68,6 @@ export async function createAgent(organizationId: string, userId: string, draft:
     .single();
   if (error) throw error;
   return data as AgentRecord;
-}
-
-export async function validateContextPdf(file: File) {
-  if (file.type !== 'application/pdf') throw new Error('El contexto debe ser un archivo PDF.');
-  if (file.size > 20 * 1024 * 1024) throw new Error('El PDF no puede superar 20 MB.');
-  const signature = new Uint8Array(await file.slice(0, 5).arrayBuffer());
-  if (String.fromCharCode(...signature) !== '%PDF-') {
-    throw new Error('El archivo no tiene una firma PDF válida.');
-  }
 }
 
 const pendingUploads = new WeakMap<File, { scope: string; documentId: string; registered: boolean; complete: boolean }>();

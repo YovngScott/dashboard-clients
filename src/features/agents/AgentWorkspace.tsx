@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  ArrowLeft, ArrowRight, Bot, Check, CheckCircle2, ChevronRight, CircleAlert,
-  FileText, Globe2, Instagram, Loader2, LockKeyhole, Mail, MessageCircle,
+  ArrowLeft, ArrowRight, Bot, Check, ChevronRight, CircleAlert,
+  FileText, Instagram, Loader2, LockKeyhole, Mail, MessageCircle,
   Phone, Plus, Radio, Send, ShieldCheck, Sparkles, Upload, X,
 } from 'lucide-react';
 import {
@@ -10,9 +10,13 @@ import {
   type AgentChannel, type AgentDraft, type AgentRecord, type Workspace,
 } from './agent-service';
 import { canManageAgents } from '@/lib/workspace';
+import { canRetrySavedAgent, createOutcomeUnknown, scopedMemory } from './save-safety';
+import { agentLimits, draftValidationError, safeAgentError } from './draft-validation';
+import { localPdfMessage } from './context-pdf';
 
-type Props = { userId: string; workspace: Workspace; createRequest?: number; preview?: boolean };
-type BuilderStep = 0 | 1 | 2 | 3 | 4;
+export type AgentDraftMemory = { scope: string; draft: AgentDraft; pdf: File | null; savedAgent: AgentRecord | null; savedDraft: string | null; outcomeUnknown: boolean };
+type Props = { userId: string; workspace: Workspace; createRequest?: number; preview?: boolean; draftMemory: AgentDraftMemory | null; setDraftMemory: React.Dispatch<React.SetStateAction<AgentDraftMemory | null>> };
+type BuilderStep = 0 | 1 | 2 | 3;
 
 const channelMeta: Record<AgentChannel, { label: string; icon: typeof Instagram; note: string }> = {
   instagram: { label: 'Instagram', icon: Instagram, note: 'Primera conexión disponible para prueba' },
@@ -41,22 +45,32 @@ const emptyDraft: AgentDraft = {
   handoff_instructions: '', requested_channels: ['instagram'],
 };
 
-export function AgentWorkspace({ userId, workspace, createRequest = 0, preview = false }: Props) {
+export function AgentWorkspace({ userId, workspace, createRequest = 0, preview = false, draftMemory, setDraftMemory }: Props) {
+  return <ScopedAgentWorkspace key={`${userId}:${workspace.organizationId}`} {...{ userId, workspace, createRequest, preview, draftMemory, setDraftMemory }} />;
+}
+
+function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = false, draftMemory, setDraftMemory }: Props) {
   const editable = canManageAgents(workspace.role);
   const [tab, setTab] = useState<'ideas' | 'agents'>(editable ? 'ideas' : 'agents');
   const [agents, setAgents] = useState<AgentRecord[]>([]);
   const [loading, setLoading] = useState(!preview);
   const [error, setError] = useState('');
   const [builderOpen, setBuilderOpen] = useState(editable && createRequest > 0);
+  const refreshVersion = useRef(0);
+  useEffect(() => () => { refreshVersion.current++; }, []);
 
   async function refresh() {
+    const version = ++refreshVersion.current;
     if (preview) { setError(''); setLoading(false); return; }
     setLoading(true); setError('');
     try {
-      setAgents(await listAgents(workspace.organizationId));
+      const nextAgents = await listAgents(workspace.organizationId);
+      if (version !== refreshVersion.current) return;
+      setAgents(nextAgents);
     } catch {
+      if (version !== refreshVersion.current) return;
       setError('No pudimos cargar tus asistentes. Inténtalo de nuevo en unos segundos.');
-    } finally { setLoading(false); }
+    } finally { if (version === refreshVersion.current) setLoading(false); }
   }
 
   useEffect(() => {
@@ -144,12 +158,15 @@ export function AgentWorkspace({ userId, workspace, createRequest = 0, preview =
 
       {builderOpen && editable && (
         <AgentBuilder
+          key={`${userId}:${workspace.organizationId}`}
           workspace={workspace}
           userId={userId}
+          draftMemory={draftMemory}
+          setDraftMemory={setDraftMemory}
           preview={preview}
           initialBusinessName={workspace.name}
           onClose={() => setBuilderOpen(false)}
-          onCreated={async () => { setBuilderOpen(false); setTab('agents'); await refresh(); }}
+          onCreated={async () => { setDraftMemory(null); setBuilderOpen(false); setTab('agents'); await refresh(); }}
         />
       )}
     </section>
@@ -190,31 +207,56 @@ function AgentList({ agents, loading, onCreate }: { agents: AgentRecord[]; loadi
   ); })}</div>;
 }
 
-export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated, preview = false }: { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void>; preview?: boolean }) {
+type BuilderProps = { workspace: Workspace; userId: string; initialBusinessName: string; onClose: () => void; onCreated: () => Promise<void>; preview?: boolean; draftMemory: AgentDraftMemory | null; setDraftMemory: React.Dispatch<React.SetStateAction<AgentDraftMemory | null>> };
+
+export function AgentBuilder(props: BuilderProps) {
+  // Remount synchronously on identity changes: an effect reset could expose the
+  // previous account's controlled input values for one committed frame.
+  return <ScopedAgentBuilder key={`${props.userId}:${props.workspace.organizationId}`} {...props} />;
+}
+
+function ScopedAgentBuilder({ workspace, userId, initialBusinessName, onClose, onCreated, preview = false, draftMemory, setDraftMemory }: BuilderProps) {
+  const scope = `${userId}:${workspace.organizationId}`;
+  const previous = scopedMemory(draftMemory, scope);
   const [step, setStep] = useState<BuilderStep>(0);
-  const [draft, setDraft] = useState<AgentDraft>({ ...emptyDraft, business_name: initialBusinessName, requested_channels: workspace.allowedChannels.includes('instagram') ? ['instagram'] : workspace.allowedChannels.slice(0, 1) });
-  const [pdf, setPdf] = useState<File | null>(null);
+  const [draft, setDraft] = useState<AgentDraft>(previous?.draft ?? { ...emptyDraft, name: initialBusinessName.trim() ? `${initialBusinessName.trim()} Atención`.slice(0, 80) : '', business_name: initialBusinessName, requested_channels: workspace.allowedChannels.includes('instagram') ? ['instagram'] : workspace.allowedChannels.slice(0, 1) });
+  const [pdf, setPdf] = useState<File | null>(previous?.pdf ?? null);
   const [saving, setSaving] = useState(false);
+  const [savePhase, setSavePhase] = useState('Guardando configuración');
   const [error, setError] = useState('');
-  const steps = ['Identidad', 'Contexto', 'Comportamiento', 'Canales', 'Revisar'];
+  const [outcomeUnknown, setOutcomeUnknown] = useState(previous?.outcomeUnknown ?? false);
+  const [partiallySaved, setPartiallySaved] = useState(Boolean(previous?.savedAgent));
+  const [reconciling, setReconciling] = useState(false);
+  const [reconciled, setReconciled] = useState<AgentRecord[] | null>(null);
+  const steps = ['Negocio', 'Conocimiento', 'Tono y reglas', 'Revisar'];
   const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocus = useRef(document.activeElement as HTMLElement | null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const saveInProgress = useRef(false);
-  const savedAgent = useRef<AgentRecord | null>(null);
+  const savedAgent = useRef<AgentRecord | null>(previous?.savedAgent ?? null);
+  const savedDraft = useRef<string | null>(previous?.savedDraft ?? null);
+  const active = useRef(true);
   const closeRef = useRef(onClose);
   useEffect(() => { closeRef.current = onClose; }, [onClose]);
-  const canContinue = useMemo(() => step === 0 ? draft.name.trim().length >= 2 && draft.business_name.trim().length >= 2 : step === 1 ? draft.business_description.trim().length >= 20 : step === 3 ? draft.requested_channels.length > 0 && draft.requested_channels.length <= workspace.maxConnectedChannels : true, [step, draft, workspace.maxConnectedChannels]);
+  useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
+  const canContinue = useMemo(() => step === 0 ? [...draft.name.trim()].length >= 2 && [...draft.business_name.trim()].length >= 2 && [...draft.name].length <= agentLimits.name && [...draft.business_name].length <= agentLimits.business_name : step === 1 ? [...draft.business_description.trim()].length >= 20 && [...draft.business_description].length <= agentLimits.business_description : true, [step, draft]);
+  useEffect(() => { setDraftMemory({ scope, draft, pdf, savedAgent: savedAgent.current, savedDraft: savedDraft.current, outcomeUnknown }); }, [setDraftMemory, scope, draft, pdf, outcomeUnknown]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousFocus = returnFocus.current;
     const appRoot = document.getElementById('root');
     const wasInert = appRoot?.hasAttribute('inert');
     appRoot?.setAttribute('inert', '');
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !saveInProgress.current) closeRef.current();
       if (event.key !== 'Tab') return;
+      if (saveInProgress.current) {
+        event.preventDefault();
+        dialogRef.current?.querySelector<HTMLElement>('#builder-title')?.focus();
+        return;
+      }
       const fields = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled])') ?? [])
         .filter(field => field.getClientRects().length > 0);
       const first = fields[0]; const last = fields[fields.length - 1];
@@ -225,7 +267,7 @@ export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, 
     return () => {
       document.body.style.overflow = previousOverflow;
       if (!wasInert) appRoot?.removeAttribute('inert');
-      previousFocus?.focus();
+      if (previousFocus?.isConnected) previousFocus.focus();
       window.removeEventListener('keydown', closeOnEscape);
     };
   }, []);
@@ -237,58 +279,119 @@ export function AgentBuilder({ workspace, userId, initialBusinessName, onClose, 
     heading?.focus();
   }, [step]);
 
+  useEffect(() => {
+    if (error) dialogRef.current?.querySelector<HTMLElement>('[role="alert"]')?.focus();
+  }, [error]);
+
+  useEffect(() => {
+    if (saving) dialogRef.current?.querySelector<HTMLElement>('#builder-title')?.focus();
+  }, [saving]);
+
   function setField<K extends keyof AgentDraft>(key: K, value: AgentDraft[K]) { setDraft(current => ({ ...current, [key]: value })); }
-  function toggleChannel(channel: AgentChannel) {
-    const included = draft.requested_channels.includes(channel);
-    if (included && draft.requested_channels.length === 1) return;
-    if (!included && draft.requested_channels.length >= workspace.maxConnectedChannels) { setError(`Tu plan permite ${workspace.maxConnectedChannels} canal conectado.`); return; }
-    setError('');
-    setField('requested_channels', included ? draft.requested_channels.filter(item => item !== channel) : [...draft.requested_channels, channel]);
-  }
 
   async function save() {
     if (preview) { setError('La vista previa no guarda asistentes. Inicia sesión en la app publicada para crear uno.'); return; }
     if (saveInProgress.current) return;
+    if (outcomeUnknown) { setError('No pudimos confirmar si se guardó. Revisa Mis agentes antes de intentar crear otro; conserva tus datos mientras tanto.'); return; }
+    const invalid = draftValidationError(draft);
+    if (invalid) { setError(invalid); return; }
+    if (draft.website_url?.trim()) {
+      try {
+        const website = new URL(draft.website_url.trim());
+        if (!['https:', 'http:'].includes(website.protocol) || website.username || website.password) throw new Error();
+      } catch { setError('Introduce una dirección web válida que empiece por https://.'); return; }
+    }
+    if (savedAgent.current && !canRetrySavedAgent(savedDraft.current, draft)) {
+      setError('El asistente ya se guardó con los datos anteriores. Para reintentar el documento, vuelve a esos valores; tus cambios actuales aún no se han guardado.');
+      return;
+    }
     saveInProgress.current = true;
     setSaving(true); setError('');
+    setSavePhase('Guardando configuración');
     try {
       if (pdf) await validateContextPdf(pdf);
-      const agent = savedAgent.current ?? await createAgent(workspace.organizationId, userId, draft);
+      if (!active.current) return;
+      let agent = savedAgent.current;
+      if (!agent) {
+        try { agent = await createAgent(workspace.organizationId, userId, draft); }
+        catch (createError) {
+          if (createOutcomeUnknown(createError)) {
+            setOutcomeUnknown(true);
+            setError('No pudimos confirmar si se guardó. Revisa Mis agentes antes de intentar crear otro; conserva tus datos mientras tanto.');
+            return;
+          }
+          throw createError;
+        }
+      }
+      if (!active.current) return;
       savedAgent.current = agent;
-      if (pdf) await uploadContextPdf(workspace.organizationId, agent.id, userId, pdf);
+      setPartiallySaved(true);
+      if (savedDraft.current === null) savedDraft.current = JSON.stringify(draft);
+      setDraftMemory({ scope, draft, pdf, savedAgent: agent, savedDraft: savedDraft.current, outcomeUnknown: false });
+      if (pdf) {
+        setSavePhase('Subiendo PDF');
+        await uploadContextPdf(workspace.organizationId, agent.id, userId, pdf);
+      }
+      if (!active.current) return;
+      setSavePhase('Actualizando lista');
       await onCreated();
     } catch (caught) {
-      setError(savedAgent.current ? 'El asistente está guardado, pero el documento no pudo subirse. Reintenta para adjuntarlo sin crear otro asistente.' : caught instanceof Error ? caught.message : 'No pudimos guardar el agente.');
+      setError(localPdfMessage(caught) ?? (savedAgent.current ? 'El asistente está guardado, pero el documento no pudo subirse. Reintenta para adjuntarlo sin crear otro asistente.' : safeAgentError(caught)));
     } finally { saveInProgress.current = false; setSaving(false); }
+  }
+
+  async function reconcile() {
+    if (reconciling) return;
+    setReconciling(true);
+    try {
+      const rows = await listAgents(workspace.organizationId);
+      if (!active.current) return;
+      setReconciled(rows.filter(row => row.organization_id === workspace.organizationId && row.created_by === userId));
+      setError('Consulta completada. Recupera un agente propio o descarta explícitamente este borrador. La ausencia en la lista no prueba que la solicitud anterior no se guardara.');
+    } catch { if (active.current) setError('No pudimos consultar tus agentes. El reintento de creación sigue bloqueado.'); }
+    finally { if (active.current) setReconciling(false); }
   }
 
   return createPortal(
       <div ref={dialogRef} className="agent-dialog-backdrop fixed inset-0 z-[100] overflow-hidden bg-canvas" role="dialog" aria-modal="true" aria-labelledby="builder-title" aria-busy={saving} onClickCapture={event => { if (saveInProgress.current) { event.preventDefault(); event.stopPropagation(); } }}>
       <div className="agent-builder-panel mx-auto flex h-[100dvh] min-h-0 max-w-7xl flex-col bg-canvas">
           <header className="shrink-0 border-b border-ink/10 bg-panel px-5 py-4 sm:px-8">
-<div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4"><div className="min-w-0"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg text-xs font-bold text-ink/70 hover:text-ink"><ArrowLeft size={15} /> {step === 0 ? 'Volver a automatizaciones' : 'Paso anterior'}</button><div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><h2 id="builder-title" className="font-display text-xl font-extrabold sm:text-2xl">{steps[step]}</h2><span className="text-xs font-semibold text-ink/70" aria-live="polite">Paso {step + 1} de {steps.length}</span></div></div><button autoFocus type="button" onClick={onClose} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/70 hover:bg-ink/5 hover:text-ink"><X size={20} /></button></div>
-            <div className="mt-4 grid grid-cols-5 gap-2" aria-label={`Paso ${step + 1} de 5`}>{steps.map((label, index) => <div key={label} className="min-w-0"><div className={`h-1 rounded-full ${index <= step ? 'bg-indigo-500' : 'bg-ink/10'}`} /><span className="mt-2 hidden truncate text-xs text-ink/70 sm:block">{label}</span></div>)}</div>
+<div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4"><div className="min-w-0"><button disabled={saving} type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="mb-3 inline-flex min-h-9 items-center gap-2 rounded-lg text-xs font-bold text-ink/70 hover:text-ink"><ArrowLeft size={15} /> {step === 0 ? 'Volver a automatizaciones' : 'Paso anterior'}</button><div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1"><h2 id="builder-title" className="font-display text-xl font-extrabold sm:text-2xl">{steps[step]}</h2><span className="text-xs font-semibold text-ink/70" aria-live="polite">Paso {step + 1} de {steps.length}</span></div></div><button disabled={saving} autoFocus type="button" onClick={onClose} aria-label="Cerrar" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-ink/70 hover:bg-ink/5 hover:text-ink"><X size={20} /></button></div>
+            <div className="mt-4 grid grid-cols-4 gap-2" aria-label={`Paso ${step + 1} de 4`}>{steps.map((label, index) => <div key={label} className="min-w-0"><div className={`h-1 rounded-full ${index <= step ? 'bg-indigo-500' : 'bg-ink/10'}`} /><span className="mt-2 hidden truncate text-xs text-ink/70 sm:block">{label}</span></div>)}</div>
           </header>
 
           <div ref={scrollRef} className="agent-builder-scroll min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-y-contain px-5 pb-10 sm:px-8 sm:pb-14">
-            <div key={step} className="agent-step-enter mx-auto min-h-[500px] w-full max-w-5xl py-8 sm:py-12">
-            {step === 0 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Bot} title="Dale una identidad clara" text="Este nombre identifica al agente dentro de Stage. El nombre de la empresa se usa al responder a tus clientes." /><Field label="Nombre del agente" required value={draft.name} onChange={value => setField('name', value)} placeholder="Ej. Atlas Atención" /><Field label="Nombre de la empresa" required value={draft.business_name} onChange={value => setField('business_name', value)} placeholder="Stage AI Labs" /><div className="grid gap-4 sm:grid-cols-2"><Field label="Sitio web" value={draft.website_url ?? ''} onChange={value => setField('website_url', value)} placeholder="Opcional" type="url" /><Field label="Teléfono" value={draft.phone ?? ''} onChange={value => setField('phone', value)} placeholder="Opcional" type="tel" /></div></div>}
-            {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="Cuéntale cómo funciona tu negocio. El PDF es opcional, privado y se revisa antes de ponerlo a trabajar." /><TextArea label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> Documento de apoyo <span className="font-normal text-ink/70">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/70 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
-            {step === 2 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Sparkles} title="Define cómo debe atender" text="Tus instrucciones personalizan la operación. Las reglas de privacidad, veracidad y aislamiento siempre tienen prioridad." /><Select label="Objetivo principal" value={draft.goal} onChange={value => setField('goal', value)} options={[['customer_service','Servicio al cliente'],['sales_and_service','Ventas y servicio'],['lead_qualification','Calificación de prospectos']]} /><Select label="Estilo de conversación" value={draft.tone} onChange={value => setField('tone', value)} options={[['clear_and_warm','Claro y cercano'],['professional','Profesional'],['concise','Breve y directo'],['friendly','Amigable']]} /><TextArea label="Instrucciones operativas" value={draft.operating_instructions ?? ''} onChange={value => setField('operating_instructions', value)} placeholder="Ej. Primero comprende la necesidad; después recomienda solo opciones disponibles." /><TextArea label="Cuándo escalar a una persona" value={draft.handoff_instructions ?? ''} onChange={value => setField('handoff_instructions', value)} placeholder="Ej. Reclamos de pago, cancelaciones o cuando el cliente lo solicite." /><div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm leading-6 text-ink/70"><span className="font-bold text-ink">Protección fija:</span> responde en el idioma del cliente, no revela datos de otros negocios, no inventa y pide ayuda cuando falta información.</div></div>}
-            {step === 3 && <div className="mx-auto max-w-3xl"><Intro icon={Globe2} title="Elige dónde atenderá" text={`Selecciona hasta ${workspace.maxConnectedChannels} ${workspace.maxConnectedChannels === 1 ? 'canal incluido' : 'canales incluidos'} en tu plan. La autorización y activación se revisan desde Canales; elegirlos aquí no los conecta.`} /><div className="mt-6 grid gap-3 sm:grid-cols-2">{(Object.keys(channelMeta) as AgentChannel[]).map(channel => { const meta = channelMeta[channel]; const Icon = meta.icon; const allowed = workspace.allowedChannels.includes(channel); const selected = draft.requested_channels.includes(channel); return <button key={channel} type="button" aria-pressed={selected} disabled={!allowed} onClick={() => toggleChannel(channel)} className={`channel-card group flex min-h-[82px] items-center gap-4 rounded-2xl border p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 ${selected ? 'border-indigo-500 bg-indigo-500/8' : 'border-ink/10 bg-panel hover:border-ink/25'}`}><span className={`channel-brand-icon channel-brand-icon--${channel} grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/5 text-ink/70`}><Icon size={20} /></span><span className="min-w-0 flex-1"><strong className="block text-sm">{meta.label}</strong><span className="mt-1 block text-xs text-ink/70">{allowed ? meta.note : 'Disponible en otro plan'}</span></span>{selected && <CheckCircle2 size={18} className="text-indigo-500" />}</button>; })}</div></div>}
-            {step === 4 && <div className="mx-auto max-w-2xl"><Intro icon={ShieldCheck} title="Todo listo para revisar" text="Guardaremos tu asistente para que puedas revisarlo. Solo empezará a responder cuando tú conectes un canal y lo actives." /><dl className="mt-7 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-panel px-5"><ReviewRow label="Asistente" value={draft.name} /><ReviewRow label="Empresa" value={draft.business_name} /><ReviewRow label="Idiomas" value="Todos: responderá en el idioma del cliente" /><ReviewRow label="Información" value={pdf ? `Datos ingresados + ${pdf.name}` : 'Datos ingresados'} /><ReviewRow label="Lugares" value={draft.requested_channels.map(channel => channelMeta[channel].label).join(', ')} /><ReviewRow label="Inicio" value="Lo activas cuando quieras" /></dl></div>}
-            {error && <p role="alert" className="mx-auto mt-5 max-w-2xl rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200">{error}</p>}
-            </div>
+            <fieldset disabled={saving} key={step} className="agent-step-enter min-w-0 border-0 mx-auto min-h-[500px] w-full max-w-5xl py-8 sm:py-12">
+            {step === 0 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Bot} title="Dale una identidad clara" text="Este nombre identifica al agente dentro de Stage. El nombre de la empresa se usa al responder a tus clientes." /><Field maxLength={agentLimits.name} label="Nombre del agente" required value={draft.name} onChange={value => setField('name', value)} placeholder="Ej. Atlas Atención" /><Field maxLength={agentLimits.business_name} label="Nombre de la empresa" required value={draft.business_name} onChange={value => setField('business_name', value)} placeholder="Stage AI Labs" /><Select label="Objetivo principal" value={draft.goal} onChange={value => setField('goal', value)} options={[['customer_service','Servicio al cliente'],['sales_and_service','Ventas y servicio'],['lead_qualification','Calificación de prospectos']]} /><div className="grid gap-4 sm:grid-cols-2"><Field label="Sitio web" value={draft.website_url ?? ''} onChange={value => setField('website_url', value)} placeholder="Opcional" type="url" /><Field label="Teléfono" value={draft.phone ?? ''} onChange={value => setField('phone', value)} placeholder="Opcional" type="tel" /></div></div>}
+            {step === 1 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={FileText} title="Enséñale lo que sí sabe" text="Cuéntale cómo funciona tu negocio. Puedes adjuntar un PDF; Excel todavía no está disponible. El archivo se guarda de forma privada y aún no se procesa." /><TextArea maxLength={agentLimits.business_description} label="¿Qué hace tu empresa?" required value={draft.business_description} onChange={value => setField('business_description', value)} placeholder="Describe servicios, clientes, horarios y cómo ayudas..." /><TextArea label="Catálogo o servicios clave" value={draft.catalog_summary ?? ''} onChange={value => setField('catalog_summary', value)} placeholder="Productos, servicios, precios o condiciones importantes" /><TextArea label="Datos que nunca debe olvidar" value={draft.important_facts ?? ''} onChange={value => setField('important_facts', value)} placeholder="Horarios, cobertura, políticas de entrega o contacto humano" /><label className="block rounded-2xl border border-dashed border-ink/20 bg-panel p-5"><span className="flex items-center gap-2 text-sm font-bold"><Upload size={17} /> Documento de apoyo <span className="font-normal text-ink/70">(opcional, máximo 20 MB)</span></span><input type="file" accept="application/pdf,.pdf" onChange={event => setPdf(event.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-ink/70 file:mr-3 file:rounded-lg file:border-0 file:bg-ink/5 file:px-3 file:py-2 file:font-semibold file:text-ink" />{pdf && <span className="mt-2 block text-xs text-emerald-600">{pdf.name}</span>}</label></div>}
+            {step === 2 && <div className="mx-auto max-w-2xl space-y-5"><Intro icon={Sparkles} title="Define cómo debe atender" text="Tus instrucciones personalizan la operación. Las reglas de privacidad, veracidad y aislamiento siempre tienen prioridad." /><Select label="Estilo de conversación" value={draft.tone} onChange={value => setField('tone', value)} options={[['clear_and_warm','Claro y cercano'],['professional','Profesional'],['concise','Breve y directo'],['friendly','Amigable']]} /><TextArea label="Instrucciones operativas" value={draft.operating_instructions ?? ''} onChange={value => setField('operating_instructions', value)} placeholder="Ej. Primero comprende la necesidad; después recomienda solo opciones disponibles." /><TextArea label="Cuándo escalar a una persona" value={draft.handoff_instructions ?? ''} onChange={value => setField('handoff_instructions', value)} placeholder="Ej. Reclamos de pago, cancelaciones o cuando el cliente lo solicite." /><div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm leading-6 text-ink/70"><span className="font-bold text-ink">Reglas de atención:</span> configura veracidad, privacidad y derivación a una persona. Verifica su comportamiento antes de activarlo.</div></div>}
+            {step === 3 && <div className="mx-auto max-w-2xl"><Intro icon={ShieldCheck} title="Revisa la configuración" text="Se guardará como borrador. La información todavía no se procesa y el asistente no responde automáticamente." /><dl className="mt-7 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-panel px-5"><ReviewRow label="Asistente" value={draft.name} /><ReviewRow label="Empresa" value={draft.business_name} /><ReviewRow label="Idiomas" value="Todos: responderá en el idioma del cliente" /><ReviewRow label="Información" value={pdf ? `Datos ingresados + ${pdf.name}` : 'Datos ingresados'} /><ReviewRow label="Canales" value="Se conectan y asignan por separado más adelante" /></dl></div>}
+            {error && <div role="alert" tabIndex={-1} className="mx-auto mt-5 max-w-2xl rounded-xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-200"><p>{error}</p>{partiallySaved && <button type="button" className="mt-3 min-h-11 rounded-lg border border-current px-3 font-semibold focus-visible:outline focus-visible:outline-2" onClick={() => { if (savedDraft.current) { setDraft(JSON.parse(savedDraft.current) as AgentDraft); setError('Se restauraron los valores guardados. Puedes reintentar el documento.'); } }}>Restaurar configuración guardada</button>}</div>}
+            {outcomeUnknown && <section className="mx-auto mt-5 max-w-2xl space-y-3" aria-label="Recuperar guardado incierto">
+              <button type="button" disabled={reconciling} onClick={() => void reconcile()} className="min-h-11 rounded-xl border border-ink/20 px-4 font-semibold">{reconciling ? 'Consultando agentes' : 'Consultar mis agentes para recuperar'}</button>
+              {reconciled !== null && <div className="space-y-3">
+                <p className="text-sm">Solo agentes creados por ti en este espacio. Recuperar usa su configuración guardada y permite adjuntar el PDF actual.</p>
+                {reconciled.map(row => <button key={row.id} type="button" className="block max-w-full break-words min-h-11 rounded-xl border border-ink/20 px-4 text-left" onClick={() => {
+                  const restored = Object.fromEntries(Object.keys(emptyDraft).map(key => [key, row[key as keyof AgentDraft]])) as AgentDraft;
+                  savedAgent.current = row; savedDraft.current = JSON.stringify(restored); setDraft(restored);
+                  setPartiallySaved(true); setOutcomeUnknown(false); setReconciled(null); setError('Agente recuperado. Revisa su configuración antes de reintentar el PDF.');
+                }}>Recuperar {row.name}</button>)}
+                {!reconciled.length && <p>No encontramos agentes propios. Esto no descarta un guardado aún pendiente.</p>}
+                <button type="button" className="min-h-11 rounded-xl border border-ink/20 px-4" onClick={() => { setDraftMemory(null); onClose(); }}>Descartar borrador sin borrar agentes</button>
+                <p className="text-sm">Crear otro después de descartar puede duplicar una solicitud anterior. No se crea nada automáticamente.</p>
+              </div>}
+            </section>}
+            </fieldset>
           </div>
 
-          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-ink/10 bg-panel px-5 py-4 sm:px-7"><div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3"><button type="button" onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink/70 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={17} /> {step === 0 ? 'Cancelar' : 'Atrás'}</button>{step < 4 ? <button type="button" disabled={!canContinue} onClick={() => setStep((step + 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:cursor-not-allowed disabled:opacity-40">Continuar <ArrowRight size={17} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:opacity-50">{saving ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar asistente</button>}</div></footer>
-        </div>
+          <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-ink/10 bg-panel px-5 py-4 sm:px-7"><div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3"><button type="button" disabled={saving} onClick={() => step === 0 ? onClose() : setStep((step - 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-ink/70 hover:bg-ink/5 hover:text-ink"><ArrowLeft size={17} /> {step === 0 ? 'Cancelar' : 'Atrás'}</button>{step < 3 ? <button type="button" disabled={!canContinue} onClick={() => setStep((step + 1) as BuilderStep)} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:cursor-not-allowed disabled:opacity-40">Continuar <ArrowRight size={17} /></button> : <button type="button" disabled={saving} onClick={() => void save()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-brand-ink disabled:opacity-50">{saving ? <><Loader2 size={17} className="animate-spin" aria-hidden="true" /> <span role="status">{savePhase}</span></> : <><Check size={17} aria-hidden="true" /> Guardar asistente</>}</button>}</div></footer>
+      </div>
     </div>, document.body
   );
 }
 
 function Intro({ icon: Icon, title, text }: { icon: typeof Bot; title: string; text: string }) { return <div><span className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"><Icon size={21} /></span><h3 className="mt-5 font-display text-2xl font-extrabold tracking-[-.03em]">{title}</h3><p className="mt-2 max-w-xl text-sm leading-6 text-ink/70">{text}</p></div>; }
-function Field({ label, value, onChange, placeholder, type = 'text', required = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string; required?: boolean }) { return <label className="block text-sm font-bold text-ink/70">{label}{required && <span className="ml-1 text-indigo-500">*</span>}<input type={type} required={required} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} className="mt-2 min-h-12 w-full rounded-xl border border-ink/10 bg-panel px-4 font-normal text-ink outline-none transition-transform duration-150 placeholder:text-ink/70 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" /></label>; }
-function TextArea({ label, value, onChange, placeholder, required = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; required?: boolean }) { return <label className="block text-sm font-bold text-ink/70">{label}{required && <span className="ml-1 text-indigo-500">*</span>}<textarea required={required} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} rows={3} className="mt-2 w-full resize-y rounded-xl border border-ink/10 bg-panel px-4 py-3 font-normal leading-6 text-ink outline-none transition-transform duration-150 placeholder:text-ink/70 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" /></label>; }
+function Field({ label, value, onChange, placeholder, type = 'text', required = false, maxLength }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string; required?: boolean; maxLength?: number }) { return <label className="block text-sm font-bold text-ink/70">{label}{required && <span className="ml-1 text-indigo-500">*</span>}<input type={type} required={required} maxLength={maxLength} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} className="mt-2 min-h-12 w-full rounded-xl border border-ink/10 bg-panel px-4 font-normal text-ink outline-none transition-transform duration-150 placeholder:text-ink/70 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" />{maxLength && <span className="mt-1 block text-xs font-normal">Entre 2 y {maxLength} caracteres.</span>}</label>; }
+function TextArea({ label, value, onChange, placeholder, required = false, maxLength }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; required?: boolean; maxLength?: number }) { return <label className="block text-sm font-bold text-ink/70">{label}{required && <span className="ml-1 text-indigo-500">*</span>}<textarea required={required} maxLength={maxLength} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} rows={3} className="mt-2 w-full resize-y rounded-xl border border-ink/10 bg-panel px-4 py-3 font-normal leading-6 text-ink outline-none transition-transform duration-150 placeholder:text-ink/70 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" />{maxLength && <span className="mt-1 block text-xs font-normal">Entre 20 y {maxLength} caracteres.</span>}</label>; }
 function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[][] }) { return <label className="block text-sm font-bold text-ink/70">{label}<select value={value} onChange={event => onChange(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-ink/10 bg-panel px-4 font-normal text-ink outline-none focus:border-indigo-500">{options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}</select></label>; }
-function ReviewRow({ label, value }: { label: string; value: string }) { return <div className="grid gap-1 py-4 sm:grid-cols-[150px_1fr]"><dt className="text-sm font-semibold text-ink/70">{label}</dt><dd className="text-sm font-semibold text-ink/75">{value}</dd></div>; }
+function ReviewRow({ label, value }: { label: string; value: string }) { return <div className="grid min-w-0 gap-1 py-4 sm:grid-cols-[150px_1fr]"><dt className="text-sm font-semibold text-ink/70">{label}</dt><dd className="min-w-0 break-words text-sm font-semibold text-ink/75">{value}</dd></div>; }

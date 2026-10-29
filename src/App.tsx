@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   ArrowLeft, ArrowRight, BarChart3, Check, CircleHelp,
@@ -19,7 +19,7 @@ import { DesktopLanding } from './components/DesktopLanding';
 import { AuthLoadingSkeleton } from './components/AuthLoadingSkeleton';
 import { InstagramIcon, FacebookIcon, TikTokIcon, WhatsAppIcon, TelegramIcon, GmailIcon } from './components/BrandIcons';
 import { STAGE_PLANS, type BillingCycle, type StagePlan } from './lib/product-data';
-import { AgentWorkspace } from './features/agents/AgentWorkspace';
+import { AgentWorkspace, type AgentDraftMemory } from './features/agents/AgentWorkspace';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { DashboardOverview } from './components/DashboardOverview';
 import { consumeRememberedAuthProvider, resolveAccountIdentity, type AccountIdentity } from './lib/account-identity';
@@ -434,6 +434,7 @@ function Questions({ profile, setProfile, onFinish, onBack, lang, setLang }: { p
 /* ── Dashboard ─────────────────────────────────────────────── */
 
 function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity: AccountIdentity; onLogout: () => void }) {
+  const [agentDraftMemory, setAgentDraftMemory] = useState<AgentDraftMemory | null>(null);
   const reduceMotion = useReducedMotion();
   const requestedPlan = new URLSearchParams(window.location.search).get('checkout');
   const hasCheckoutRequest = STAGE_PLANS.some((plan) => plan.id === requestedPlan);
@@ -462,6 +463,7 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
       .then((nextWorkspace) => {
         if (cancelled) return;
         setWorkspace(nextWorkspace);
+        setAgentDraftMemory(current => current?.scope === `${profile.id}:${nextWorkspace.organizationId}` ? current : null);
         setWorkspaceError('');
       })
       .catch(() => {
@@ -584,7 +586,9 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
               )}
               {tab === 'Automatizaciones' && (
                 <AgentWorkspace
-                  key={`agents-${createAgentRequest}`}
+                  key={`${profile.id}:${workspace.organizationId}:agents-${createAgentRequest}`}
+                  draftMemory={agentDraftMemory}
+                  setDraftMemory={setAgentDraftMemory}
                   userId={profile.id}
                   workspace={workspace}
                   createRequest={createAgentRequest}
@@ -608,6 +612,8 @@ function Dashboard({ profile, identity, onLogout }: { profile: Profile; identity
 /* ── App ────────────────────────────────────────────────────── */
 
 function App() {
+  const authGeneration = useRef(0);
+  const authUser = useRef<string | null>(previewMode ? previewProfile.id : null);
   const [lang, setLang] = useState<"ES" | "EN" | "PT">("ES");
   const [screen, setScreen] = useState<Screen>(previewMode === 'dashboard' ? 'dashboard' : previewMode === 'onboarding' ? 'channel' : previewMode === 'questions' ? 'questions' : 'landing');
   const [profile, setProfile] = useState<Profile | null>(previewMode ? previewProfile : null);
@@ -625,6 +631,7 @@ function App() {
     let bootFinished = false;
     let hydrationVersion = 0;
     let invitationAttempt: PromiseLike<boolean> | null = null;
+    let invitationUserId: string | null = null;
     const bootTimer = window.setTimeout(() => {
       if (!mounted || bootFinished) return;
       bootTimedOut = true;
@@ -642,7 +649,12 @@ function App() {
     const hydrateSession = async (session: Session | null) => {
       if (!mounted || bootTimedOut) return;
       const version = ++hydrationVersion;
+      authGeneration.current++;
+      authUser.current = session?.user?.id ?? null;
+      if (invitationUserId !== authUser.current) { invitationAttempt = null; invitationUserId = authUser.current; }
       setAuthError('');
+      // Never keep the previous profile visible while hydrating another user.
+      setProfile(current => current?.id === session?.user?.id ? current : null);
       if (!session?.user) {
         setProfile(null);
         setIdentity(null);
@@ -718,6 +730,7 @@ function App() {
         const profile = inviteToken && !current.onboarding_complete ? { ...current, onboarding_complete: true } as Profile : current as Profile;
         if (inviteToken && !current.onboarding_complete) {
           const { error: updateError } = await supabase.from('onboarding_profiles').update({ onboarding_complete: true }).eq('id', session.user.id);
+          if (!mounted || bootTimedOut || version !== hydrationVersion) return;
           if (updateError) throw updateError;
         }
         setProfile(profile);
@@ -728,14 +741,16 @@ function App() {
     };
 
     const startHydration = (session: Session | null) => {
+      const requestedVersion = hydrationVersion + 1;
       void hydrateSession(session).catch(() => {
-        if (!mounted || bootTimedOut) return;
+        if (!mounted || bootTimedOut || requestedVersion !== hydrationVersion) return;
         setAuthError('No pudimos cargar tu espacio. Comprueba tu conexión y vuelve a intentarlo.');
         finishLoading();
       });
     };
+    const initialVersion = hydrationVersion;
     supabase.auth.getSession().then(({ data, error: sessionError }) => {
-      if (!mounted || bootTimedOut || bootFinished) return;
+      if (!mounted || bootTimedOut || bootFinished || hydrationVersion !== initialVersion) return;
       if (sessionError) {
         setAuthError('No pudimos verificar tu sesión. Revisa tu conexión y vuelve a intentarlo.');
         finishLoading();
@@ -743,7 +758,7 @@ function App() {
       }
       startHydration(data.session);
     }).catch(() => {
-      if (!mounted || bootTimedOut || bootFinished) return;
+      if (!mounted || bootTimedOut || bootFinished || hydrationVersion !== initialVersion) return;
       setAuthError('No pudimos verificar tu sesión. Comprueba tu conexión y vuelve a intentarlo.');
       finishLoading();
     });
@@ -754,6 +769,8 @@ function App() {
   }, []);
 
   async function handleAuthSuccess(nextProfile: Profile | null) {
+    const generation = authGeneration.current;
+    if (nextProfile && nextProfile.id !== authUser.current) return;
     if (pendingTeamInvite()) return;
     if (nextProfile?.onboarding_complete) {
       setProfile(nextProfile);
@@ -765,7 +782,7 @@ function App() {
       setScreen('channel');
     } else {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user && generation === authGeneration.current && user.id === authUser.current) {
         setIdentity(resolveAccountIdentity(user, consumeRememberedAuthProvider()));
         const newProfile: Profile = {
           id: user.id,
@@ -778,6 +795,7 @@ function App() {
           theme_preference: 'dark',
         };
         await supabase.from('onboarding_profiles').upsert({ id: user.id, goals: [], onboarding_complete: false, theme_preference: 'dark' });
+        if (generation !== authGeneration.current || user.id !== authUser.current) return;
         setProfile(newProfile);
         setScreen('channel');
       }
@@ -852,7 +870,7 @@ function App() {
     </main>
   );
 
-  if (loading) return <AuthLoadingSkeleton />;
+  if (loading || (!authError && identity && profile?.id !== identity.userId)) return <AuthLoadingSkeleton />;
 
   if (authError) return (
     <main className="grid min-h-screen place-items-center bg-canvas px-5 text-ink">
@@ -943,7 +961,7 @@ function App() {
 
   if (screen === 'questions' && profile) return <Questions profile={profile} setProfile={setProfile} lang={lang} setLang={setLang} onBack={() => setScreen('channel')} onFinish={() => setScreen('dashboard')} />;
 
-  if (profile && identity) return <Dashboard profile={profile} identity={identity} onLogout={async () => { await supabase.auth.signOut(); setProfile(null); setIdentity(null); setScreen('landing'); }} />;
+  if (profile && identity && profile.id === identity.userId) return <Dashboard key={profile.id} profile={profile} identity={identity} onLogout={async () => { await supabase.auth.signOut(); setProfile(null); setIdentity(null); setScreen('landing'); }} />;
 
   return null;
 }
