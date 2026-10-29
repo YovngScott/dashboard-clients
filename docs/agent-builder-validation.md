@@ -14,10 +14,10 @@ Saving inserts an agent with the existing database default draft status.
 
 ## Reproduce
 
-Use Node 24.19.0 and the existing bun.lock (Bun 1.4.4). Install with lifecycle
-scripts disabled. Run npm run build: app typecheck, lint, 32 Node tests,
-component/test/fixture typecheck, 26 Vitest tests, Vite build.
-The 58 tests passed for this checkpoint. git diff --check passed.
+Use Node 24.19.0 and the existing bun.lock (Bun 1.4.2). Install with lifecycle
+scripts disabled. The combined candidate passed npm run build: application
+typecheck, lint, 46 Node tests, component/test/fixture typecheck, 54 Vitest
+tests and Vite 8.3.3 build. git diff --check passed.
 
 Component tests mock services and block fetch. Cases include App-level delayed
 account hydration, old workspace/profile responses, logout during upload,
@@ -55,18 +55,13 @@ database integration is certified here.
 
 ## Dependency audit (2026-10-29)
 
-Bun native audit reports 12 development-toolchain advisories: 5 high, 6 moderate,
-1 low, involving brace-expansion, postcss-selector-parser, source-map-js, Vite
-and zod. These paths are lint/build/dev-server/test tooling, not application
-production dependencies. The production-only audit reports no vulnerabilities.
-This is NOT a clean full audit or a production-release approval.
-
-Vite advisories include development-server/editor behavior: do not expose the
-dev server to untrusted clients. Lint glob, source-map, CSS and schema-parser
-DoS paths require review before handling untrusted build/test inputs. Fixtures
-here are controlled synthetic inputs. No automatic audit fix or forced version
-upgrade was applied in this scoped UI checkpoint. Follow-up dependency triage
-remains required before a production release; review date: before merge.
+The combined candidate includes the reviewed dev-tool patches and Vite 8.3.3.
+`bun audit` reported zero known advisories among 315 packages at this point in
+time. This is not a guarantee against unknown vulnerabilities. The candidate's
+local frozen install did not complete and was interrupted; a clean frozen install
+of the identical manifest and lock passed in the earlier dependency checkpoint.
+A fresh independent install of this exact combined candidate is still required
+before production release. Do not expose development fixtures to public traffic.
 
 No credentials, personal data, backup diagnostics or private local reports are
 included in this public-facing validation note.

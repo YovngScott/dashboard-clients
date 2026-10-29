@@ -73,6 +73,20 @@ describe('real component, synthetic services only', () => {
     expect(website.value).toBe('https://example.test');
     expect(website.getAttribute('aria-invalid')).toBeNull();
   });
+  it('shows required creation errors next to fields after blur', () => {
+    render(<Memory />);
+    for (const label of ['Nombre del agente','Nombre de la empresa']) {
+      const field=screen.getByLabelText(label); fireEvent.change(field,{target:{value:'x'}}); fireEvent.blur(field);
+      expect(field.getAttribute('aria-invalid')).toBe('true');
+      expect(document.getElementById(field.getAttribute('aria-describedby')!)?.textContent).toContain('2 caracteres');
+      fireEvent.change(field,{target:{value:'Válido'}});
+    }
+    next(); const description=screen.getByLabelText('¿Qué hace tu empresa?');
+    fireEvent.change(description,{target:{value:'breve'}}); fireEvent.blur(description);
+    expect(description.getAttribute('aria-invalid')).toBe('true');
+    expect(document.getElementById(description.getAttribute('aria-describedby')!)?.textContent).toContain('20 caracteres');
+    expect((button('Continuar') as HTMLButtonElement).disabled).toBe(true);
+  });
   for (const [label, makeFile, expected] of [
     ['invalid MIME', () => new NodeFile(['%PDF-'], 'synthetic.txt', {type:'text/plain'}), 'Selecciona un archivo PDF'],
     ['invalid signature', () => new NodeFile(['NOT-PDF'], 'synthetic.pdf', {type:'application/pdf'}), 'firma PDF válida'],
