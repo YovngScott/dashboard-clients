@@ -4,7 +4,7 @@ import { agentLimits, draftFieldError, draftValidationError, websiteValidationEr
 import { localPdfMessage } from './context-pdf';
 import { CatalogReview } from '../knowledge/CatalogReview';
 
-type Props = { agent: AgentRecord; workspace: Workspace; userId: string; onClose: () => void; onSaved: () => Promise<void> };
+type Props = { agent: AgentRecord; workspace: Workspace; userId: string; onClose: () => void; onSaved: () => Promise<void>; initialFocus?: 'business_description' | 'tone' };
 const fields = [
   ['name','Nombre del agente'], ['business_name','Nombre de la empresa'], ['business_description','Descripción del negocio'],
   ['catalog_summary','Catálogo o servicios'], ['important_facts','Información importante'],
@@ -13,7 +13,7 @@ const fields = [
 ] as const;
 const limits: Record<string,number> = {name:80,business_name:120,business_description:8000};
 
-export function AgentEditor({agent,workspace,userId,onClose,onSaved}: Props) {
+export function AgentEditor({agent,workspace,userId,onClose,onSaved,initialFocus}: Props) {
   const [draft,setDraft] = useState(() => editableAgentFields(agent));
   const [saved,setSaved] = useState(agent);
   const [savedDraft,setSavedDraft] = useState(() => JSON.stringify(editableAgentFields(agent)));
@@ -27,6 +27,8 @@ export function AgentEditor({agent,workspace,userId,onClose,onSaved}: Props) {
   const [confirmDiscard,setConfirmDiscard] = useState(false);
   const [showCatalog,setShowCatalog] = useState(false);
   const active = useRef(true); const inFlight = useRef(false);
+  const editorRef = useRef<HTMLElement>(null);
+  useEffect(() => { if (initialFocus) editorRef.current?.querySelector<HTMLElement>(`[data-editor-field="${initialFocus}"]`)?.focus(); }, [initialFocus]);
   useEffect(() => { active.current=true; return () => { active.current=false; }; }, []);
   const websiteError=websiteValidationError(draft.website_url ?? '');
   const dirty=JSON.stringify(editableAgentFields(draft))!==savedDraft;
@@ -65,7 +67,7 @@ export function AgentEditor({agent,workspace,userId,onClose,onSaved}: Props) {
     } finally { inFlight.current=false; if (active.current) setBusy(false); }
   }
 
-  return <section className="mt-4 w-full max-w-2xl rounded-2xl border border-ink/20 bg-panel p-5" aria-label={`Editar ${agent.name}`} aria-busy={busy}>
+  return <section ref={editorRef} className="mt-4 w-full max-w-2xl rounded-2xl border border-ink/20 bg-panel p-5" aria-label={`Editar ${agent.name}`} aria-busy={busy}>
     <h3 className="font-display text-xl font-bold">Editar configuración</h3>
     <p className="mt-2 text-sm text-ink/70">Los cambios no activan el asistente ni eliminan documentos existentes.</p>
     <fieldset disabled={busy || uncertain} className="mt-4 grid min-w-0 gap-4 border-0 p-0 sm:grid-cols-2">
@@ -74,13 +76,13 @@ export function AgentEditor({agent,workspace,userId,onClose,onSaved}: Props) {
         const fieldError = validated && touched[validated] ? draftFieldError(validated, draft[validated]) : null;
         return <label key={key} className="min-w-0 text-sm font-semibold">{label}
         {['business_description','catalog_summary','important_facts','operating_instructions','handoff_instructions'].includes(key)
-          ? <textarea aria-label={label} aria-invalid={fieldError ? true : undefined} aria-describedby={fieldError ? `edit-${key}-error` : undefined} onBlur={()=>{if(validated)setTouched(t=>({...t,[validated]:true}));}} value={draft[key] ?? ''} maxLength={limits[key]} onChange={e=>setDraft(d=>({...d,[key]:e.target.value}))} className="mt-2 min-h-24 w-full rounded-xl border border-ink/20 bg-canvas p-3 font-normal" />
+          ? <textarea data-editor-field={key} aria-label={label} aria-invalid={fieldError ? true : undefined} aria-describedby={fieldError ? `edit-${key}-error` : undefined} onBlur={()=>{if(validated)setTouched(t=>({...t,[validated]:true}));}} value={draft[key] ?? ''} maxLength={limits[key]} onChange={e=>setDraft(d=>({...d,[key]:e.target.value}))} className="mt-2 min-h-24 w-full rounded-xl border border-ink/20 bg-canvas p-3 font-normal" />
           : <input aria-label={label} type={key === 'website_url' ? 'url' : 'text'} value={draft[key] ?? ''} maxLength={limits[key]} aria-invalid={!!fieldError || (key === 'website_url' && websiteTouched && !!websiteError) || undefined} aria-describedby={fieldError ? `edit-${key}-error` : key === 'website_url' && websiteTouched && websiteError ? 'edit-website-error' : undefined} onBlur={()=>{if(validated)setTouched(t=>({...t,[validated]:true}));if(key==='website_url'){setWebsiteTouched(true);setDraft(d=>({...d,website_url:d.website_url?.trim() || null}));}}} onChange={e=>setDraft(d=>({...d,[key]:e.target.value}))} className="mt-2 min-h-11 w-full rounded-xl border border-ink/20 bg-canvas px-3 font-normal" />}
         {fieldError && <span id={`edit-${key}-error`} className="mt-1 block text-rose-700 dark:text-rose-200">{fieldError}</span>}
         {key === 'website_url' && websiteTouched && websiteError && <span id="edit-website-error" className="mt-1 block text-rose-700 dark:text-rose-200">{websiteError}</span>}
       </label>;})}
       <label className="text-sm font-semibold">Objetivo<select value={draft.goal} onChange={e=>setDraft(d=>({...d,goal:e.target.value}))} className="mt-2 min-h-11 w-full rounded-xl border border-ink/20 bg-canvas px-3"><option value="customer_service">Servicio al cliente</option><option value="sales_and_service">Ventas y servicio</option><option value="lead_qualification">Calificación de prospectos</option></select></label>
-      <label className="text-sm font-semibold">Tono<select value={draft.tone} onChange={e=>setDraft(d=>({...d,tone:e.target.value}))} className="mt-2 min-h-11 w-full rounded-xl border border-ink/20 bg-canvas px-3"><option value="clear_and_warm">Claro y cercano</option><option value="professional">Profesional</option><option value="concise">Breve y directo</option><option value="friendly">Amigable</option></select></label>
+      <label className="text-sm font-semibold">Tono<select data-editor-field="tone" value={draft.tone} onChange={e=>setDraft(d=>({...d,tone:e.target.value}))} className="mt-2 min-h-11 w-full rounded-xl border border-ink/20 bg-canvas px-3"><option value="clear_and_warm">Claro y cercano</option><option value="professional">Profesional</option><option value="concise">Breve y directo</option><option value="friendly">Amigable</option></select></label>
       <label className="sm:col-span-2 text-sm font-semibold">Añadir PDF opcional<input aria-label="Añadir PDF opcional" type="file" accept="application/pdf,.pdf" onChange={e=>{setFile(e.target.files?.[0] ?? null);setPartial(false);}} className="mt-2 block w-full text-sm" /><span className="mt-2 block font-normal text-ink/70">El archivo se guarda, pero todavía no se procesa para responder.</span></label>
     </fieldset>
     {error && <p role="alert" className="mt-4 text-sm text-rose-700 dark:text-rose-200">{error}</p>}

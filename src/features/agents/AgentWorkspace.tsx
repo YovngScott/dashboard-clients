@@ -47,10 +47,13 @@ const emptyDraft: AgentDraft = {
 };
 
 export function AgentWorkspace({ userId, workspace, createRequest = 0, preview = false, draftMemory, setDraftMemory }: Props) {
-  return <ScopedAgentWorkspace key={`${userId}:${workspace.organizationId}:${workspace.role}`} {...{ userId, workspace, createRequest, preview, draftMemory, setDraftMemory }} />;
+  const scope = `${userId}:${workspace.organizationId}`;
+  return <ScopedAgentWorkspace key={`${scope}:${workspace.role}`} {...{ userId, workspace, createRequest, preview, draftMemory, setDraftMemory }} />;
 }
 
 function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = false, draftMemory, setDraftMemory }: Props) {
+  const scope = `${userId}:${workspace.organizationId}`;
+  const resetSelection = !!window.history.state?.stageAgentScope && window.history.state.stageAgentScope !== scope;
   const editable = canManageAgents(workspace.role);
   const [tab, setTab] = useState<'ideas' | 'agents'>(editable ? 'ideas' : 'agents');
   const [agents, setAgents] = useState<AgentRecord[]>([]);
@@ -58,8 +61,53 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
   const [error, setError] = useState('');
   const [builderOpen, setBuilderOpen] = useState(editable && createRequest > 0);
   const [editing, setEditing] = useState<AgentRecord | null>(null);
+  const [editorFocus, setEditorFocus] = useState<'business_description' | 'tone'>('business_description');
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  const listHeading = useRef<HTMLHeadingElement>(null);
+  const [requestedAgent, setRequestedAgent] = useState(() => resetSelection ? null : new URLSearchParams(window.location.search).get('agent'));
+  const tabChosen = useRef(false);
   const refreshVersion = useRef(0);
+  const editingRef = useRef(editing);
+  useEffect(() => { editingRef.current = editing; }, [editing]);
   useEffect(() => () => { refreshVersion.current++; }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (resetSelection) url.searchParams.delete('agent');
+    window.history.replaceState({ ...window.history.state, stageAgentScope: scope }, '', url);
+  }, [resetSelection, scope]);
+  useEffect(() => {
+    if (loading || editing) return;
+    if (requestedAgent && agents.some(agent => agent.id === requestedAgent && agent.organization_id === workspace.organizationId)) detailHeading.current?.focus();
+    else if (tabChosen.current) listHeading.current?.focus();
+  }, [requestedAgent, agents, loading, editing, workspace.organizationId]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (editingRef.current) {
+        const current = new URL(window.location.href);
+        current.searchParams.set('agent', editingRef.current.id);
+        window.history.replaceState(window.history.state, '', current);
+        return;
+      }
+      if (window.history.state?.stageAgentScope && window.history.state.stageAgentScope !== scope) {
+        const url = new URL(window.location.href); url.searchParams.delete('agent');
+        window.history.replaceState({ ...window.history.state, stageAgentScope: scope }, '', url);
+      }
+      setRequestedAgent(new URLSearchParams(window.location.search).get('agent'));
+      setTab('agents');
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [scope]);
+
+  function navigateAgent(id: string | null) {
+    if (editing) return;
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set('agent', id); else url.searchParams.delete('agent');
+    window.history.pushState({ ...window.history.state, stageAgentScope: scope }, '', url);
+    setRequestedAgent(id); setTab('agents'); tabChosen.current = true;
+  }
+  const selectedAgent = agents.find(agent => agent.id === requestedAgent && agent.organization_id === workspace.organizationId);
 
   async function refresh() {
     const version = ++refreshVersion.current;
@@ -68,7 +116,9 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
     try {
       const nextAgents = await listAgents(workspace.organizationId);
       if (version !== refreshVersion.current) return;
-      setAgents(nextAgents.filter(agent => agent.organization_id === workspace.organizationId));
+      const ownAgents = nextAgents.filter(agent => agent.organization_id === workspace.organizationId);
+      setAgents(ownAgents);
+      if (!tabChosen.current) setTab(ownAgents.length > 0 ? 'agents' : editable ? 'ideas' : 'agents');
     } catch {
       if (version !== refreshVersion.current) return;
       setError('No pudimos cargar tus asistentes. Inténtalo de nuevo en unos segundos.');
@@ -81,7 +131,9 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
     listAgents(workspace.organizationId)
       .then((nextAgents) => {
         if (cancelled) return;
-        setAgents(nextAgents.filter(agent => agent.organization_id === workspace.organizationId));
+        const ownAgents = nextAgents.filter(agent => agent.organization_id === workspace.organizationId);
+        setAgents(ownAgents);
+        if (!tabChosen.current) setTab(ownAgents.length > 0 ? 'agents' : editable ? 'ideas' : 'agents');
         setLoading(false);
       })
       .catch(() => {
@@ -90,7 +142,7 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [workspace.organizationId, preview]);
+  }, [workspace.organizationId, preview, editable]);
 
   function openBuilder() {
     if (!editable) return;
@@ -110,11 +162,11 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
         if (!editable || editing || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
         const next = event.key === 'Home' ? 'ideas' : event.key === 'End' ? 'agents' : tab === 'ideas' ? 'agents' : 'ideas';
-        setTab(next);
+        tabChosen.current = true; setTab(next);
         document.getElementById(`agent-tab-${next}`)?.focus();
       }}>
-        {editable && <TabButton id="agent-tab-ideas" active={tab === 'ideas'} disabled={!!editing} onClick={() => setTab('ideas')}>Para empezar</TabButton>}
-        <TabButton id="agent-tab-agents" active={tab === 'agents'} onClick={() => setTab('agents')}>Mis agentes <span className="ml-1 opacity-60">{agents.length}</span></TabButton>
+        {editable && <TabButton id="agent-tab-ideas" active={tab === 'ideas'} disabled={!!editing} onClick={() => { tabChosen.current = true; setTab('ideas'); }}>Para empezar</TabButton>}
+        <TabButton id="agent-tab-agents" active={tab === 'agents'} onClick={() => { tabChosen.current = true; setTab('agents'); }}>Mis agentes <span className="ml-1 opacity-60">{agents.length}</span></TabButton>
       </div>
 
       {error && <div role="alert" className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-700 dark:text-rose-200"><CircleAlert className="shrink-0" size={18} /><span className="flex-1">{error}</span><button type="button" onClick={() => void refresh()} className="min-h-11 rounded-xl border border-current/25 px-4 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Reintentar</button></div>}
@@ -147,8 +199,12 @@ function ScopedAgentWorkspace({ userId, workspace, createRequest = 0, preview = 
         </div>
       ) : (
         <div id="agent-tab-panel" role="tabpanel" aria-labelledby="agent-tab-agents">
-          <AgentList agents={agents} loading={loading} onCreate={editable ? openBuilder : undefined} onEdit={editable && !preview && !editing ? setEditing : undefined} />
-          {editing && editable && !preview && editing.organization_id === workspace.organizationId && <AgentEditor key={`${userId}:${workspace.organizationId}:${editing.id}`} agent={editing} workspace={workspace} userId={userId} onClose={() => { setEditing(null); void refresh(); }} onSaved={async () => { setEditing(null); await refresh(); }} />}
+          {selectedAgent && !loading ? <section className="space-y-5" aria-label={`Espacio de ${selectedAgent.name}`}>
+            <button type="button" disabled={!!editing} onClick={() => navigateAgent(null)} className="min-h-11 rounded-xl border border-ink/20 px-4 font-semibold disabled:opacity-50">Volver a mis agentes</button>
+            <div className="rounded-2xl border border-ink/10 bg-panel p-6"><h2 ref={detailHeading} tabIndex={-1} className="font-display text-2xl font-bold">{selectedAgent.name}</h2><p className="mt-2 text-sm text-ink/70">{selectedAgent.business_name} · {statusMeta[selectedAgent.status].label}</p><p className="mt-4 text-sm text-ink/70">Revisa el estado y la configuración de este agente antes de realizar cambios.</p></div>
+            {!editing && editable && !preview && <div className="grid gap-4 sm:grid-cols-2"><section className="rounded-2xl border border-ink/10 bg-panel p-6"><h3 className="font-display text-lg font-bold">Negocio y conocimiento</h3><p className="mt-2 text-sm text-ink/70">Edita los datos de tu negocio y revisa un catálogo textual temporal, que todavía no se conecta al agente.</p><button type="button" onClick={() => { setEditorFocus('business_description'); setEditing(selectedAgent); }} className="mt-4 min-h-11 rounded-xl bg-brand px-4 font-semibold text-brand-ink">Editar negocio y conocimiento</button></section><section className="rounded-2xl border border-ink/10 bg-panel p-6"><h3 className="font-display text-lg font-bold">Comportamiento y derivación</h3><p className="mt-2 text-sm text-ink/70">Revisa el tono, las instrucciones operativas y cuándo pedir ayuda a una persona.</p><button type="button" onClick={() => { setEditorFocus('tone'); setEditing(selectedAgent); }} className="mt-4 min-h-11 rounded-xl border border-ink/20 px-4 font-semibold">Editar comportamiento y reglas</button></section></div>}
+          </section> : <><h2 ref={listHeading} tabIndex={-1} className="sr-only">Mis agentes</h2><AgentList agents={agents} loading={loading} onCreate={editable ? openBuilder : undefined} onEdit={editable && !preview && !editing ? setEditing : undefined} onOpen={!editing ? navigateAgent : undefined} />{editable && !preview && !editing && !loading && agents.length > 0 && <button type="button" onClick={openBuilder} className="mt-4 min-h-11 rounded-xl border border-ink/20 px-4 text-sm font-semibold">Crear otro asistente</button>}{requestedAgent && !loading && !selectedAgent && <p role="status" className="mt-4 text-sm">Este agente no está disponible en este espacio.</p>}</>}
+          {editing && editable && !preview && editing.organization_id === workspace.organizationId && <AgentEditor key={`${userId}:${workspace.organizationId}:${editing.id}`} initialFocus={editorFocus} agent={editing} workspace={workspace} userId={userId} onClose={() => { setEditing(null); void refresh(); }} onSaved={async () => { setEditing(null); await refresh(); }} />}
         </div>
       )}
 
@@ -173,7 +229,7 @@ function TabButton({ id, active, disabled = false, onClick, children }: { id: st
   return <button id={id} type="button" role="tab" disabled={disabled} aria-controls="agent-tab-panel" tabIndex={active ? 0 : -1} aria-selected={active} onClick={onClick} className={`min-h-11 rounded-xl px-4 text-sm font-bold transition-transform duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 ${active ? 'bg-brand text-brand-ink' : 'border border-ink/10 bg-panel text-ink/70 hover:text-ink'}`}>{children}</button>;
 }
 
-function AgentList({ agents, loading, onCreate, onEdit }: { agents: AgentRecord[]; loading: boolean; onCreate?: () => void; onEdit?: (agent: AgentRecord) => void }) {
+function AgentList({ agents, loading, onCreate, onEdit, onOpen }: { agents: AgentRecord[]; loading: boolean; onCreate?: () => void; onEdit?: (agent: AgentRecord) => void; onOpen?: (id: string) => void }) {
   if (loading) return <div className="grid min-h-64 place-items-center rounded-[28px] border border-ink/10 bg-panel"><Loader2 className="animate-spin text-indigo-500" aria-label="Cargando agentes" /></div>;
   if (!agents.length) return (
     <div className="rounded-[28px] border border-dashed border-ink/15 bg-panel px-6 py-14 text-center">
@@ -195,6 +251,7 @@ function AgentList({ agents, loading, onCreate, onEdit }: { agents: AgentRecord[
           ['Sitio web', agent.website_url], ['Teléfono', agent.phone], ['Estado de preparación', agent.status_detail],
         ].filter(([, value]) => value).map(([label, value]) => <div key={label}><dt className="font-semibold">{label}</dt><dd className="mt-1 whitespace-pre-wrap break-words leading-6 text-ink/70">{value}</dd></div>)}</dl>
       </details>
+      {onOpen && <button type="button" onClick={() => onOpen(agent.id)} className="min-h-11 rounded-xl border border-ink/20 px-4 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Abrir {agent.name}</button>}
       {onEdit && <button type="button" onClick={() => onEdit(agent)} className="min-h-11 rounded-xl border border-ink/20 px-4 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Editar {agent.name}</button>}
     </article>
   ); })}</div>;
