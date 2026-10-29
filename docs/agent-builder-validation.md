@@ -57,11 +57,11 @@ database integration is certified here.
 
 The combined candidate includes the reviewed dev-tool patches and Vite 8.3.3.
 `bun audit` reported zero known advisories among 315 packages at this point in
-time. This is not a guarantee against unknown vulnerabilities. The candidate's
-local frozen install did not complete and was interrupted; a clean frozen install
-of the identical manifest and lock passed in the earlier dependency checkpoint.
-A fresh independent install of this exact combined candidate is still required
-before production release. Do not expose development fixtures to public traffic.
+time. This is not a guarantee against unknown vulnerabilities. A frozen install
+in the working copy was interrupted after it did not complete. An independent
+clean temporary copy of the candidate with the same manifest and lock completed
+`bun install --frozen-lockfile --ignore-scripts --backend=copyfile` successfully.
+Do not expose development fixtures to public traffic.
 
 No credentials, personal data, backup diagnostics or private local reports are
 included in this public-facing validation note.
