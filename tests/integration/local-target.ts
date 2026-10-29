@@ -26,6 +26,8 @@ export function restrictedFetch(origin: string): typeof fetch {
   return (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.origin !== origin) throw new Error('Blocked outbound request outside local Supabase.');
-    return fetch(input, { ...init, redirect: 'error' });
+    const signal = init?.signal ?? (input instanceof Request ? input.signal : undefined);
+    return fetch(input, { ...init, redirect: 'error', signal: signal
+      ? AbortSignal.any([signal, AbortSignal.timeout(10_000)]) : AbortSignal.timeout(10_000) });
   };
 }
