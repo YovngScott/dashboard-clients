@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase';
-import type { WorkspaceContext } from '@/lib/workspace';
+import { canManageAgents, type WorkspaceContext } from '@/lib/workspace';
+import { draftValidationError, websiteValidationError } from './draft-validation';
+import { validateContextPdf } from './context-pdf';
+export { validateContextPdf } from './context-pdf';
 
 export const supportedChannels = [
   'instagram',
@@ -15,6 +18,7 @@ export type AgentChannel = (typeof supportedChannels)[number];
 export type AgentStatus = 'draft' | 'processing' | 'needs_attention' | 'ready' | 'activating' | 'active' | 'failed' | 'paused';
 
 export type AgentRecord = {
+  created_by?: string;
   id: string;
   organization_id: string;
   name: string;
@@ -34,14 +38,44 @@ export type AgentRecord = {
   updated_at: string;
 };
 
-export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' | 'status_detail' | 'updated_at'>;
+export type AgentDraft = Omit<AgentRecord, 'id' | 'organization_id' | 'status' | 'status_detail' | 'updated_at' | 'created_by'>;
 
 export type Workspace = WorkspaceContext;
+
+export class AgentUpdateConflict extends Error {}
+
+// Do not spread caller input: ownership, status and security fields are never writable here.
+export function editableAgentFields(draft: AgentDraft): AgentDraft {
+  return {
+    name: draft.name, business_name: draft.business_name, business_description: draft.business_description,
+    catalog_summary: draft.catalog_summary, important_facts: draft.important_facts,
+    operating_instructions: draft.operating_instructions, website_url: draft.website_url?.trim() || null,
+    phone: draft.phone, goal: draft.goal, tone: draft.tone, handoff_instructions: draft.handoff_instructions,
+    requested_channels: [...draft.requested_channels],
+  };
+}
+
+export async function updateAgent(workspace: Workspace, agent: AgentRecord, draft: AgentDraft): Promise<AgentRecord> {
+  if (!canManageAgents(workspace.role) || agent.organization_id !== workspace.organizationId || !agent.id || !agent.updated_at) {
+    throw new Error('No tienes permiso para editar este agente en este espacio.');
+  }
+  const invalid = draftValidationError(draft) ?? websiteValidationError(draft.website_url ?? '');
+  if (invalid) throw new Error(invalid);
+  const fields = editableAgentFields(draft);
+  // Editing the profile must not change channel selections.
+  fields.requested_channels = [...agent.requested_channels];
+  const { data, error } = await supabase.from('agents').update(fields)
+    .eq('organization_id', workspace.organizationId).eq('id', agent.id).eq('updated_at', agent.updated_at)
+    .select('id,organization_id,created_by,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at').maybeSingle();
+  if (error) throw error;
+  if (!data || data.id !== agent.id || data.organization_id !== workspace.organizationId) throw new AgentUpdateConflict();
+  return data as AgentRecord;
+}
 
 export async function listAgents(organizationId: string): Promise<AgentRecord[]> {
   const { data, error } = await supabase
     .from('agents')
-    .select('id,organization_id,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at')
+    .select('id,organization_id,created_by,name,business_name,business_description,catalog_summary,important_facts,operating_instructions,website_url,phone,goal,tone,handoff_instructions,requested_channels,status,status_detail,updated_at')
     .eq('organization_id', organizationId)
     .order('updated_at', { ascending: false });
   if (error) throw error;
@@ -49,15 +83,10 @@ export async function listAgents(organizationId: string): Promise<AgentRecord[]>
 }
 
 export async function createAgent(organizationId: string, userId: string, draft: AgentDraft): Promise<AgentRecord> {
-  if (draft.name.trim().length < 2 || draft.business_name.trim().length < 2 || draft.business_description.trim().length < 20) {
-    throw new Error('Completa el nombre del asistente, la empresa y una descripción de al menos 20 caracteres.');
-  }
-  if (draft.website_url?.trim()) {
-    try {
-      const website = new URL(draft.website_url.trim());
-      if (!['https:', 'http:'].includes(website.protocol) || website.username || website.password) throw new Error();
-    } catch { throw new Error('Introduce una dirección web válida que empiece por https://.'); }
-  }
+  const validationError = draftValidationError(draft);
+  if (validationError) throw new Error(validationError);
+  const websiteError = websiteValidationError(draft.website_url ?? '');
+  if (websiteError) throw new Error(websiteError);
   const { data, error } = await supabase
     .from('agents')
     .insert({ ...draft, organization_id: organizationId, created_by: userId })
@@ -65,15 +94,6 @@ export async function createAgent(organizationId: string, userId: string, draft:
     .single();
   if (error) throw error;
   return data as AgentRecord;
-}
-
-export async function validateContextPdf(file: File) {
-  if (file.type !== 'application/pdf') throw new Error('El contexto debe ser un archivo PDF.');
-  if (file.size > 20 * 1024 * 1024) throw new Error('El PDF no puede superar 20 MB.');
-  const signature = new Uint8Array(await file.slice(0, 5).arrayBuffer());
-  if (String.fromCharCode(...signature) !== '%PDF-') {
-    throw new Error('El archivo no tiene una firma PDF válida.');
-  }
 }
 
 const pendingUploads = new WeakMap<File, { scope: string; documentId: string; registered: boolean; complete: boolean }>();
