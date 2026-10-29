@@ -8,6 +8,7 @@
     "build": "npm run typecheck && npm run lint && npm test && vite build",
     "lint": "eslint .",
     "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "test:integration": "node --test --experimental-strip-types tests/integration/*.test.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
