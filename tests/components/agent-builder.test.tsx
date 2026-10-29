@@ -36,6 +36,7 @@ function WorkspaceFixture() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.history.replaceState(null, '', '/');
   api.createAgent.mockResolvedValue(row);
   api.uploadContextPdf.mockResolvedValue('doc-a');
   api.validateContextPdf.mockResolvedValue(undefined);
@@ -50,13 +51,65 @@ describe('real component, synthetic services only', () => {
     expect(screen.queryByText('Protección permanente')).toBeNull();
     expect(screen.queryByText('Tus datos quedan separados')).toBeNull();
   });
-  it('shows real next steps instead of the creation hero when an agent exists', async () => {
+  it('opens the agent list when an agent exists', async () => {
     api.listAgents.mockResolvedValue([{...row, name:'Agente sintético', business_name:'Negocio', requested_channels:['instagram']}]); render(<WorkspaceFixture />);
-    expect(await screen.findByText('Siguientes pasos')).toBeTruthy();
+    expect(await screen.findByRole('button',{name:'Abrir Agente sintético'})).toBeTruthy();
     expect(screen.queryByText('Agente de Atención Inteligente')).toBeNull();
-    expect(button('Crear otro asistente')).toBeTruthy();
-    fireEvent.click(button('Revisar mis agentes'));
     expect(screen.getByRole('tab', {name:/Mis agentes/}).getAttribute('aria-selected')).toBe('true');
+  });
+  it('opens only a selected agent from the current organization and supports browser navigation', async () => {
+    api.listAgents.mockResolvedValue([{...row,name:'Atlas',business_name:'Studio',requested_channels:['instagram']}, {...row,id:'foreign',organization_id:'org-b',name:'Otro',requested_channels:['instagram']}]);
+    render(<WorkspaceFixture />); fireEvent.click(await screen.findByRole('button',{name:'Abrir Atlas'}));
+    expect(screen.getByRole('region',{name:'Espacio de Atlas'})).toBeTruthy();
+    expect(new URLSearchParams(window.location.search).get('agent')).toBe('agent-a');
+    fireEvent.click(button('Volver a mis agentes'));
+    expect(screen.queryByRole('region',{name:'Espacio de Atlas'})).toBeNull();
+    window.history.replaceState(null,'','/?agent=foreign'); fireEvent.popState(window);
+    expect(await screen.findByText('Este agente no está disponible en este espacio.')).toBeTruthy();
+    expect(screen.queryByRole('region',{name:'Espacio de Otro'})).toBeNull();
+    window.history.replaceState(null,'','/?agent=agent-a'); fireEvent.popState(window);
+    expect(screen.getByRole('region',{name:'Espacio de Atlas'})).toBeTruthy();
+  });
+  it('does not override an explicit tab selection after a slow response', async () => {
+    const pending=deferred<AgentRecord[]>(); api.listAgents.mockReturnValue(pending.promise); render(<WorkspaceFixture />);
+    fireEvent.click(screen.getByRole('tab',{name:'Para empezar'}));
+    await act(async()=>pending.resolve([{...row,name:'Atlas',business_name:'Studio',requested_channels:['instagram']}]));
+    expect(screen.getByRole('tab',{name:'Para empezar'}).getAttribute('aria-selected')).toBe('true');
+  });
+  it('opens the list after a failed load is retried successfully', async () => {
+    api.listAgents.mockRejectedValueOnce(new Error('synthetic')).mockResolvedValueOnce([{...row,name:'Atlas',business_name:'Studio',requested_channels:['instagram']}]);
+    render(<WorkspaceFixture />); await screen.findByRole('alert'); fireEvent.click(button('Reintentar'));
+    expect(await screen.findByRole('button',{name:'Abrir Atlas'})).toBeTruthy();
+    expect(screen.getByRole('tab',{name:/Mis agentes/}).getAttribute('aria-selected')).toBe('true');
+  });
+  it('clears the selected agent when the user or organization changes', async () => {
+    const rows=[{...row,name:'Atlas',business_name:'Studio',requested_channels:['instagram']}]; api.listAgents.mockResolvedValue(rows);
+    function Scoped({user,org}:{user:string;org:string}) { const [memory,setMemory]=useState<AgentDraftMemory|null>(null); return <AgentWorkspace userId={user} workspace={{...workspace,organizationId:org}} draftMemory={memory} setDraftMemory={setMemory} />; }
+    const view=render(<Scoped user="user-a" org="org-a" />);
+    fireEvent.click(await screen.findByRole('button',{name:'Abrir Atlas'}));
+    expect(screen.getByRole('region',{name:'Espacio de Atlas'})).toBeTruthy();
+    view.rerender(<Scoped user="user-b" org="org-b" />);
+    expect(screen.queryByRole('region',{name:'Espacio de Atlas'})).toBeNull();
+    await waitFor(()=>expect(new URLSearchParams(window.location.search).has('agent')).toBe(false));
+  });
+  it('clears a direct link on account change within the same organization', async () => {
+    window.history.replaceState(null,'','/?agent=agent-a');
+    api.listAgents.mockResolvedValue([{...row,name:'Atlas',business_name:'Studio',requested_channels:['instagram']}]);
+    function Scoped({user}:{user:string}) { const [memory,setMemory]=useState<AgentDraftMemory|null>(null); return <AgentWorkspace userId={user} workspace={workspace} draftMemory={memory} setDraftMemory={setMemory} />; }
+    const view=render(<Scoped user="user-a" />); await screen.findByRole('region',{name:'Espacio de Atlas'});
+    view.rerender(<Scoped user="user-b" />);
+    await waitFor(()=>expect(new URLSearchParams(window.location.search).has('agent')).toBe(false));
+    expect(screen.queryByRole('region',{name:'Espacio de Atlas'})).toBeNull();
+  });
+  it('focuses the selected detail, requested editor field, and list on return', async () => {
+    const full={...row,name:'Atlas',business_name:'Studio',business_description:'Descripción sintética con suficiente longitud.',requested_channels:['instagram'],goal:'customer_service',tone:'clear_and_warm',updated_at:'2026-01-01'};
+    api.listAgents.mockResolvedValue([full]); render(<WorkspaceFixture />); fireEvent.click(await screen.findByRole('button',{name:'Abrir Atlas'}));
+    await waitFor(()=>expect(document.activeElement?.textContent).toBe('Atlas'));
+    fireEvent.click(button('Editar comportamiento y reglas'));
+    await waitFor(()=>expect(document.activeElement).toBe(screen.getByLabelText('Tono')));
+    fireEvent.click(button('Cancelar')); await waitFor(()=>expect(document.activeElement?.textContent).toBe('Atlas'));
+    fireEvent.click(button('Volver a mis agentes'));
+    await waitFor(()=>expect(document.activeElement?.textContent).toBe('Mis agentes'));
   });
   it('blocks advancing with an invalid website and displays an associated error on blur', () => {
     render(<Memory />);
@@ -353,7 +406,7 @@ describe('existing agent editor with synthetic services', () => {
   }
   it('prevents switching agents or tabs until a dirty editor is closed explicitly', async () => {
     api.listAgents.mockResolvedValue([existing,{...existing,id:'agent-b',name:'Beta'}]); render(<WorkspaceFixture />);
-    await screen.findByText('Siguientes pasos'); fireEvent.click(button('Revisar mis agentes'));
+    await screen.findByRole('button',{name:'Editar Atlas'});
     fireEvent.click(button('Editar Atlas')); fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'En edición'}});
     expect(screen.queryByRole('button',{name:'Editar Beta'})).toBeNull();
     expect((screen.getByRole('tab',{name:'Para empezar'}) as HTMLButtonElement).disabled).toBe(true);
@@ -365,7 +418,7 @@ describe('existing agent editor with synthetic services', () => {
   it('prevents navigation to another agent during a pending save', async () => {
     const pending=deferred<AgentRecord>(); api.updateAgent.mockReturnValue(pending.promise);
     api.listAgents.mockResolvedValue([existing,{...existing,id:'agent-b',name:'Beta'}]); render(<WorkspaceFixture />);
-    await screen.findByText('Siguientes pasos'); fireEvent.click(button('Revisar mis agentes')); fireEvent.click(button('Editar Atlas'));
+    await screen.findByRole('button',{name:'Editar Atlas'}); fireEvent.click(button('Editar Atlas'));
     fireEvent.change(screen.getByLabelText('Nombre del agente'),{target:{value:'Nuevo'}}); fireEvent.click(button('Guardar cambios'));
     await waitFor(()=>expect(api.updateAgent).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole('button',{name:'Editar Beta'})).toBeNull();
