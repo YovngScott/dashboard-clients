@@ -5,7 +5,7 @@ alter policy organization_logos_insert_owner on storage.objects
     bucket_id = 'organization-logos'
     and exists (
       select 1 from public.organizations organization
-      where organization.id::text = (storage.foldername(name))[1]
+      where organization.id::text = (storage.foldername(objects.name))[1]
         and private.has_org_role(organization.id, array['owner', 'admin'])
     )
   );
@@ -15,7 +15,7 @@ alter policy organization_logos_delete_owner on storage.objects
     bucket_id = 'organization-logos'
     and exists (
       select 1 from public.organizations organization
-      where organization.id::text = (storage.foldername(name))[1]
+      where organization.id::text = (storage.foldername(objects.name))[1]
         and private.has_org_role(organization.id, array['owner', 'admin'])
     )
   );
